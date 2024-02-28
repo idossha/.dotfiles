@@ -32,7 +32,7 @@ brew install tmux git
 
 ```
 
-#### For XCode Command Line Tools do:
+##### For XCode Command Line Tools do:
 
 ```bash
 xcode-select --install
@@ -48,13 +48,13 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 source ~/.zshrc
 ```
 
-# This conculdes the important installations. From here you have a MVP and can configure as you wish.
+## This conculdes the important installations. From here you have a MVP and can configure as you wish.
 
 ---
 
 # Configuration
 
-#### Install ZSH Plugins
+#### Terminal + ZSH plugins
 
 1. Install zsh-autosuggestions:
 
@@ -178,7 +178,7 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search)
 
 ---
 
-# Setup Requires
+# Setup requirements
 
 - [iTerm2](https://iterm2.com/)
 - [Neovim](https://neovim.io/) (Version 0.9 or Later)
@@ -190,9 +190,9 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search)
 
 # References
 
-from josean:
+### from josean:
 
-#### Terminal Setup + Relevant files:
+Terminal Setup + Relevant files:
 
 https://www.youtube.com/watch?v=CF1tMjvHDRA&list=PLnu5gT9QrFg36OehOdECFvxFFeMHhb_07&index=2&t=479s
 
@@ -209,6 +209,6 @@ https://youtu.be/U-omALWIBos
 https://youtu.be/6mxWayq-s9I
 [.config/nvim](.config/nvim)
 
-from others:
+### from others:
 
 https://www.youtube.com/watch?v=zIGJ8NTHF4k
