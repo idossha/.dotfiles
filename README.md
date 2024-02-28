@@ -33,8 +33,6 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 ```bash
 brew install --cask iterm2
 brew install --cask rectangle
-brew install --cask ripgrep
-brew install --cask nodea
 brew tap homebrew/cask-fonts
 brew install tmux
 brew install git
