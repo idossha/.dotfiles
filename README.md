@@ -1,28 +1,21 @@
-Created: 20240221 0101
-Status: #main-node
-Tags:
-Links:
-
----
+## Created: 20240221 0101
 
 Ido Haber
 Last update: FEB 27, 2024
 
 This is an adaptation of https://github.com/josean-dev/dev-environment-files by josean.
 
-Disclosure: This environment is in working development and far from perfect, so adopt at your own discretion.
+Disclosure: This environment is in working development and far from perfect, so clone at your own discretion.
 
 ---
 
-# Housekeeping
+# Housekeeping (see requirements & references at the bottom)
 
-#### Step 1: Install Homebrew:
+#### Step 1: Install Homebrew & add to path:
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
-
-#### Add Homebrew To Path
 
 After installing, add it to the path (replace ”[username]” with your actual username):
 
@@ -39,25 +32,37 @@ brew install tmux git
 
 ```
 
+#### For XCode Command Line Tools do:
+
+```bash
+xcode-select --install
+```
+
 ```bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
 
-##### To reflect this change on your terminal, restart it or run this command:
+##### To reflect changes on your terminal, restart it or run this command:
 
 ```bash
 source ~/.zshrc
 ```
 
+# This conculdes the important installations. From here you have a MVP and can configure as you wish.
+
+---
+
+# Configuration
+
 #### Install ZSH Plugins
 
-Install zsh-autosuggestions:
+1. Install zsh-autosuggestions:
 
 ```bash
 git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
 ```
 
-Install zsh-syntax-highlighting:
+2. Install zsh-syntax-highlighting:
 
 ```bash
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
@@ -69,39 +74,6 @@ Open the ”~/.zshrc” file in your desired editor and modify the plugins line 
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search)
 ```
 
-For XCode Command Line Tools do:
-
-```bash
-xcode-select --install
-```
-
-# This conculdes the important installations. From here you have a MVP and can configure as you wish.
-
-#### Terminal Setup + Relevant files:
-
-https://www.youtube.com/watch?v=CF1tMjvHDRA&list=PLnu5gT9QrFg36OehOdECFvxFFeMHhb_07&index=2&t=479s
-
-[.zshrc](.zshrc) - Zsh Shell Configuration
-
-#### Tmux Setup + Relevant files:
-
-https://youtu.be/U-omALWIBos
-
-[.tmux.conf](.tmux.conf) - Tmux Configuration File
-
-#### Neovim Setup + Relevant files:
-
-https://youtu.be/6mxWayq-s9I
-[.config/nvim](.config/nvim)
-
-#### Setup Requires
-
-- True Color Terminal Like: [iTerm2](https://iterm2.com/)
-- [Neovim](https://neovim.io/) (Version 0.9 or Later)
-- [Nerd Font](https://www.nerdfonts.com/) -
-- [Ripgrep](https://github.com/BurntSushi/ripgrep) - For Telescope Fuzzy Finder
-- XCode Command Line Tools
-
 ---
 
 # Need to filter out:
@@ -110,15 +82,11 @@ https://youtu.be/6mxWayq-s9I
 
 #### Plugin Manager
 
-- [folke/lazy.nvim](https://github.com/folke/lazy.nvim) - Amazing plugin manager
+- [folke/lazy.nvim](https://github.com/folke/lazy.nvim)
 
 #### Dependency For Other Plugins
 
 - [nvim-lua/plenary](https://github.com/nvim-lua/plenary.nvim) - Useful lua functions other plugins use
-
-#### Preferred Colorscheme
-
-- [bluz71/vim-nightfly-guicolors](https://github.com/bluz71/vim-nightfly-guicolors)
 
 #### Navigating Between Neovim Windows and Tmux
 
@@ -210,6 +178,37 @@ https://youtu.be/6mxWayq-s9I
 
 ---
 
+# Setup Requires
+
+- [iTerm2](https://iterm2.com/)
+- [Neovim](https://neovim.io/) (Version 0.9 or Later)
+- [Nerd Font](https://www.nerdfonts.com/) -
+- [Ripgrep](https://github.com/BurntSushi/ripgrep) - For Telescope Fuzzy Finder
+- XCode Command Line Tools
+
+---
+
 # References
+
+from josean:
+
+#### Terminal Setup + Relevant files:
+
+https://www.youtube.com/watch?v=CF1tMjvHDRA&list=PLnu5gT9QrFg36OehOdECFvxFFeMHhb_07&index=2&t=479s
+
+[.zshrc](.zshrc) - Zsh Shell Configuration
+
+#### Tmux Setup + Relevant files:
+
+https://youtu.be/U-omALWIBos
+
+[.tmux.conf](.tmux.conf) - Tmux Configuration File
+
+#### Neovim Setup + Relevant files:
+
+https://youtu.be/6mxWayq-s9I
+[.config/nvim](.config/nvim)
+
+from others:
 
 https://www.youtube.com/watch?v=zIGJ8NTHF4k
