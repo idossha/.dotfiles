@@ -98,16 +98,15 @@ https://youtu.be/6mxWayq-s9I
 
 - True Color Terminal Like: [iTerm2](https://iterm2.com/)
 - [Neovim](https://neovim.io/) (Version 0.9 or Later)
-- [Nerd Font](https://www.nerdfonts.com/) - I use Meslo Nerd Font
+- [Nerd Font](https://www.nerdfonts.com/) -
 - [Ripgrep](https://github.com/BurntSushi/ripgrep) - For Telescope Fuzzy Finder
 - XCode Command Line Tools
-- If working with typescript/javascript and the typescript language server like me. You might need to install node.
 
 ---
 
 # Need to filter out:
 
-## Plugins
+### Plugins
 
 #### Plugin Manager
 
@@ -214,4 +213,3 @@ https://youtu.be/6mxWayq-s9I
 # References
 
 https://www.youtube.com/watch?v=zIGJ8NTHF4k
-
