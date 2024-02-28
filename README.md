@@ -9,6 +9,10 @@ Disclosure: This environment is in working development and far from perfect, so 
 
 ---
 
+look into json command line processorm font-sf-ori , sf-symbols
+
+---
+
 # Housekeeping (see requirements & references at the bottom)
 
 #### Step 1: Install Homebrew & add to path:
@@ -27,9 +31,18 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 #### Step2: Main programs: Install iTerm2, TMUX, Git, Rectangle, Oh My Zsh
 
 ```bash
-brew install --cask iterm2 rectangle ripgrem node
-brew install tmux git neovim
-
+brew install --cask iterm2
+brew install --cask rectangle
+brew install --cask ripgrep
+brew install --cask nodea
+brew tap homebrew/cask-fonts
+brew install tmux
+brew install git
+brew install neovim
+brew install font-hack-nerd-font
+brew install ripgrep
+brew install node
+brew install jq
 ```
 
 ##### For XCode Command Line Tools do:
@@ -41,6 +54,8 @@ xcode-select --install
 ```bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
+
+### Make sure from now on you work with iTerm or full color terminal of your choice.
 
 ##### To reflect changes on your terminal, restart it or run this command:
 
@@ -75,6 +90,8 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search)
 ```
 
 ---
+
+[nerd fonts](https://github.com/ryanoasis/nerd-fonts)
 
 # Need to filter out:
 
