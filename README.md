@@ -1,41 +1,89 @@
+Created: 20240221 0101
+Status: #main-node
+Tags: 
+Links: 
+
+---
+
 Ido Haber
-2024
+Last update: FEB 27, 2024
 
-This is and adaptation of https://github.com/josean-dev/dev-environment-files by josean.
+This is an adaptation of https://github.com/josean-dev/dev-environment-files by josean.
+#### Step 1: Install Homebrew:
 
-# Terminal Setup
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+#### Add Homebrew To Path
 
-📹 Youtube Guide: [How To Make Your Boring Mac Terminal So Much Better](https://www.youtube.com/watch?v=CF1tMjvHDRA&list=PLnu5gT9QrFg36OehOdECFvxFFeMHhb_07&index=2&t=479s)
+After installing, add it to the path (replace ”[username]” with your actual username):
 
-### Relevant Files
+```bash
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/[username]/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv)"
+```
+#### Step2: Main programs: Install iTerm2, TMUX, Git, Rectangle, Oh My Zsh
 
-- [.zshrc](.zshrc) - Zsh Shell Configuration
+```bash
+brew install --cask iterm2 rectangle neovim ripgrem node
+brew install tmux git
 
-# Tmux Setup
+```
 
-📹 Youtube Guide: [How I Setup And Use Tmux Alongside Neovim for an Awesome Dev Workflow](https://youtu.be/U-omALWIBos)
+```bash
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+```
+##### To reflect this change on your terminal, restart it or run this command:
 
-### Relevant Files
+```bash
+source ~/.zshrc
+```
 
-- [.tmux.conf](.tmux.conf) - Tmux Configuration File
+#### Install ZSH Plugins
 
-# Neovim Setup
+Install zsh-autosuggestions:
 
-**Important**: This is my latest config with lazy.nvim. It is similar, but not the same as my original packer setup.
+```bash
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+```
 
-If you are coming from my full neovim setup video with packer, that config is found here: [Packer Config](https://github.com/josean-dev/dev-environment-files/tree/packer-nvim-setup)
+Install zsh-syntax-highlighting:
 
-📹 Packer Full Neovim Setup Guide: [How I Setup Neovim On My Mac To Make It Amazing](https://youtu.be/vdn_pKJUda8)
+```bash
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+```
 
-📹 lazy.nvim Neovim Guide: [How To Use lazy.nvim for an Amazing And Simple Neovim Config](https://youtu.be/6mxWayq-s9I)
+Open the ”~/.zshrc” file in your desired editor and modify the plugins line to what you see below.
 
-_If you clone the repo into your machine and use the config by copying .config/nvim to your home folder, wait for the plugins, language servers and parsers to install with lazy.nvim, Mason and nvim-treesitter. If you are opening a lua file or another file I have language servers configured for, like html, css or javascript/typescript, you might also get an error saying that the server failed to start. This is because Mason hasn't installed it yet. Press enter to continue, Mason will automatically install it._
+```
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search)
+```
 
-### Relevant Files
+For XCode Command Line Tools do:
 
-- [.config/nvim](.config/nvim)
+```bash
+xcode-select --install
+```
 
-### Setup Requires
+# This conculdes the important installations. From here you have a MVP and can configure as you wish.
+
+#### Terminal Setup + Relevant files:
+
+https://www.youtube.com/watch?v=CF1tMjvHDRA&list=PLnu5gT9QrFg36OehOdECFvxFFeMHhb_07&index=2&t=479s
+
+ [.zshrc](.zshrc) - Zsh Shell Configuration
+
+#### Tmux Setup + Relevant files:
+
+https://youtu.be/U-omALWIBos
+
+ [.tmux.conf](.tmux.conf) - Tmux Configuration File
+#### Neovim Setup + Relevant files:
+
+https://youtu.be/6mxWayq-s9I
+[.config/nvim](.config/nvim)
+
+#### Setup Requires
 
 - True Color Terminal Like: [iTerm2](https://iterm2.com/)
 - [Neovim](https://neovim.io/) (Version 0.9 or Later)
@@ -44,29 +92,8 @@ _If you clone the repo into your machine and use the config by copying .config/n
 - XCode Command Line Tools
 - If working with typescript/javascript and the typescript language server like me. You might need to install node.
 
-If you're on mac, like me, you can install iTerm2, Neovim, Ripgrep and Node with homebrew.
-
-```bash
-brew install --cask iterm2
-```
-
-```bash
-brew install neovim
-```
-
-```bash
-brew install ripgrep
-```
-
-```bash
-brew install node
-```
-
-For XCode Command Line Tools do:
-
-```bash
-xcode-select --install
-```
+---
+# Need to filter out:
 
 ## Plugins
 
@@ -169,3 +196,9 @@ xcode-select --install
 #### Git
 
 - [lewis6991/gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim) - Show line modifications on left hand side
+
+
+---
+# References
+
+https://www.youtube.com/watch?v=zIGJ8NTHF4k
