@@ -27,8 +27,8 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 #### Step2: Main programs: Install iTerm2, TMUX, Git, Rectangle, Oh My Zsh
 
 ```bash
-brew install --cask iterm2 rectangle neovim ripgrem node
-brew install tmux git
+brew install --cask iterm2 rectangle ripgrem node
+brew install tmux git neovim
 
 ```
 
