@@ -180,9 +180,9 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search)
 
 # Setup requirements
 
-- [iTerm2](https://iterm2.com/)
+- [iTerm2](https://iterm2.com/) - need to have full color terminal
 - [Neovim](https://neovim.io/) (Version 0.9 or Later)
-- [Nerd Font](https://www.nerdfonts.com/) -
+- [Nerd Font](https://www.nerdfonts.com/) - best to have some nerd font so you have full visualization
 - [Ripgrep](https://github.com/BurntSushi/ripgrep) - For Telescope Fuzzy Finder
 - XCode Command Line Tools
 
