@@ -1,7 +1,7 @@
 Created: 20240221 0101
 Status: #main-node
-Tags: 
-Links: 
+Tags:
+Links:
 
 ---
 
@@ -9,11 +9,19 @@ Ido Haber
 Last update: FEB 27, 2024
 
 This is an adaptation of https://github.com/josean-dev/dev-environment-files by josean.
+
+Disclosure: This environment is in working development and far from perfect, so adopt at your own discretion.
+
+---
+
+# Housekeeping
+
 #### Step 1: Install Homebrew:
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
+
 #### Add Homebrew To Path
 
 After installing, add it to the path (replace ”[username]” with your actual username):
@@ -22,6 +30,7 @@ After installing, add it to the path (replace ”[username]” with your actual 
 echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/[username]/.zprofile
 eval "$(/opt/homebrew/bin/brew shellenv)"
 ```
+
 #### Step2: Main programs: Install iTerm2, TMUX, Git, Rectangle, Oh My Zsh
 
 ```bash
@@ -33,6 +42,7 @@ brew install tmux git
 ```bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
+
 ##### To reflect this change on your terminal, restart it or run this command:
 
 ```bash
@@ -71,13 +81,14 @@ xcode-select --install
 
 https://www.youtube.com/watch?v=CF1tMjvHDRA&list=PLnu5gT9QrFg36OehOdECFvxFFeMHhb_07&index=2&t=479s
 
- [.zshrc](.zshrc) - Zsh Shell Configuration
+[.zshrc](.zshrc) - Zsh Shell Configuration
 
 #### Tmux Setup + Relevant files:
 
 https://youtu.be/U-omALWIBos
 
- [.tmux.conf](.tmux.conf) - Tmux Configuration File
+[.tmux.conf](.tmux.conf) - Tmux Configuration File
+
 #### Neovim Setup + Relevant files:
 
 https://youtu.be/6mxWayq-s9I
@@ -93,6 +104,7 @@ https://youtu.be/6mxWayq-s9I
 - If working with typescript/javascript and the typescript language server like me. You might need to install node.
 
 ---
+
 # Need to filter out:
 
 ## Plugins
@@ -197,8 +209,9 @@ https://youtu.be/6mxWayq-s9I
 
 - [lewis6991/gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim) - Show line modifications on left hand side
 
-
 ---
+
 # References
 
 https://www.youtube.com/watch?v=zIGJ8NTHF4k
+
