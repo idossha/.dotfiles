@@ -1,3 +1,4 @@
 .ssh/
 .tmux/plugins
 .ohmyzsh/
+.DS_Store
