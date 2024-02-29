@@ -5,6 +5,17 @@ export SUBJECTS_DIR=$HOME/Desktop/subjects
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
 
+
+#default zsh prompt: 
+# %n@%m %1~ %# ---- username@hostname ~ %
+# %n is the username
+# %m is the hostname
+# %1~ is the current directory
+# %# is the prompt character
+# PROMPT='%1~ > '
+export PS1='%n|%1~ > '
+
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
