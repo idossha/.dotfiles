@@ -11,6 +11,8 @@ Disclosure: This environment is in working development and far from perfect, so 
 
 look into json command line processorm font-sf-ori , sf-symbols
 
+might need to clone tmux configuration and ohmyzsh and do a few things manually. for later update.
+
 ---
 
 # Housekeeping (see requirements & references at the bottom)
