@@ -11,6 +11,13 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- bootstrap lazy if not installed.
+--
+--
+--
+--
+--
+
 require("lazy").setup({ { import = "idossha.plugins" }, { import = "idossha.plugins.lsp" } }, {
   install = {
     colorscheme = { "gruvbox" },

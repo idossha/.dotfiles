@@ -1,4 +1,6 @@
 .ssh/
-.tmux/plugins
+.tmux/
 .ohmyzsh/
 .DS_Store
+.gitinfo
+.vscode
