@@ -1,3 +1,0 @@
-# Multiple Cursors
-
-Coming soon
