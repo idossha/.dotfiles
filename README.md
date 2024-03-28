@@ -1,9 +1,9 @@
 ## Created: 20240221 0101
 
 Ido Haber
-Last update: FEB 27, 2024
+Last update: March 27, 2024
 
-This is an adaptation of https://github.com/josean-dev/dev-environment-files by josean.
+This is an adaptation (simplified version) of https://github.com/josean-dev/dev-environment-files by josean.
 
 Disclosure: This environment is in working development and far from perfect, so clone at your own discretion.
 
@@ -15,7 +15,7 @@ might need to clone tmux configuration and ohmyzsh and do a few things manually.
 
 # Housekeeping (see requirements & references at the bottom)
 
-#### Step 1: Install Homebrew & add to path:
+#### Step 1: Install Homebrew & add to path
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -28,7 +28,13 @@ echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/[username]/.zprofile
 eval "$(/opt/homebrew/bin/brew shellenv)"
 ```
 
-#### Step2: Main programs:
+##### For XCode Command Line Tools do:
+
+```bash
+xcode-select --install
+```
+
+#### Step2: Main programs
 
 ```bash
 brew install --cask iterm2
@@ -43,31 +49,15 @@ brew install node
 brew install jq
 ```
 
-##### For XCode Command Line Tools do:
+### step3: clone this repo and run the bash script to create symlinks
 
-```bash
-xcode-select --install
-```
+#### 4: install ohmyzsh:
 
 ```bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
 
-### Make sure from now on you work with iTerm or full color terminal of your choice.
-
-##### To reflect changes on your terminal, restart it or run this command:
-
-```bash
-source ~/.zshrc
-```
-
-## This conculdes the important installations. From here you have a MVP and can configure as you wish.
-
----
-
-# Configuration
-
-#### Terminal + ZSH plugins
+#### step 5: install extra plugins for command line
 
 1. Install zsh-autosuggestions:
 
@@ -86,6 +76,16 @@ Open the ”~/.zshrc” file in your desired editor and modify the plugins line 
 ```
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search)
 ```
+
+### Make sure from now on you work with iTerm or full color terminal of your choice.
+
+##### To reflect changes on your terminal, restart it or run this command:
+
+```bash
+source ~/.zshrc
+```
+
+## This conculdes the important installations. From here you have a MVP and can configure as you wish.
 
 ---
 
