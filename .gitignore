@@ -1,5 +1,4 @@
 .ssh/
-.tmux/
 .ohmyzsh/
 .DS_Store
 .viminfo
