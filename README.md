@@ -9,11 +9,7 @@ Disclosure: This environment is in working development and far from perfect, so 
 
 ---
 
-might need to clone tmux configuration and ohmyzsh and do a few things manually. for later update.
-
----
-
-# Housekeeping (see requirements & references at the bottom)
+## Housekeeping (see requirements & references at the bottom)
 
 #### Step 1: Install Homebrew & add to path
 
@@ -85,7 +81,7 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search)
 source ~/.zshrc
 ```
 
-## This conculdes the important installations. From here you have a MVP and can configure as you wish.
+## This conculdes the important installations. From here continue to configure as you wish.
 
 ---
 
