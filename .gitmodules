@@ -4,3 +4,12 @@
   url = https://github.com/tmux-plugins/tpm
 
 
+[submodule ".tmux/plugins/tmux-gruvbox"]
+  path = .tmux/plugins/tmux-gruvbox
+  url = https://github.com/egel/tmux-gruvbox
+
+  
+[submodule ".tmux/plugins/tmux-sensible"]
+  path = .tmux/plugins/tmux-sensible
+  url = https://github.com/tmux-plugins/tmux-sensible
+
