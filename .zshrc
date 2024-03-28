@@ -20,7 +20,7 @@ export PS1='%n|%1~ > '
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="$HOME/.ohmyzsh"
+export ZSH="$HOME/ohmyzsh"
 
 
 #THEME:
