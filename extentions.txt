@@ -1,0 +1,14 @@
+esbenp.prettier-vscode
+formulahendry.auto-rename-tag
+ms-azuretools.vscode-docker
+ms-python.debugpy
+ms-python.python
+ms-python.vscode-pylance
+ms-toolsai.jupyter
+ms-toolsai.jupyter-keymap
+ms-toolsai.jupyter-renderers
+ms-toolsai.vscode-jupyter-cell-tags
+ms-toolsai.vscode-jupyter-slideshow
+pnp.polacode
+ritwickdey.liveserver
+vscode-icons-team.vscode-icons
