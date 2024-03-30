@@ -21,7 +21,7 @@ done
 echo "Symlinks created successfully."
 
 # Check for Homebrew, install if we don't have it
-if test ! $(which brew); then
+if ! command -v brew &> /dev/null; then
   echo "Installing homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 fi
@@ -33,15 +33,18 @@ brew doctor
 echo "Running brew update..."
 brew update
 
-# Install Xcode Command Line Tools
-xcode-select --install
+# Check and Install Xcode Command Line Tools
+if ! xcode-select -p &> /dev/null; then
+  echo "Installing Xcode Command Line Tools..."
+  xcode-select --install
+fi
 
-# Brew install packages
+# List of brew and cask packages
 BREW_CASK_PACKAGES=(
   iterm2
   rectangle
+  keyboardcleantool
 )
-
 BREW_PACKAGES=(
   tmux
   git
@@ -49,23 +52,35 @@ BREW_PACKAGES=(
   ripgrep
   node
   jq
+  tree-sitter
+  pillow
+  pandoc
+  ffmpeg
 )
 
+# Install Brew cask packages
 echo "Installing brew cask packages..."
 for package in "${BREW_CASK_PACKAGES[@]}"; do
-  brew install --cask $package
+  if ! brew list --cask | grep -q "^$package\$"; then
+    brew install --cask $package
+  fi
 done
 
 echo "Tapping into homebrew/cask-fonts..."
 brew tap homebrew/cask-fonts
 
+# Install Brew packages
 echo "Installing brew packages..."
 for package in "${BREW_PACKAGES[@]}"; do
-  brew install $package
+  if ! brew list | grep -q "^$package\$"; then
+    brew install $package
+  fi
 done
 
 echo "Installing font-hack-nerd-font..."
-brew install font-hack-nerd-font
+if ! brew list | grep -q "^font-hack-nerd-font\$"; then
+  brew install font-hack-nerd-font
+fi
 
 # Check for Oh My Zsh, install if we don't have it
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
@@ -75,8 +90,12 @@ fi
 
 # Install zsh-autosuggestions & zsh-syntax-highlighting
 ZSH_CUSTOM_PLUGINS="$HOME/.oh-my-zsh/custom/plugins"
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM_PLUGINS}/zsh-autosuggestions
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM_PLUGINS}/zsh-syntax-highlighting
+if [ ! -d "${ZSH_CUSTOM_PLUGINS}/zsh-autosuggestions" ]; then
+  git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM_PLUGINS}/zsh-autosuggestions
+fi
+if [ ! -d "${ZSH_CUSTOM_PLUGINS}/zsh-syntax-highlighting" ]; then
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM_PLUGINS}/zsh-syntax-highlighting
+fi
 
 echo "Script execution finished!"
 
