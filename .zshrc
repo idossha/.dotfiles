@@ -107,6 +107,9 @@ source $ZSH/oh-my-zsh.sh
 #
 # Example aliases
 alias zshconfig="mate ~/.zshrc"
+alias mp="cd ~/Desktop/Git-Projects/"
+alias ms="cd ~/Applications/SimNIBS-4.1/"
+alias md="cd ~/.dotfiles/"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # >>> conda initialize >>>

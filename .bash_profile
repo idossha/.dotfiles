@@ -7,9 +7,6 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
 
 
-## Added by SimNIBS
-SIMNIBS_BIN="/Users/idohaber/Applications/SimNIBS-4.0/bin"
-export PATH=${PATH}:${SIMNIBS_BIN}
 
 
 # >>> conda initialize >>>
@@ -28,3 +25,7 @@ unset __conda_setup
 # <<< conda initialize <<<
 
 
+
+## Added by SimNIBS
+SIMNIBS_BIN="/Users/idohaber/Applications/SimNIBS-4.1/bin"
+export PATH=${PATH}:${SIMNIBS_BIN}
