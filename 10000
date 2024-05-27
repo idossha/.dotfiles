@@ -10,3 +10,10 @@
 : 1716777047:0;cd ../
 : 1716777257:0;clear
 : 1716777260:0;git add .
+: 1716777267:0;git commit -m "added fsf and piped it to cntl+R
+: 1716777270:0;git commit -m "added fsf and piped it to cntl+R"
+: 1716777273:0;git push
+: 1716777296:0;nvim .
+: 1716777314:0;git merge origin/main
+: 1716777319:0;git commit -m "added fsf and piped it to cntl+R"
+: 1716777329:0;git add .
