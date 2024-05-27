@@ -29,3 +29,10 @@
 : 1716777467:0;git merge origin
 : 1716777489:0;nvim .
 : 1716777512:0;git add .
+: 1716777515:0;git commit -m "added fsf and piped it to cntl+R"
+: 1716777521:0;git push
+: 1716777555:0;nvim .
+: 1716777601:0;cd ../
+: 1716788203:0;nvim .
+: 1716821816:0;fsleyes
+: 1716833227:0;cd 
