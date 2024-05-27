@@ -79,9 +79,13 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search aliases)
 source $ZSH/oh-my-zsh.sh
 
 
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
 
-
-
+HISTFILE=~/.bash_history
+HISTSIZE=1000
+SAVEHIST=1000
+HISTFILESIZE=2000
 
 # User configuration
 
@@ -111,14 +115,6 @@ alias mp="cd ~/Desktop/Git-Projects/"
 alias ms="cd ~/Applications/SimNIBS-4.1/"
 alias md="cd ~/.dotfiles/"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-
-
-source <(fzf --zsh)
-HISTFILE=10000
-SAVEHIST=10000
-setopt appendhistory
-
-
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
