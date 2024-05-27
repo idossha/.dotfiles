@@ -115,7 +115,7 @@ alias md="cd ~/.dotfiles/"
 
 source <(fzf --zsh)
 HISTFILE=10000
-SAVEHIST=1000
+SAVEHIST=10000
 setopt appendhistory
 
 

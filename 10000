@@ -1,1 +1,6 @@
 : 1716775619:0;git add .
+: 1716775646:0;git commit -m "added fsf and piped it to cntl+R\
+"
+: 1716775652:0;git push
+: 1716775698:0;nvim .
+: 1716775777:0;git add .
