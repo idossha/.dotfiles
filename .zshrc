@@ -112,6 +112,14 @@ alias ms="cd ~/Applications/SimNIBS-4.1/"
 alias md="cd ~/.dotfiles/"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+
+source <(fzf --zsh)
+HISTFILE=10000
+SAVEHIST=1000
+setopt appendhistory
+
+
+
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/opt/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
