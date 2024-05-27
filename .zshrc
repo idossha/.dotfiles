@@ -16,6 +16,10 @@ export PATH=$PATH:/Users/idohaber/.my_scripts/
 export PS1='%n|%1~ > '
 
 
+
+
+
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
