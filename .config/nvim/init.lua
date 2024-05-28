@@ -5,4 +5,4 @@
 require("idossha.core")
 require("idossha.lazy")
 
-vim.o.wrap = true -- Enables text wrapping
+
