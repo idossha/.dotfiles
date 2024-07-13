@@ -93,6 +93,14 @@ alias zshconfig="mate ~/.zshrc"
 alias mp="cd ~/Desktop/Git-Projects/"
 alias ms="cd ~/Applications/SimNIBS-4.1/"
 alias md="cd ~/.dotfiles/"
+
+
+
+
+alias mshana='process_mesh_files.sh /Users/idohaber/Desktop/Mesh_Analyze/'
+
+
+
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # >>> conda initialize >>>
