@@ -4,6 +4,12 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/Users/idohaber/.my_scripts/
 
+export PATH="/Users/idohaber/Applications/mrtrix3/bin:$PATH"
+
+# Add Qt to PATH
+export PATH="$(brew --prefix qt@5)/bin:$PATH"
+
+
 #default zsh prompt: 
 # %n@%m %1~ %# ---- username@hostname ~ %
 # %n is the username
@@ -93,11 +99,12 @@ alias zshconfig="mate ~/.zshrc"
 alias mp="cd ~/Desktop/Git-Projects/"
 alias ms="cd ~/Applications/SimNIBS-4.1/"
 alias md="cd ~/.dotfiles/"
+alias mdarp="cd ~/Desktop/Git-Projects/16_Strengthen_Project"
 
 
 
 
-alias mshana='process_mesh_files.sh /Users/idohaber/Desktop/Mesh_Analyze/'
+alias mshana='process_mesh_files.sh /Users/idohaber/Desktop/.Mesh_Analyze/'
 
 
 
@@ -118,3 +125,4 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+export PATH=`brew --prefix`/opt/qt5/bin:$PATH
