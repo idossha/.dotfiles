@@ -4,6 +4,8 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/Users/idohaber/.my_scripts/
 
+export DYLD_LIBRARY_PATH=/Applications/MATLAB/MATLAB_Runtime/R2024a/runtime/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/bin/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/sys/osmaca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/extern/bin/maca64:$DYLD_LIBRARY_PATH
+
 export PATH="/Users/idohaber/Applications/mrtrix3/bin:$PATH"
 
 # Add Qt to PATH
@@ -99,13 +101,13 @@ alias zshconfig="mate ~/.zshrc"
 alias mp="cd ~/Desktop/Git-Projects/"
 alias ms="cd ~/Applications/SimNIBS-4.1/"
 alias md="cd ~/.dotfiles/"
-alias mdarp="cd ~/Desktop/Git-Projects/16_Strengthen_Project"
+alias mdarp="cd ~/Desktop/Git-Projects/TI-2024"
 
 
 
 
 alias mshana='process_mesh_files.sh /Users/idohaber/Desktop/.Mesh_Analyze/'
-
+alias mshana2='process_mesh_files_new.sh /Users/idohaber/Desktop/.Mesh_Analyze/'
 
 
 # alias ohmyzsh="mate ~/.oh-my-zsh"
