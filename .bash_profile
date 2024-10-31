@@ -29,3 +29,9 @@ unset __conda_setup
 ## Added by SimNIBS
 SIMNIBS_BIN="/Users/idohaber/Applications/SimNIBS-4.1/bin"
 export PATH=${PATH}:${SIMNIBS_BIN}
+export DOCKER_HOST_IP=host.docker.internal
+export DOCKER_DISPLAY=/private/tmp/com.apple.launchd.sLp1ABjeSB/org.xquartz:0
+export DOCKER_HOST_IP=host.docker.internal
+export DOCKER_DISPLAY=/private/tmp/com.apple.launchd.sLp1ABjeSB/org.xquartz:0
+export DOCKER_HOST_IP=host.docker.internal
+export DOCKER_DISPLAY=/private/tmp/com.apple.launchd.sLp1ABjeSB/org.xquartz:0

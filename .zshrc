@@ -128,3 +128,7 @@ unset __conda_setup
 # <<< conda initialize <<<
 
 export PATH=`brew --prefix`/opt/qt5/bin:$PATH
+export DOCKER_HOST_IP=host.docker.internal
+export DISPLAY=host.docker.internal:0
+export DOCKER_HOST_IP=host.docker.internal
+export DISPLAY=host.docker.internal:0
