@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 set -e  # Exit immediately if a command exits with a non-zero status
@@ -12,16 +13,19 @@ DOTFILES_DIR="$HOME/.dotfiles"
 # Home directory
 HOME_DIR="$HOME"
 
+# Oh My Zsh installation directory
+OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
+
 # Define common and OS-specific packages
-COMMON_PACKAGES=("bash" "zsh" "nvim" "tmux" "vscode")
-MACOS_PACKAGES=("iterm2")
+COMMON_PACKAGES=("bash" "zsh" "nvim" "tmux" "vscode" "kitty")
+MACOS_PACKAGES=()
 LINUX_PACKAGES=()  # Add any Linux-specific packages if needed
 
 # Define Homebrew Cask and Brew packages
 BREW_CASK_PACKAGES=(
-  #iterm2            # macOS only
   rectangle         # macOS only
   keyboardcleantool # macOS only
+  kitty             # Kitty terminal emulator
 )
 BREW_PACKAGES=(
   tmux
@@ -34,6 +38,7 @@ BREW_PACKAGES=(
   pillow
   pandoc
   ffmpeg
+  htop
 )
 
 # Function to print messages with separators for better readability
@@ -111,6 +116,30 @@ install_stow() {
 }
 
 # ============================
+# Backup Existing Config Files
+# ============================
+
+backup_existing_configs() {
+  print_message "Backing Up Existing Config Files..."
+
+  # List of config files to check
+  CONFIG_FILES=(
+    ".zshrc"
+    ".bashrc"
+    ".tmux.conf"
+    ".config/kitty/kitty.conf"
+  )
+
+  for config in "${CONFIG_FILES[@]}"; do
+    target="$HOME/$config"
+    if [ -e "$target" ] && [ ! -L "$target" ]; then
+      echo "Backing up $target to $target.backup"
+      mv "$target" "$target.backup"
+    fi
+  done
+}
+
+# ============================
 # Stow Dotfiles
 # ============================
 
@@ -122,21 +151,8 @@ stow_dotfiles() {
   # Stow common packages
   for pkg in "${COMMON_PACKAGES[@]}"; do
     echo "Stowing $pkg..."
-    stow "$pkg"
+    stow --ignore='\.DS_Store' "$pkg"
   done
-
-  # Stow OS-specific packages
-  if $is_mac; then
-    for pkg in "${MACOS_PACKAGES[@]}"; do
-      echo "Stowing $pkg..."
-      stow "$pkg"
-    done
-  elif $is_linux; then
-    for pkg in "${LINUX_PACKAGES[@]}"; do
-      echo "Stowing $pkg..."
-      stow "$pkg"
-    done
-  fi
 
   echo "Dotfiles have been symlinked successfully."
 
@@ -188,13 +204,19 @@ install_font_hack() {
 
   if $is_mac; then
     if ! brew list --cask | grep -q "^font-hack-nerd-font\$"; then
+      brew tap homebrew/cask-fonts
       brew install --cask font-hack-nerd-font
     else
       echo "font-hack-nerd-font is already installed."
     fi
   elif $is_linux; then
     if ! fc-list | grep -i "Hack Nerd Font" &> /dev/null; then
-      brew install --cask font-hack-nerd-font
+      # Install font manually or via package manager
+      echo "Installing Hack Nerd Font..."
+      mkdir -p ~/.local/share/fonts
+      cd ~/.local/share/fonts && curl -fLo "Hack Regular Nerd Font Complete.ttf" \
+        https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/complete/Hack%20Regular%20Nerd%20Font%20Complete.ttf
+      fc-cache -fv
     else
       echo "font-hack-nerd-font is already installed."
     fi
@@ -208,10 +230,14 @@ install_font_hack() {
 install_oh_my_zsh() {
   print_message "Setting Up Oh My Zsh..."
 
-  if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  if [ ! -d "$OH_MY_ZSH_DIR" ]; then
     echo "Oh My Zsh not found. Installing Oh My Zsh..."
-    # Install Oh My Zsh without changing the default shell or starting a new shell
-    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+    # Set ZSH environment variable to install to $HOME/oh-my-zsh
+    export ZSH="$OH_MY_ZSH_DIR"
+
+    # Install Oh My Zsh without modifying .zshrc
+    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
   else
     echo "Oh My Zsh is already installed."
   fi
@@ -224,7 +250,7 @@ install_oh_my_zsh() {
 install_zsh_plugins() {
   print_message "Installing Zsh plugins..."
 
-  ZSH_CUSTOM_PLUGINS="$HOME/oh-my-zsh/custom/plugins"
+  ZSH_CUSTOM_PLUGINS="$OH_MY_ZSH_DIR/custom/plugins"
 
   # Ensure the custom/plugins directory exists
   mkdir -p "$ZSH_CUSTOM_PLUGINS"
@@ -276,21 +302,54 @@ install_neovim_plugins() {
 install_tmux_plugins() {
   print_message "Installing Tmux plugins..."
 
-  # Assuming tpm is already in tmux/tmux_plugins/tpm and stowed to ~/.tmux_plugins/tpm
+  TPM_DIR="$HOME/.tmux/plugins/tpm"
 
-  TPM_DIR="$HOME/.tmux_plugins/tpm"
-
-  if [ -d "$TPM_DIR" ]; then
-    echo "Installing Tmux plugins using TPM..."
-    # Reload tmux environment and install plugins
-    tmux new-session -d "tmux source ~/.tmux.conf; $TPM_DIR/bin/install_plugins"
-    echo "Tmux plugins installed successfully."
-  else
+  if [ ! -d "$TPM_DIR" ]; then
     echo "Tmux Plugin Manager (TPM) not found. Cloning TPM..."
     git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
-    echo "Tmux Plugin Manager cloned. Installing plugins..."
-    tmux new-session -d "tmux source ~/.tmux.conf; $TPM_DIR/bin/install_plugins"
+  else
+    echo "Tmux Plugin Manager is already installed."
+  fi
+
+  # Install Tmux plugins
+  if command -v tmux &> /dev/null; then
+    echo "Installing Tmux plugins..."
+
+    # Start a tmux server
+    tmux start-server
+
+    # Create a new detached session
+    tmux new-session -d -s install_plugins
+
+    # Send the install plugins command
+    tmux send-keys -t install_plugins "$TPM_DIR/bin/install_plugins" C-m
+
+    # Wait for the installation to complete
+    sleep 5
+
+    # Kill the temporary session
+    tmux kill-session -t install_plugins
+
     echo "Tmux plugins installed successfully."
+  else
+    echo "Tmux is not installed. Skipping Tmux plugin installation."
+  fi
+}
+
+# ============================
+# Source .zshrc
+# ============================
+
+source_zshrc() {
+  print_message "Sourcing .zshrc..."
+
+  # Source .zshrc if Zsh is the current shell
+  if [ -n "$ZSH_VERSION" ]; then
+    echo "Sourcing $HOME/.zshrc"
+    source "$HOME/.zshrc"
+    echo ".zshrc has been sourced."
+  else
+    echo "Current shell is not Zsh. Please restart your terminal or run 'source ~/.zshrc' manually."
   fi
 }
 
@@ -301,6 +360,7 @@ install_tmux_plugins() {
 main() {
   install_homebrew
   install_stow
+  backup_existing_configs
   stow_dotfiles
   install_brew_cask_packages
   install_brew_packages
@@ -309,6 +369,7 @@ main() {
   install_zsh_plugins
   install_neovim_plugins
   install_tmux_plugins
+  source_zshrc
 
   print_message "Installation Completed!"
   echo "Your development environment is set up successfully."
@@ -316,5 +377,4 @@ main() {
 
 # Execute the main function
 main
-
 

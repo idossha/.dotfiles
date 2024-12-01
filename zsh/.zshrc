@@ -104,13 +104,9 @@ alias md="cd ~/.dotfiles/"
 alias mdarp="cd ~/Desktop/Git-Projects/TI-2024"
 
 
-
-
 alias mshana='process_mesh_files.sh /Users/idohaber/Desktop/.Mesh_Analyze/'
 alias mshana2='process_mesh_files_new.sh /Users/idohaber/Desktop/.Mesh_Analyze/'
 
-
-# alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
