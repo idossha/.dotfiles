@@ -224,7 +224,7 @@ install_oh_my_zsh() {
 install_zsh_plugins() {
   print_message "Installing Zsh plugins..."
 
-  ZSH_CUSTOM_PLUGINS="$HOME/.oh-my-zsh/custom/plugins"
+  ZSH_CUSTOM_PLUGINS="$HOME/oh-my-zsh/custom/plugins"
 
   # Ensure the custom/plugins directory exists
   mkdir -p "$ZSH_CUSTOM_PLUGINS"
