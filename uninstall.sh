@@ -13,16 +13,18 @@ DOTFILES_DIR="$HOME/.dotfiles"
 # Home directory
 HOME_DIR="$HOME"
 
+# Oh My Zsh installation directory
+OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
+
 # Define common and OS-specific packages
-COMMON_PACKAGES=("bash" "zsh" "nvim" "tmux" "vscode")
-MACOS_PACKAGES=("iterm2")
-LINUX_PACKAGES=()  # Add any Linux-specific packages if needed
+COMMON_PACKAGES=("bash" "zsh" "nvim" "tmux" "vscode" "kitty")
 
 # Define Homebrew Cask and Brew packages
 BREW_CASK_PACKAGES=(
-  #iterm2            # macOS only (Commented out as per install.sh)
-  rectangle         # macOS only
-  keyboardcleantool # macOS only
+  rectangle
+  keyboardcleantool
+  kitty
+  font-hack-nerd-font  # Include the font for uninstallation
 )
 BREW_PACKAGES=(
   tmux
@@ -35,6 +37,10 @@ BREW_PACKAGES=(
   pillow
   pandoc
   ffmpeg
+  htop
+  lazygit
+  lazydocker
+  stow  # Include stow in the list to uninstall it as well
 )
 
 # Function to print messages with separators for better readability
@@ -62,221 +68,158 @@ else
 fi
 
 # ============================
-# Function Definitions
+# Unstow Dotfiles
 # ============================
 
-# Function to unstow dotfiles
 unstow_dotfiles() {
   print_message "Unstowing Dotfiles..."
-
-  if [ ! -d "$DOTFILES_DIR" ]; then
-    echo "Dotfiles directory $DOTFILES_DIR does not exist. Skipping unstowing."
-    return
-  fi
-
+  sleep 1
   cd "$DOTFILES_DIR"
 
   # Unstow common packages
   for pkg in "${COMMON_PACKAGES[@]}"; do
     echo "Unstowing $pkg..."
-    if stow -D "$pkg"; then
-      echo "Unstowed $pkg successfully."
-    else
-      echo "Failed to unstow $pkg or it was not stowed."
-    fi
+    stow -D --ignore='\.DS_Store' "$pkg"
   done
-
-  # Unstow OS-specific packages
-  if $is_mac; then
-    for pkg in "${MACOS_PACKAGES[@]}"; do
-      echo "Unstowing $pkg..."
-      if stow -D "$pkg"; then
-        echo "Unstowed $pkg successfully."
-      else
-        echo "Failed to unstow $pkg or it was not stowed."
-      fi
-    done
-  elif $is_linux; then
-    for pkg in "${LINUX_PACKAGES[@]}"; do
-      echo "Unstowing $pkg..."
-      if stow -D "$pkg"; then
-        echo "Unstowed $pkg successfully."
-      else
-        echo "Failed to unstow $pkg or it was not stowed."
-      fi
-    done
-  fi
-
-  cd -
 
   echo "Dotfiles have been unstowed successfully."
+
+  cd -
 }
 
-# Function to uninstall Homebrew packages
-uninstall_brew_packages() {
-  print_message "Uninstalling Homebrew packages..."
+# ============================
+# Restore Backup Config Files
+# ============================
 
-  for package in "${BREW_PACKAGES[@]}"; do
-    if brew list | grep -q "^$package\$"; then
-      echo "Uninstalling $package..."
-      brew uninstall "$package"
+restore_backup_configs() {
+  print_message "Restoring Backup Config Files..."
+  sleep 1
+  # List of config files to check
+  CONFIG_FILES=(
+    ".zshrc"
+    ".bashrc"
+    ".tmux.conf"
+    ".zprofile"
+    ".config/kitty/kitty.conf"
+  )
+
+  for config in "${CONFIG_FILES[@]}"; do
+    target="$HOME/$config"
+    backup="$HOME/${config}.backup"
+    if [ -f "$backup" ]; then
+      echo "Restoring backup for $config"
+      mv "$backup" "$target"
     else
-      echo "$package is not installed via Homebrew. Skipping."
+      echo "No backup found for $config"
     fi
   done
 }
 
-# Function to uninstall Homebrew Cask packages (macOS only)
+# ============================
+# Uninstall Homebrew Cask Packages (macOS only)
+# ============================
+
 uninstall_brew_cask_packages() {
   if $is_mac; then
     print_message "Uninstalling Homebrew Cask packages..."
-
+    sleep 1
     for package in "${BREW_CASK_PACKAGES[@]}"; do
       if brew list --cask | grep -q "^$package\$"; then
         echo "Uninstalling $package..."
         brew uninstall --cask "$package"
       else
-        echo "$package is not installed via Homebrew Cask. Skipping."
+        echo "$package is not installed."
       fi
     done
   fi
 }
 
-# Function to uninstall font-hack-nerd-font
-uninstall_font_hack() {
-  print_message "Uninstalling font-hack-nerd-font..."
+# ============================
+# Uninstall Homebrew Packages
+# ============================
 
-  if $is_mac; then
-    if brew list --cask | grep -q "^font-hack-nerd-font\$"; then
-      brew uninstall --cask font-hack-nerd-font
+uninstall_brew_packages() {
+  print_message "Uninstalling Homebrew packages..."
+  sleep 1
+  for package in "${BREW_PACKAGES[@]}"; do
+    if brew list | grep -q "^$package\$"; then
+      echo "Uninstalling $package..."
+      brew uninstall "$package"
     else
-      echo "font-hack-nerd-font is not installed via Homebrew Cask. Skipping."
-    fi
-  elif $is_linux; then
-    # Assuming installed via Homebrew Cask
-    if brew list --cask | grep -q "^font-hack-nerd-font\$"; then
-      brew uninstall --cask font-hack-nerd-font
-    else
-      echo "font-hack-nerd-font is not installed via Homebrew Cask. Skipping."
-    fi
-  fi
-}
-
-# Function to uninstall Oh My Zsh
-uninstall_oh_my_zsh() {
-  print_message "Uninstalling Oh My Zsh..."
-
-  if [ -d "$HOME/.oh-my-zsh" ]; then
-    echo "Removing Oh My Zsh directory..."
-    rm -rf "$HOME/.oh-my-zsh"
-
-    # Restore original .zshrc if a backup exists
-    if [ -f "$HOME/.zshrc.bak" ]; then
-      echo "Restoring original .zshrc from backup..."
-      mv "$HOME/.zshrc.bak" "$HOME/.zshrc"
-    else
-      # If no backup, remove Oh My Zsh references from .zshrc
-      echo "Removing Oh My Zsh lines from .zshrc..."
-      sed -i.bak '/^export ZSH=/d' "$HOME/.zshrc"
-      sed -i.bak '/^ZSH_THEME=/d' "$HOME/.zshrc"
-      sed -i.bak '/^plugins=/d' "$HOME/.zshrc"
-      sed -i.bak '/^source \$ZSH\/oh-my-zsh.sh/d' "$HOME/.zshrc"
-      echo "Oh My Zsh lines removed from .zshrc."
-    fi
-  else
-    echo "Oh My Zsh is not installed. Skipping."
-  fi
-}
-
-# Function to remove Zsh plugins
-remove_zsh_plugins() {
-  print_message "Removing Zsh plugins..."
-
-  ZSH_CUSTOM_PLUGINS="$HOME/.oh-my-zsh/custom/plugins"
-
-  # Define Zsh plugins to remove
-  ZSH_PLUGINS=(
-    zsh-autosuggestions
-    zsh-syntax-highlighting
-  )
-
-  for plugin in "${ZSH_PLUGINS[@]}"; do
-    if [ -d "${ZSH_CUSTOM_PLUGINS}/$plugin" ]; then
-      echo "Removing $plugin..."
-      rm -rf "${ZSH_CUSTOM_PLUGINS}/$plugin"
-    else
-      echo "$plugin is not installed. Skipping."
+      echo "$package is not installed."
     fi
   done
 }
 
-# Function to uninstall Neovim plugins
-uninstall_neovim_plugins() {
-  print_message "Uninstalling Neovim plugins..."
+# ============================
+# Remove Oh My Zsh and Zsh Plugins
+# ============================
 
-  if command -v nvim &> /dev/null; then
-    # Remove vim-plug
-    if [ -f "$HOME/.local/share/nvim/site/autoload/plug.vim" ]; then
-      echo "Removing vim-plug..."
-      rm "$HOME/.local/share/nvim/site/autoload/plug.vim"
-    fi
-
-    # Remove Neovim plugins directory
-    if [ -d "$HOME/.local/share/nvim/plugged" ]; then
-      echo "Removing Neovim plugins..."
-      rm -rf "$HOME/.local/share/nvim/plugged"
-    fi
-
-    echo "Neovim plugins uninstalled successfully."
+remove_oh_my_zsh() {
+  print_message "Removing Oh My Zsh..."
+  sleep 1
+  if [ -d "$OH_MY_ZSH_DIR" ]; then
+    echo "Removing Oh My Zsh directory..."
+    rm -rf "$OH_MY_ZSH_DIR"
   else
-    echo "Neovim is not installed. Skipping Neovim plugin uninstallation."
+    echo "Oh My Zsh is not installed."
   fi
 }
 
-# Function to uninstall Tmux plugins
-uninstall_tmux_plugins() {
-  print_message "Uninstalling Tmux plugins..."
+# ============================
+# Remove Neovim Plugins and Configuration
+# ============================
 
-  # Assuming tpm is already in tmux/tmux_plugins/tpm and stowed to ~/.tmux_plugins/tpm
-  TPM_DIR="$HOME/.tmux_plugins/tpm"
+remove_neovim_plugins() {
+  print_message "Removing Neovim plugins and configuration..."
+  sleep 1
+  NEOVIM_DATA_DIR="$HOME/.local/share/nvim"
+  NEOVIM_CONFIG_DIR="$HOME/.config/nvim"
 
-  if [ -d "$TPM_DIR" ]; then
-    echo "Removing Tmux Plugin Manager (TPM)..."
-    rm -rf "$TPM_DIR"
+  if [ -d "$NEOVIM_DATA_DIR" ]; then
+    echo "Removing Neovim data directory..."
+    rm -rf "$NEOVIM_DATA_DIR"
   else
-    echo "Tmux Plugin Manager (TPM) is not installed. Skipping."
+    echo "Neovim data directory does not exist."
   fi
 
-  # Optionally, remove the tmux plugins directories
-  if [ -d "$HOME/.tmux_plugins" ]; then
+  if [ -d "$NEOVIM_CONFIG_DIR" ]; then
+    echo "Removing Neovim configuration directory..."
+    rm -rf "$NEOVIM_CONFIG_DIR"
+  else
+    echo "Neovim configuration directory does not exist."
+  fi
+}
+
+# ============================
+# Remove Tmux Plugins
+# ============================
+
+remove_tmux_plugins() {
+  print_message "Removing Tmux plugins..."
+  sleep 1
+  TMUX_PLUGIN_DIR="$HOME/.tmux/plugins"
+
+  if [ -d "$TMUX_PLUGIN_DIR" ]; then
     echo "Removing Tmux plugins directory..."
-    rm -rf "$HOME/.tmux_plugins"
-  fi
-}
-
-# Function to remove dotfiles repository
-remove_dotfiles_repo() {
-  print_message "Removing Dotfiles repository..."
-
-  if [ -d "$DOTFILES_DIR" ]; then
-    echo "Removing $DOTFILES_DIR..."
-    rm -rf "$DOTFILES_DIR"
-    echo "Dotfiles repository removed."
+    rm -rf "$TMUX_PLUGIN_DIR"
   else
-    echo "Dotfiles repository does not exist. Skipping."
+    echo "Tmux plugins directory does not exist."
   fi
 }
 
-# Function to optionally uninstall Homebrew
+# ============================
+# Uninstall Homebrew (Optional)
+# ============================
+
 uninstall_homebrew() {
-  print_message "Do you want to uninstall Homebrew? [y/N]"
-  read -r response
-  if [[ "$response" =~ ^[Yy]$ ]]; then
+  print_message "Uninstalling Homebrew (Optional)..."
+  sleep 1
+  if command -v brew &> /dev/null; then
     echo "Uninstalling Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
-    echo "Homebrew uninstalled."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"
   else
-    echo "Skipping Homebrew uninstallation."
+    echo "Homebrew is not installed."
   fi
 }
 
@@ -285,39 +228,19 @@ uninstall_homebrew() {
 # ============================
 
 main() {
-  # Unstow dotfiles
   unstow_dotfiles
-
-  # Uninstall Homebrew Cask packages
+  restore_backup_configs
   uninstall_brew_cask_packages
-
-  # Uninstall Homebrew packages
   uninstall_brew_packages
-
-  # Uninstall font-hack-nerd-font
-  uninstall_font_hack
-
-  # Uninstall Oh My Zsh
-  uninstall_oh_my_zsh
-
-  # Remove Zsh plugins
-  remove_zsh_plugins
-
-  # Uninstall Neovim plugins
-  uninstall_neovim_plugins
-
-  # Uninstall Tmux plugins
-  uninstall_tmux_plugins
-
-  # Remove dotfiles repository
-  remove_dotfiles_repo
-
-  # Optionally uninstall Homebrew
-  uninstall_homebrew
+  remove_oh_my_zsh
+  remove_neovim_plugins
+  remove_tmux_plugins
+  #uninstall_homebrew  # Uncomment this line if you want to uninstall Homebrew
 
   print_message "Uninstallation Completed!"
-  echo "Your development environment has been successfully uninstalled."
+  echo "Your development environment has been cleaned up."
 }
 
 # Execute the main function
 main
+

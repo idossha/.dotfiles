@@ -1,6 +1,8 @@
 
 #!/bin/bash
 
+
+
 set -e  # Exit immediately if a command exits with a non-zero status
 
 # ============================
@@ -39,6 +41,8 @@ BREW_PACKAGES=(
   pandoc
   ffmpeg
   htop
+  lazygit
+  lazydocker
 )
 
 # Function to print messages with separators for better readability
@@ -71,7 +75,7 @@ fi
 
 install_homebrew() {
   print_message "Checking for Homebrew..."
-
+  sleep 1
   if ! command -v brew &> /dev/null; then
     echo "Homebrew not found. Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -106,7 +110,7 @@ install_homebrew() {
 
 install_stow() {
   print_message "Checking for GNU Stow..."
-
+  sleep 1
   if ! command -v stow &> /dev/null; then
     echo "GNU Stow not found. Installing GNU Stow..."
     brew install stow
@@ -121,12 +125,13 @@ install_stow() {
 
 backup_existing_configs() {
   print_message "Backing Up Existing Config Files..."
-
+  sleep 1
   # List of config files to check
   CONFIG_FILES=(
     ".zshrc"
     ".bashrc"
     ".tmux.conf"
+    ".zprofile"
     ".config/kitty/kitty.conf"
   )
 
@@ -145,7 +150,7 @@ backup_existing_configs() {
 
 stow_dotfiles() {
   print_message "Stowing Dotfiles..."
-
+  sleep 1
   cd "$DOTFILES_DIR"
 
   # Stow common packages
@@ -166,7 +171,7 @@ stow_dotfiles() {
 install_brew_cask_packages() {
   if $is_mac; then
     print_message "Installing Homebrew Cask packages..."
-
+    sleep 1
     for package in "${BREW_CASK_PACKAGES[@]}"; do
       if ! brew list --cask | grep -q "^$package\$"; then
         echo "Installing $package..."
@@ -184,7 +189,7 @@ install_brew_cask_packages() {
 
 install_brew_packages() {
   print_message "Installing Homebrew packages..."
-
+  sleep 1
   for package in "${BREW_PACKAGES[@]}"; do
     if ! brew list | grep -q "^$package\$"; then
       echo "Installing $package..."
@@ -201,7 +206,7 @@ install_brew_packages() {
 
 install_font_hack() {
   print_message "Installing font-hack-nerd-font..."
-
+  sleep 1
   if $is_mac; then
     if ! brew list --cask | grep -q "^font-hack-nerd-font\$"; then
       brew tap homebrew/cask-fonts
@@ -229,7 +234,7 @@ install_font_hack() {
 
 install_oh_my_zsh() {
   print_message "Setting Up Oh My Zsh..."
-
+  sleep 1
   if [ ! -d "$OH_MY_ZSH_DIR" ]; then
     echo "Oh My Zsh not found. Installing Oh My Zsh..."
 
@@ -249,7 +254,7 @@ install_oh_my_zsh() {
 
 install_zsh_plugins() {
   print_message "Installing Zsh plugins..."
-
+  sleep 1
   ZSH_CUSTOM_PLUGINS="$OH_MY_ZSH_DIR/custom/plugins"
 
   # Ensure the custom/plugins directory exists
@@ -277,19 +282,22 @@ install_zsh_plugins() {
 # ============================
 
 install_neovim_plugins() {
-  print_message "Installing Neovim plugins..."
-
+  print_message "Installing Neovim plugins with lazy.nvim..."
+  sleep 1
   if command -v nvim &> /dev/null; then
-    # Assuming vim-plug is used
-    if [ ! -f "$HOME/.local/share/nvim/site/autoload/plug.vim" ]; then
-      echo "Installing vim-plug for Neovim..."
-      curl -fLo "$HOME/.local/share/nvim/site/autoload/plug.vim" --create-dirs \
-        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    # Install lazy.nvim if not already installed
+    LAZY_NVIM_DIR="$HOME/.local/share/nvim/lazy/lazy.nvim"
+    if [ ! -d "$LAZY_NVIM_DIR" ]; then
+      echo "Installing lazy.nvim plugin manager..."
+      git clone --filter=blob:none https://github.com/folke/lazy.nvim.git --branch=stable "$LAZY_NVIM_DIR"
+    else
+      echo "lazy.nvim is already installed."
     fi
 
-    echo "Running Neovim plugin installation..."
-    nvim --headless +PlugInstall +qall || true
-    echo "Neovim plugins installed successfully."
+    echo "Running Neovim to install plugins via lazy.nvim..."
+    nvim --headless "+Lazy! sync" +qa
+
+    echo "Neovim plugins installed successfully using lazy.nvim."
   else
     echo "Neovim is not installed. Skipping Neovim plugin installation."
   fi
@@ -301,7 +309,7 @@ install_neovim_plugins() {
 
 install_tmux_plugins() {
   print_message "Installing Tmux plugins..."
-
+  sleep 1
   TPM_DIR="$HOME/.tmux/plugins/tpm"
 
   if [ ! -d "$TPM_DIR" ]; then
@@ -315,20 +323,15 @@ install_tmux_plugins() {
   if command -v tmux &> /dev/null; then
     echo "Installing Tmux plugins..."
 
-    # Start a tmux server
-    tmux start-server
+    # Start a new detached tmux session that runs the necessary commands
+    tmux new-session -d -s plugin_install_session \
+      "tmux source-file ~/.tmux.conf; ~/.tmux/plugins/tpm/scripts/install_plugins.sh; sleep 5"
 
-    # Create a new detached session
-    tmux new-session -d -s install_plugins
-
-    # Send the install plugins command
-    tmux send-keys -t install_plugins "$TPM_DIR/bin/install_plugins" C-m
-
-    # Wait for the installation to complete
-    sleep 5
+    # Wait for the session to complete
+    sleep 15  # Adjust this if needed
 
     # Kill the temporary session
-    tmux kill-session -t install_plugins
+    tmux kill-session -t plugin_install_session
 
     echo "Tmux plugins installed successfully."
   else
@@ -342,7 +345,7 @@ install_tmux_plugins() {
 
 source_zshrc() {
   print_message "Sourcing .zshrc..."
-
+  sleep 1
   # Source .zshrc if Zsh is the current shell
   if [ -n "$ZSH_VERSION" ]; then
     echo "Sourcing $HOME/.zshrc"
