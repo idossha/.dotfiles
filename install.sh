@@ -132,6 +132,7 @@ backup_existing_configs() {
     ".bashrc"
     ".tmux.conf"
     ".zprofile"
+    ".bash_profile"
     ".config/kitty/kitty.conf"
   )
 
