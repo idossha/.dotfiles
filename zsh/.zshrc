@@ -102,10 +102,10 @@ alias mp="cd ~/Desktop/Git-Projects/"
 alias ms="cd ~/Applications/SimNIBS-4.1/"
 alias md="cd ~/.dotfiles/"
 alias mdarp="cd ~/Desktop/Git-Projects/TI-2024"
-
-
 alias mshana='process_mesh_files.sh /Users/idohaber/Desktop/.Mesh_Analyze/'
 alias mshana2='process_mesh_files_new.sh /Users/idohaber/Desktop/.Mesh_Analyze/'
+alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
+
 
 
 # >>> conda initialize >>>
