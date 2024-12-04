@@ -43,6 +43,7 @@ BREW_PACKAGES=(
   htop
   lazygit
   lazydocker
+  fzf
 )
 
 # Function to print messages with separators for better readability
