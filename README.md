@@ -1,7 +1,7 @@
 ## Created: 20240223 0101
 
 Ido Haber
-Last update: December 02, 2024
+Last update: December 05, 2024
 
 ---
 
@@ -11,3 +11,5 @@ Last update: December 02, 2024
 
 ---
 
+tested on mac. 
+have not tested on linux last commit.
