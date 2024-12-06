@@ -19,15 +19,16 @@ HOME_DIR="$HOME"
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages
-COMMON_PACKAGES=("bash" "zsh" "nvim" "tmux" "vscode" "kitty")
-MACOS_PACKAGES=()
-LINUX_PACKAGES=()  # Add any Linux-specific packages if needed
+COMMON_CONFS=("bash" "zsh" "nvim" "tmux" "vscode" "kitty")
+MACOS_CONFS=("iterm2")
+LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
 # Define Homebrew Cask and Brew packages
 BREW_CASK_PACKAGES=(
-  rectangle         # macOS only
-  keyboardcleantool # macOS only
-  kitty             # Kitty terminal emulator
+  rectangle                   # macOS only
+  keyboardcleantool           # macOS only
+  kitty                       # Kitty terminal emulator
+  nikitabobko/tap/aerospace   # i3 like window manager for mac
 )
 BREW_PACKAGES=(
   tmux
@@ -156,7 +157,7 @@ stow_dotfiles() {
   cd "$DOTFILES_DIR"
 
   # Stow common packages
-  for pkg in "${COMMON_PACKAGES[@]}"; do
+  for pkg in "${COMMON_CONFS[@]}"; do
     echo "Stowing $pkg..."
     stow --ignore='\.DS_Store' "$pkg"
   done
