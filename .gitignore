@@ -1,8 +1,1 @@
-.ssh/
-.ohmyzsh/
 .DS_Store
-.viminfo
-.vscode
-.docker
-darktable
-10000

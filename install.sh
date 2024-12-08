@@ -19,8 +19,8 @@ HOME_DIR="$HOME"
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages
-COMMON_CONFS=("bash" "zsh" "nvim" "tmux" "vscode" "kitty")
-MACOS_CONFS=("iterm2")
+COMMON_CONFS=("bash" "zsh" "nvim" "tmux" "vscode" "kitty" "github")
+MACOS_CONFS=("sketchybar")
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
 # Define Homebrew Cask and Brew packages
@@ -35,6 +35,7 @@ BREW_PACKAGES=(
   git
   neovim
   ripgrep
+  sketchybar
   node
   jq
   tree-sitter
