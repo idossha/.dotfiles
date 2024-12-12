@@ -1,7 +1,9 @@
-
 #!/bin/bash
 
-
+########################################
+# dotfiles installation script of Ido Haber
+# Last update: December 12, 2024
+########################################
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
@@ -19,11 +21,11 @@ HOME_DIR="$HOME"
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages
-COMMON_CONFS=("bash" "zsh" "nvim" "tmux" "vscode" "kitty" "github")
-MACOS_CONFS=("sketchybar")
+COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "kitty" "github")
+MACOS_CONFS=("sketchybar" "zsh")
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
-# Define Homebrew Cask and Brew packages
+# Define Homebrew Cask and Brew packages (macOS)
 BREW_CASK_PACKAGES=(
   rectangle                   # macOS only
   keyboardcleantool           # macOS only
@@ -46,6 +48,26 @@ BREW_PACKAGES=(
   lazygit
   lazydocker
   fzf
+)
+
+# Define APT packages (Linux)
+APT_PACKAGES=(
+  tmux
+  git
+  neovim
+  ripgrep
+  nodejs
+  npm
+  jq
+  tree
+  pandoc
+  ffmpeg
+  htop
+  lazygit
+  lazydocker
+  fzf
+  kitty
+  fonts-hack-ttf  # Example package; may vary based on availability
 )
 
 # Function to print messages with separators for better readability
@@ -73,7 +95,7 @@ else
 fi
 
 # ============================
-# Homebrew Installation
+# Package Manager Installation
 # ============================
 
 install_homebrew() {
@@ -107,8 +129,26 @@ install_homebrew() {
   brew update
 }
 
+install_apt_packages() {
+  print_message "Updating APT..."
+  sudo apt update
+
+  print_message "Upgrading existing packages..."
+  sudo apt upgrade -y
+
+  print_message "Installing APT packages..."
+  for package in "${APT_PACKAGES[@]}"; do
+    if ! dpkg -l | grep -q "^ii  $package "; then
+      echo "Installing $package..."
+      sudo apt install -y "$package"
+    else
+      echo "$package is already installed."
+    fi
+  done
+}
+
 # ============================
-# Install GNU Stow
+# GNU Stow Installation
 # ============================
 
 install_stow() {
@@ -116,7 +156,11 @@ install_stow() {
   sleep 1
   if ! command -v stow &> /dev/null; then
     echo "GNU Stow not found. Installing GNU Stow..."
-    brew install stow
+    if $is_mac; then
+      brew install stow
+    elif $is_linux; then
+      sudo apt install -y stow
+    fi
   else
     echo "GNU Stow is already installed."
   fi
@@ -163,6 +207,19 @@ stow_dotfiles() {
     stow --ignore='\.DS_Store' "$pkg"
   done
 
+  # Stow OS-specific packages
+  if $is_mac; then
+    for pkg in "${MACOS_CONFS[@]}"; do
+      echo "Stowing $pkg..."
+      stow --ignore='\.DS_Store' "$pkg"
+    done
+  elif $is_linux; then
+    for pkg in "${LINUX_CONFS[@]}"; do
+      echo "Stowing $pkg..."
+      stow "$pkg"
+    done
+  fi
+
   echo "Dotfiles have been symlinked successfully."
 
   cd -
@@ -192,20 +249,22 @@ install_brew_cask_packages() {
 # ============================
 
 install_brew_packages() {
-  print_message "Installing Homebrew packages..."
-  sleep 1
-  for package in "${BREW_PACKAGES[@]}"; do
-    if ! brew list | grep -q "^$package\$"; then
-      echo "Installing $package..."
-      brew install "$package"
-    else
-      echo "$package is already installed."
-    fi
-  done
+  if $is_mac || $is_linux; then
+    print_message "Installing Homebrew packages..."
+    sleep 1
+    for package in "${BREW_PACKAGES[@]}"; do
+      if ! brew list | grep -q "^$package\$"; then
+        echo "Installing $package..."
+        brew install "$package"
+      else
+        echo "$package is already installed."
+      fi
+    done
+  fi
 }
 
 # ============================
-# Install font-hack-nerd-font
+# Install Fonts
 # ============================
 
 install_font_hack() {
@@ -220,10 +279,10 @@ install_font_hack() {
     fi
   elif $is_linux; then
     if ! fc-list | grep -i "Hack Nerd Font" &> /dev/null; then
-      # Install font manually or via package manager
       echo "Installing Hack Nerd Font..."
       mkdir -p ~/.local/share/fonts
-      cd ~/.local/share/fonts && curl -fLo "Hack Regular Nerd Font Complete.ttf" \
+      cd ~/.local/share/fonts
+      curl -fLo "Hack Regular Nerd Font Complete.ttf" \
         https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/complete/Hack%20Regular%20Nerd%20Font%20Complete.ttf
       fc-cache -fv
     else
@@ -365,12 +424,22 @@ source_zshrc() {
 # ============================
 
 main() {
-  install_homebrew
+
+  if $is_mac; then
+    install_homebrew
+  fi
+
   install_stow
   backup_existing_configs
   stow_dotfiles
-  install_brew_cask_packages
-  install_brew_packages
+
+  if $is_mac; then
+    install_brew_cask_packages
+    install_brew_packages
+  elif $is_linux; then
+    install_apt_packages
+  fi
+
   install_font_hack
   install_oh_my_zsh
   install_zsh_plugins
@@ -382,6 +451,6 @@ main() {
   echo "Your development environment is set up successfully."
 }
 
-# Execute the main function
-main
+
+main   # Execute the main function
 
