@@ -63,11 +63,9 @@ APT_PACKAGES=(
   pandoc
   ffmpeg
   htop
-  lazygit
-  lazydocker
   fzf
   kitty
-  fonts-hack-ttf  # Example package; may vary based on availability
+  zsh
 )
 
 # Function to print messages with separators for better readability
@@ -440,7 +438,10 @@ main() {
     install_apt_packages
   fi
 
-  install_font_hack
+  if $is_mac; then
+    install_font_hack
+  fi
+
   install_oh_my_zsh
   install_zsh_plugins
   install_neovim_plugins
