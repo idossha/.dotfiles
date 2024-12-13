@@ -1,10 +1,19 @@
-return {
-    'iamcco/markdown-preview.nvim',
-    build = 'cd app && npm install',
-    ft = { 'markdown' }, -- Load it only for markdown files
-    config = function()
-        vim.cmd('nnoremap <silent> <F5> :MarkdownPreview<CR>')
-        vim.cmd('nnoremap <silent> <F6> :MarkdownPreviewStop<CR>')
-    end
-}
+-- make sure yark is installed
+-- `npm install --global yarn`
+-- 'yarn --version'
+-- exit nvim
+-- call lazy
 
+return {
+  "iamcco/markdown-preview.nvim",
+  ft = { "markdown" }, -- Load only for Markdown files
+  cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+  build = "cd app && yarn install", -- Use shell command for build
+  keys = {
+    {
+      "<leader>mp", -- Keybinding to toggle Markdown preview
+      "<cmd>MarkdownPreviewToggle<CR>",
+      desc = "Toggle Markdown Preview",
+    },
+  },
+}
