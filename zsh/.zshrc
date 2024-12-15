@@ -1,3 +1,7 @@
+
+export CONFIG_DIR=$HOME/.config/
+
+export SKETCHY_DIR=$CONFIG_DIR/sketchybar/
 export FREESURFER_HOME=/Applications/freesurfer/7.4.1
 export SUBJECTS_DIR=$HOME/Desktop/subjects
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
