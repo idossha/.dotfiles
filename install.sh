@@ -21,13 +21,12 @@ HOME_DIR="$HOME"
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages
-COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "kitty" "github")
+COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "kitty" "github" "neofetch" "alacritty")
 MACOS_CONFS=("sketchybar" "zsh")
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
 # Define Homebrew Cask and Brew packages (macOS)
 BREW_CASK_PACKAGES=(
-  rectangle                   # macOS only
   keyboardcleantool           # macOS only
   kitty                       # Kitty terminal emulator
   nikitabobko/tap/aerospace   # i3 like window manager for mac
@@ -48,6 +47,8 @@ BREW_PACKAGES=(
   lazygit
   lazydocker
   fzf
+  neofetch
+  alacritty
 )
 
 # Define APT packages (Linux)
@@ -66,6 +67,8 @@ APT_PACKAGES=(
   fzf
   kitty
   zsh
+  neofetch
+  alacritty
 )
 
 # Function to print messages with separators for better readability
