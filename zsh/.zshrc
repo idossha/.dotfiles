@@ -1,9 +1,8 @@
-
 export CONFIG_DIR=$HOME/.config/
 export SKETCHY_DIR=$CONFIG_DIR/sketchybar/
 export FREESURFER_HOME=/Applications/freesurfer/7.4.1
 export SUBJECTS_DIR=$HOME/Desktop/subjects
-source $FREESURFER_HOME/SetUpFreeSurfer.sh
+source $FREESURFER_HOME/SetUpFreeSurfer.sh >/dev/null 2>&1  #print output is surpressed.
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/Users/idohaber/.my_scripts/
 export ZSH="$HOME/oh-my-zsh"
@@ -11,6 +10,7 @@ export PATH="/Users/idohaber/Applications/mrtrix3/bin:$PATH"
 export PATH="$(brew --prefix qt@5)/bin:$PATH"
 export DYLD_LIBRARY_PATH=/Applications/MATLAB/MATLAB_Runtime/R2024a/runtime/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/bin/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/sys/osmaca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/extern/bin/maca64:$DYLD_LIBRARY_PATH
 
+~/terminal_info.sh #automatic prompt for new terminals
 
 # shell prompt
 export PS1='%n|%1~ > '
