@@ -1,0 +1,25 @@
+[window]
+decorations = "buttonless"
+dynamic_padding = false
+opacity = 0.9
+
+[window.padding]
+x = 25
+y = 20
+
+[font]
+# Normal font family
+normal = { family = "MesloLGS Nerd Font", style = "Regular" }
+
+# Bold font family (fallbacks to normal if not set)
+bold = { family = "MesloLGS Nerd Font", style = "Bold" }
+
+# Italic font family (fallbacks to normal if not set)
+italic = { family = "MesloLGS Nerd Font", style = "Italic" }
+
+# Bold italic font family (fallbacks to normal if not set)
+bold_italic = { family = "MesloLGS Nerd Font", style = "Bold Italic" }
+
+# Font size in points
+size = 12.0
+
