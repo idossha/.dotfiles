@@ -90,7 +90,7 @@ source "$PLUGIN_DIR/aerospace.sh"
 ###############################################################################
 
 # Shows album art and song name, I prefer this as it give me useful info
-source "$ITEM_DIR/media.sh"
+# source "$ITEM_DIR/media.sh"
 
 
 ###############################################################################
@@ -116,6 +116,63 @@ source "$ITEM_DIR/volume.sh"
 source "$ITEM_DIR/cpu.sh"
 
 
+##### VPN ####
+# sketchybar --add item vpn right
+# sketchybar --set vpn \
+#   script="$PLUGIN_DIR/vpn.sh" \
+#   update_freq=10 \
+#   label.font="Hack Nerd Font:Bold:12.0" \
+#   label.padding_left=10 \
+#   icon.padding_left=10 \
+#   icon.font="Hack Nerd Font:Bold:12.0" \
+#   label.color=0xffdcdfe4 \
+#   icon.color=0xffa3be8c
+
+
+# Add the first separator icon
+sketchybar --add item separator_icon1 right
+sketchybar --set separator_icon1 \
+    icon=• \
+    icon.color=0xffd08770 \
+    icon.padding_left=5 \
+    icon.padding_right=5
+
+# Add a right-side item for disk usage
+sketchybar --add item disk_usage right
+sketchybar --set disk_usage \
+    script="$PLUGIN_DIR/disk.sh" \
+    update_freq=60 \
+    padding_left=5 \
+    padding_right=5
+
+# Add the second separator icon
+sketchybar --add item separator_icon2 right
+sketchybar --set separator_icon2 \
+    icon=• \
+    icon.color=0xffd08770 \
+    icon.padding_left=5 \
+    icon.padding_right=5
+
+# Add Docker status item
+sketchybar --add item docker.status right
+sketchybar --set docker.status \
+    icon.font="Hack Nerd Font:Bold:14.0" \
+    label="Docker [0]" \
+    update_freq=10 \
+    padding_left=10 \
+    padding_right=10 \
+    script="$PLUGIN_DIR/docker.sh" \
+    click_script="$PLUGIN_DIR/docker.sh"
+
+
+# Add the second separator icon
+sketchybar --add item separator_icon3 right
+sketchybar --set separator_icon3 \
+    icon=• \
+    icon.color=0xffd08770 \
+    icon.padding_left=5 \
+    icon.padding_right=5
+
 ###############################################################################
 #                            Community plugins
 ###############################################################################
@@ -123,7 +180,7 @@ source "$ITEM_DIR/cpu.sh"
 # Community plugin that I modified, so that it shows you the mic name
 # If you right click it you can change the mic.
 # Shows you the value of the input volume level
-source "$ITEM_DIR/mic.sh"
+#source "$ITEM_DIR/mic.sh"
 
 ###############################################################################
 
