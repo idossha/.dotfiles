@@ -1,5 +1,4 @@
 
-
 # Place a copy of this config to ~/.aerospace.toml
 # After that, you can edit ~/.aerospace.toml to your liking
 
@@ -71,7 +70,7 @@ outer.bottom =     10
 outer.right =      10
 
 outer.top = [
-  { monitor."CB272 E" = 60 },  
+  { monitor."CB272 E" = 50 },  
   { monitor."CB282K" =  60 },   
                         10 # Default outer top gap
 ]
