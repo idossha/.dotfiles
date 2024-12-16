@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 ########################################
@@ -22,15 +23,16 @@ OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages
 COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "kitty" "github" "neofetch" "alacritty")
-MACOS_CONFS=("sketchybar" "zsh")
+MACOS_CONFS=("zsh" "aerospace") 
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
 # Define Homebrew Cask and Brew packages (macOS)
 BREW_CASK_PACKAGES=(
   keyboardcleantool           # macOS only
   kitty                       # Kitty terminal emulator
-  nikitabobko/tap/aerospace   # i3 like window manager for mac
+  # Removed aerospace from cask packages
 )
+
 BREW_PACKAGES=(
   tmux
   git
@@ -49,6 +51,7 @@ BREW_PACKAGES=(
   fzf
   neofetch
   alacritty
+  nikitabobko/tap/aerospace  # Moved here as a Brew formula instead of a cask
 )
 
 # Define APT packages (Linux)
@@ -253,6 +256,20 @@ install_brew_packages() {
   if $is_mac || $is_linux; then
     print_message "Installing Homebrew packages..."
     sleep 1
+
+    # Taps required for certain packages
+    # Tap for aerospace
+    if ! brew tap | grep -q "nikitabobko/tap"; then
+      echo "Tapping nikitabobko/tap..."
+      brew tap nikitabobko/tap
+    fi
+
+    # Tap for sketchybar
+    if ! brew tap | grep -q "FelixKratz/formulae"; then
+      echo "Tapping FelixKratz/formulae..."
+      brew tap FelixKratz/formulae
+    fi
+
     for package in "${BREW_PACKAGES[@]}"; do
       if ! brew list | grep -q "^$package\$"; then
         echo "Installing $package..."
@@ -455,6 +472,4 @@ main() {
   echo "Your development environment is set up successfully."
 }
 
-
-main   # Execute the main function
-
+main
