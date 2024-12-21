@@ -1,9 +1,8 @@
-
 #!/bin/bash
 
 ########################################
 # dotfiles installation script of Ido Haber
-# Last update: December 12, 2024
+# Last update: December 20, 2024
 ########################################
 
 set -e  # Exit immediately if a command exits with a non-zero status
@@ -12,25 +11,26 @@ set -e  # Exit immediately if a command exits with a non-zero status
 # Variables and Configuration
 # ============================
 
-# Directory where the dotfiles are located
-DOTFILES_DIR="$HOME/.dotfiles"
-
 # Home directory
 HOME_DIR="$HOME"
+
+# Directory where the dotfiles are located
+DOTFILES_DIR="$HOME/.dotfiles"
 
 # Oh My Zsh installation directory
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages
-COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "kitty" "github" "neofetch" "alacritty")
+COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "alacritty" "atuin") #kitty
 MACOS_CONFS=("zsh" "aerospace") 
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
 # Define Homebrew Cask and Brew packages (macOS)
 BREW_CASK_PACKAGES=(
   keyboardcleantool           # macOS only
-  kitty                       # Kitty terminal emulator
-  # Removed aerospace from cask packages
+  # kitty                     # Kitty terminal emulator
+  raycask
+  zen-browser
 )
 
 BREW_PACKAGES=(
@@ -50,8 +50,9 @@ BREW_PACKAGES=(
   lazydocker
   fzf
   neofetch
+  nikitabobko/tap/aerospace   
   alacritty
-  nikitabobko/tap/aerospace  # Moved here as a Brew formula instead of a cask
+  stats
 )
 
 # Define APT packages (Linux)
@@ -384,6 +385,18 @@ install_neovim_plugins() {
   fi
 }
 
+
+# ============================
+# Install Atuin
+# ============================
+install_atuin() {
+  print_message "Intalling Atuin with Curl command"
+  sleep 1
+  curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+  echo "Finishe installing Atuin"
+}
+
+
 # ============================
 # Install Tmux Plugins
 # ============================
@@ -393,7 +406,7 @@ install_tmux_plugins() {
   sleep 1
   TPM_DIR="$HOME/.tmux/plugins/tpm"
 
-  if [ ! -d "$TPM_DIR" ]; then
+  if [ ! - "$TPM_DIR" ]; then
     echo "Tmux Plugin Manager (TPM) not found. Cloning TPM..."
     git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
   else
@@ -458,10 +471,7 @@ main() {
     install_apt_packages
   fi
 
-  if $is_mac; then
-    install_font_hack
-  fi
-
+  install_font_hack
   install_oh_my_zsh
   install_zsh_plugins
   install_neovim_plugins
