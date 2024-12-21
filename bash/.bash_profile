@@ -35,3 +35,5 @@ export DOCKER_HOST_IP=host.docker.internal
 export DOCKER_DISPLAY=/private/tmp/com.apple.launchd.sLp1ABjeSB/org.xquartz:0
 export DOCKER_HOST_IP=host.docker.internal
 export DOCKER_DISPLAY=/private/tmp/com.apple.launchd.sLp1ABjeSB/org.xquartz:0
+
+. "$HOME/.atuin/bin/env"
