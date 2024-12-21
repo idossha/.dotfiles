@@ -1,5 +1,10 @@
+### add this to installation sciprt and test 
+
+
+```
 brew tap FelixKratz/formulae
 brew install sketchybar
+
 
 - all bash script should be executable
 cd ~/.config/sketchybar
@@ -29,13 +34,13 @@ brew install switchaudio-osx
 - This shows the icons for the apps
 curl -L https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v1.0.23/sketchybar-app-font.ttf -o $HOME/Library/Fonts/sketchybar-app-font.ttf
 
+```
 
 
-- Zen Browser
-brew install --cask zen-browser
+### NVIM
 
-- Raycast
-brew install --cask raycast
+Collect on NVIM key bindings in one place?
+redo you NVIM directory strucutre to reduce cluter
 
-- stats
-brew isntall stats
+
+
