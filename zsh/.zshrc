@@ -83,3 +83,7 @@ export DOCKER_HOST_IP=host.docker.internal
 export DISPLAY=host.docker.internal:0
 export DOCKER_HOST_IP=host.docker.internal
 export DISPLAY=host.docker.internal:0
+
+. "$HOME/.atuin/bin/env"
+
+eval "$(atuin init zsh)"
