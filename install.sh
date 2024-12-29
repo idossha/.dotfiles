@@ -21,7 +21,7 @@ DOTFILES_DIR="$HOME/.dotfiles"
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages
-COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "alacritty" "atuin") #kitty
+COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "alacritty" "atuin" "htop") #kitty
 MACOS_CONFS=("zsh" "aerospace") 
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
@@ -31,6 +31,7 @@ BREW_CASK_PACKAGES=(
   # kitty                     # Kitty terminal emulator
   raycask
   zen-browser
+  ghostty
 )
 
 BREW_PACKAGES=(
@@ -51,8 +52,9 @@ BREW_PACKAGES=(
   fzf
   neofetch
   nikitabobko/tap/aerospace   
-  alacritty
+  # alacritty
   stats
+  nushell
 )
 
 # Define APT packages (Linux)
@@ -69,10 +71,11 @@ APT_PACKAGES=(
   ffmpeg
   htop
   fzf
-  kitty
+  # kitty
   zsh
   neofetch
-  alacritty
+  # alacritty
+  ghostty
 )
 
 # Function to print messages with separators for better readability
