@@ -29,6 +29,9 @@ COMPLETION_WAITING_DOTS="true"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search aliases)
    
+
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#d79921'
+
 source $ZSH/oh-my-zsh.sh
 
 # Set up fzf key bindings and fuzzy completion
