@@ -177,6 +177,9 @@ down = 'volume down'
 up = 'volume up'
 shift-down = ['volume set 0', 'mode main']
 
+
+# ~~~~~~~~~~~ Move to workspaces ~~~~~~~~~~~~~~~~~ #
+
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
 run = 'move-node-to-workspace 1'
@@ -197,7 +200,17 @@ run = 'move-node-to-workspace 4'
 if.app-id = 'com.mathworks.matlab'
 run = 'move-node-to-workspace 5'
 
+
+# ~~~~~~~~~~~ Floating Apps ~~~~~~~~~~~~~~~~~ #
+
 [[on-window-detected]]
 if.app-name-regex-substring = 'finder'
 run = 'layout floating'
 
+[[on-window-detected]]
+if.app-id = 'ch.sudo.cyberduck'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Preview'
+run = 'layout floating'
