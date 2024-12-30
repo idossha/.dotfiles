@@ -27,40 +27,44 @@ LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
 # Define Homebrew Cask and Brew packages (macOS)
 BREW_CASK_PACKAGES=(
-  keyboardcleantool           # macOS only
-  # kitty                     # Kitty terminal emulator
+  keyboardcleantool     
   raycask
   zen-browser
   ghostty
+  # kitty                     # Kitty terminal emulator
 )
 
 BREW_PACKAGES=(
   tmux
-  git
   neovim
+  git
   ripgrep
-  sketchybar
-  node
-  jq
+  fzf
   tree-sitter
-  pillow
-  pandoc
-  ffmpeg
+  zoxide
+  bat
+  sketchybar
   htop
   lazygit
   lazydocker
-  fzf
   neofetch
+  node
+  jq
+  pillow
+  pandoc
+  ffmpeg
   nikitabobko/tap/aerospace   
-  # alacritty
   stats
   nushell
+  # alacritty
 )
 
 # Define APT packages (Linux)
 APT_PACKAGES=(
   tmux
   git
+  bat
+  zoxide
   neovim
   ripgrep
   nodejs
@@ -71,11 +75,11 @@ APT_PACKAGES=(
   ffmpeg
   htop
   fzf
-  # kitty
   zsh
   neofetch
-  # alacritty
   ghostty
+  # kitty
+  # alacritty
 )
 
 # Function to print messages with separators for better readability
