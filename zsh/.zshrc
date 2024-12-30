@@ -1,4 +1,3 @@
-export CONFIG_DIR=$HOME/.config/
 export SKETCHY_DIR=$CONFIG_DIR/sketchybar/
 export FREESURFER_HOME=/Applications/freesurfer/7.4.1
 export SUBJECTS_DIR=$HOME/Desktop/subjects
@@ -9,6 +8,8 @@ export ZSH="$HOME/oh-my-zsh"
 export PATH="/Users/idohaber/Applications/mrtrix3/bin:$PATH"
 export PATH="$(brew --prefix qt@5)/bin:$PATH"
 export DYLD_LIBRARY_PATH=/Applications/MATLAB/MATLAB_Runtime/R2024a/runtime/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/bin/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/sys/osmaca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/extern/bin/maca64:$DYLD_LIBRARY_PATH
+
+
 
 ~/terminal_info.sh #automatic prompt for new terminals
 
@@ -59,10 +60,9 @@ alias zshconfig="mate ~/.zshrc"
 alias mp="cd ~/Desktop/Git-Projects/"
 alias ms="cd ~/Applications/SimNIBS-4.1/"
 alias md="cd ~/.dotfiles/"
-alias mdarp="cd ~/Desktop/Git-Projects/TI-2024"
-alias mshana='process_mesh_files.sh /Users/idohaber/Desktop/.Mesh_Analyze/'
-alias mshana2='process_mesh_files_new.sh /Users/idohaber/Desktop/.Mesh_Analyze/'
 alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
+alias vi='nvim'
+
 
 
 
@@ -90,3 +90,4 @@ export DISPLAY=host.docker.internal:0
 . "$HOME/.atuin/bin/env"
 
 eval "$(atuin init zsh)"
+eval "$(zoxide init zsh)"
