@@ -21,7 +21,7 @@ DOTFILES_DIR="$HOME/.dotfiles"
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages
-COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "alacritty" "atuin" "htop") #kitty
+COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "alacritty" "htop" "ghostty" "nushell" "misc" "sketchybar") #kitty
 MACOS_CONFS=("zsh" "aerospace") 
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
