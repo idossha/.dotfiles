@@ -43,6 +43,7 @@ BREW_PACKAGES=(
   tree-sitter
   zoxide
   bat
+  direnv
   sketchybar
   htop
   lazygit
@@ -70,6 +71,7 @@ APT_PACKAGES=(
   nodejs
   npm
   jq
+  direnv
   tree
   pandoc
   ffmpeg
