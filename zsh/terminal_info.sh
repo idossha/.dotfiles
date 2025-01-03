@@ -32,11 +32,11 @@ macVersion=$(sw_vers -productVersion)
 ip=$(ipconfig getifaddr en0 2>/dev/null)
 [ -z "$ip" ] && ip="No IP found on en0"
 
-echo -e "${BRIGHTMAG}=== System Snapshot ===${NC}"
-echo -e "${BRIGHTRED}Disk:${NC} ${diskUsed} used"
-echo -e "${BRIGHTGRN}CPU Usage:${NC} ${cpuUsage}"
-echo -e "${BRIGHTYEL}RAM Usage:${NC} ${ramUsage}"
-echo -e "${BRIGHTBLU}macOS:${NC} ${macVersion}"
-echo -e "${BRIGHTCYN}network:${NC} ${ip}"
-echo -e "${BRIGHTMAG}=======================${NC}"
+echo  "${BRIGHTMAG}=== System Snapshot ===${NC}"
+echo  "${BRIGHTRED}Disk:${NC} ${diskUsed} used"
+echo  "${BRIGHTGRN}CPU Usage:${NC} ${cpuUsage}"
+echo  "${BRIGHTYEL}RAM Usage:${NC} ${ramUsage}"
+echo  "${BRIGHTBLU}macOS:${NC} ${macVersion}"
+echo  "${BRIGHTCYN}network:${NC} ${ip}"
+echo  "${BRIGHTMAG}=======================${NC}"
 
