@@ -37,11 +37,12 @@ COMPLETION_WAITING_DOTS="true"
 # Standard plugins can be found in $ZSH/plugins/
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Add wisely, as too many plugins slow down shell startup.
+
 export ZSH="$HOME/oh-my-zsh"
-source $ZSH/oh-my-zsh.sh
+# oh-my-zsh theme (if you have one), plugin definitions, etc.
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search aliases)
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#d79921'
-
+source $ZSH/oh-my-zsh.sh  # Now source oh-my-zsh
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # For a full list of active aliases, run `alias`.
@@ -54,7 +55,7 @@ alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
 alias vi='nvim'
 
 
-. "$HOME/.atuin/bin/env"
+#. "$HOME/.atuin/bin/env"
 
 # export XDG_CONFIG_HOME="/Users/idohaber/.config"
 
