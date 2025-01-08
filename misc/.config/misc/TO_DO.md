@@ -41,6 +41,6 @@ curl -L https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v1.0.
 
 Collect on NVIM key bindings in one place?
 redo you NVIM directory strucutre to reduce cluter
-
-
+make sure nvim is 0.10 +
+how to automatically install raycast + configure it to be cmd+space
 
