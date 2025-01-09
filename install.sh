@@ -21,14 +21,14 @@ DOTFILES_DIR="$HOME/.dotfiles"
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages
-COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "alacritty" "htop" "ghostty" "nushell" "misc" "sketchybar") #kitty
+COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "alacritty" "htop" "ghostty" "nushell" "misc" "sketchybar" "karabiner") #kitty
 MACOS_CONFS=("zsh" "aerospace") 
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
 # Define Homebrew Cask and Brew packages (macOS)
 BREW_CASK_PACKAGES=(
   keyboardcleantool     
-  raycask
+  #raycask
   zen-browser
   ghostty
   # kitty                     # Kitty terminal emulator
