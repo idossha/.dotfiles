@@ -55,7 +55,7 @@ alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
 alias vi='nvim'
 
 
-#. "$HOME/.atuin/bin/env"
+. "$HOME/.atuin/bin/env"
 
 # export XDG_CONFIG_HOME="/Users/idohaber/.config"
 
