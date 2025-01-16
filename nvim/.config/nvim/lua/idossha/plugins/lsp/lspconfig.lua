@@ -111,6 +111,12 @@ return {
       end,
     })
 
+    -- Configure Zig Language Server (zls)
+    lspconfig["zls"].setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
     -- configure prisma orm server
     lspconfig["prismals"].setup({
       capabilities = capabilities,
