@@ -21,6 +21,10 @@ export PATH=`brew --prefix`/opt/qt5/bin:$PATH
 export DOCKER_HOST_IP=host.docker.internal
 export DISPLAY=host.docker.internal:0
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 29f5c5d4 (fixed cursor issue for nvim)
 # automatic prompt for new terminals
 ~/terminal_info.sh 
 
