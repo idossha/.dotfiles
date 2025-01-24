@@ -73,7 +73,7 @@ outer.top = [
   { monitor."CB272 E" = 10 },  #home
   { monitor."CB282K" =  10 },  #home
   { monitor."Build-in Retina Display" =  30 }, #office  
-  { monitor."DELL )2314H" =  30 },             #office
+  { monitor."DELL 2314H" =  30 },             #office
                         10 # Default outer top gap
 ]
 
