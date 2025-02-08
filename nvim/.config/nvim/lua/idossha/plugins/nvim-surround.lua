@@ -1,3 +1,5 @@
+-- surrounding delimiters pairs wioth ease. Written in lua.
+-- see nvim/idossa/test/surround.py for examples
 return {
   "kylechui/nvim-surround",
   event = { "BufReadPre", "BufNewFile" },

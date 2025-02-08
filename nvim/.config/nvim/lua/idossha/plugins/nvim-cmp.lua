@@ -1,3 +1,4 @@
+-- A ccompeltion plugin for nvim
 return {
   "hrsh7th/nvim-cmp",
   event = "InsertEnter",
