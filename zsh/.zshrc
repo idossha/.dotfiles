@@ -21,10 +21,6 @@ export PATH=`brew --prefix`/opt/qt5/bin:$PATH
 export DOCKER_HOST_IP=host.docker.internal
 export DISPLAY=host.docker.internal:0
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 29f5c5d4 (fixed cursor issue for nvim)
 # automatic prompt for new terminals
 ~/terminal_info.sh 
 
@@ -52,7 +48,7 @@ source $ZSH/oh-my-zsh.sh  # Now source oh-my-zsh
 # For a full list of active aliases, run `alias`.
 
 alias zshconfig="mate ~/.zshrc"
-alias mp="cd ~/Desktop/Git-Projects/"
+alias mp="cd ~/Git-Projects/"
 alias ms="cd ~/Applications/SimNIBS-4.1/"
 alias md="cd ~/.dotfiles/"
 alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
