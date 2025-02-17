@@ -6,4 +6,8 @@ return {
     "myplugin",
     dir = "~/Git-Projects/myplugin",
   },
+  {
+    "jupyter_nvim",
+    dir = "~/Git-Projects/jupyter.nvim",
+  }
 }
