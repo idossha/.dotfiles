@@ -57,6 +57,7 @@ BREW_PACKAGES=(
   nikitabobko/tap/aerospace   
   stats
   nushell
+  imagemagick
   # alacritty
 )
 
