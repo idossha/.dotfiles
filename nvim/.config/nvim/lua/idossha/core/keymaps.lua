@@ -102,7 +102,9 @@ keymap.set("n", "<c-_>", function() Snacks.terminal() end, { desc = "which_key_i
 keymap.set({ "n", "t" }, "]]", function() Snacks.words.jump(vim.v.count1) end, { desc = "Next Reference" })
 keymap.set({ "n", "t" }, "[[", function() Snacks.words.jump(-vim.v.count1) end, { desc = "Prev Reference" })
 
--- Neovim News
+keymap.set("n", "<leader>ir", function() Snacks.image.render() end, { desc = "Render Image" })
+
+  -- Neovim News
 keymap.set("n", "<leader>N", function() Snacks.win({
   file = vim.api.nvim_get_runtime_file("doc/news.txt", false)[1],
   width = 0.6,
