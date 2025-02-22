@@ -51,8 +51,6 @@ keymap.set("n", "<leader>Mp", "<cmd>MarkdownPreviewToggle<CR>", {
 
 -- nvim-tree
 keymap.set("n", "<leader>ee", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file explorer" }) -- toggle file explorer
-keymap.set("n", "<leader>ef", "<cmd>NvimTreeFindFileToggle<CR>", { desc = "Toggle file explorer on current file" }) -- toggle file explorer on current file
-keymap.set("n", "<leader>ec", "<cmd>NvimTreeCollapse<CR>", { desc = "Collapse file explorer" }) -- collapse file explorer
 keymap.set("n", "<leader>er", "<cmd>NvimTreeRefresh<CR>", { desc = "Refresh file explorer" }) -- refresh file explorer
 
 -- telescope.lua:
@@ -80,12 +78,6 @@ keymap.set("n", "<leader>S", function() Snacks.scratch.select() end, { desc = "S
 -- Notifications
 keymap.set("n", "<leader>n", function() Snacks.notifier.show_history() end, { desc = "Notification History" })
 keymap.set("n", "<leader>un", function() Snacks.notifier.hide() end, { desc = "Dismiss All Notifications" })
-
--- Buffers
-keymap.set("n", "<leader>bd", function() Snacks.bufdelete() end, { desc = "Delete Buffer" })
-
--- Rename file
-keymap.set("n", "<leader>cR", function() Snacks.rename.rename_file() end, { desc = "Rename File" })
 
 -- Git / LazyGit
 keymap.set({ "n", "v" }, "<leader>gB", function() Snacks.gitbrowse() end, { desc = "Git Browse" })
@@ -140,12 +132,6 @@ vim.api.nvim_create_autocmd("User", {
     keymap.set("n", "<leader>uD", function() toggles.dim() end, { desc = "Toggle Dim" })
   end,
 })
-
-
-
-
-
-
 
 -- conform.lua:
 -- 1) Toggle Conform formatting
