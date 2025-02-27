@@ -9,5 +9,19 @@ return {
   {
     "jupyter_nvim",
     dir = "~/Git-Projects/jupyter.nvim",
-  }
+  },
+  {
+    "chatgpt_float",
+    dir = "~/Git-Projects/nvim-chatgpt",
+  },
+
 }
+
+
+
+
+
+  -- {
+  --   "livemd",
+  --   dir = "/Users/idohaber/Git-Projects/LiveMD.nvim/"
+  -- }
