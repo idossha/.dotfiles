@@ -37,7 +37,6 @@ return {
         "emmet_ls",
         "prismals",
         "pyright",
-        "matlab_ls",
         "zls",
       },
       -- auto-install configured servers (with lspconfig)

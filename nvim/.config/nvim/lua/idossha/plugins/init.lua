@@ -7,21 +7,11 @@ return {
     dir = "~/Git-Projects/myplugin",
   },
   {
-    "jupyter_nvim",
+    "nvim_jupyter",
     dir = "~/Git-Projects/jupyter.nvim",
   },
   {
     "chatgpt_float",
     dir = "~/Git-Projects/nvim-chatgpt",
   },
-
-}
-
-
-
-
-
-  -- {
-  --   "livemd",
-  --   dir = "/Users/idohaber/Git-Projects/LiveMD.nvim/"
-  -- }
+  }

@@ -135,7 +135,7 @@ vim.api.nvim_create_autocmd("User", {
 
 -- conform.lua:
 -- 1) Toggle Conform formatting
-keymap.set("n", "<leader>mt", function()
+keymap.set("n", "<leader>Ft", function()
   -- Import your plugin module
   require("idossha.plugins.conform").toggle_formatting()
 end, { desc = "Toggle Conform auto-formatting" })
@@ -143,7 +143,7 @@ end, { desc = "Toggle Conform auto-formatting" })
 -- 2) Manually format
 --    - Works in Normal mode (format buffer)
 --    - Works in Visual mode (format selection)
-keymap.set({ "n", "v" }, "<leader>mp", function()
+keymap.set({ "n", "v" }, "<leader>Fp", function()
   require("conform").format({
     lsp_fallback = true,
     async = false,
