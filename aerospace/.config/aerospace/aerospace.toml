@@ -200,7 +200,7 @@ run = 'move-node-to-workspace 4'
 
 [[on-window-detected]]
 if.app-id = 'com.mathworks.matlab'
-run = 'move-node-to-workspace 5'
+run = 'move-node-to-workspace 1'
 
 
 # ~~~~~~~~~~~ Floating Apps ~~~~~~~~~~~~~~~~~ #
