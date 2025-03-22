@@ -10,10 +10,10 @@
         panel_size = 50,                  -- Size of the tmux pane (in percentage)
         panel_size_type = 'percentage',   -- 'percentage' or 'fixed' (fixed = columns)
         tmux_pane_direction = 'right',    -- Position of the tmux pane ('right', 'below')
-        tmux_pane_focus = true,  
+        tmux_pane_focus = true,
 
         -- Behavior options
-        auto_start = true,
+        auto_start = false,
         default_mappings = true,
         debug = false,
         minimal_notifications = true,
