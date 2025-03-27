@@ -2,7 +2,7 @@
 
 ########################################
 # dotfiles installation script of Ido Haber
-# Last update: December 20, 2024
+# Last update: March 26, 2025
 ########################################
 
 set -e  # Exit immediately if a command exits with a non-zero status
@@ -20,6 +20,9 @@ DOTFILES_DIR="$HOME/.dotfiles"
 # Oh My Zsh installation directory
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
+# Neovim version
+NEOVIM_VERSION="0.11.0"
+
 # Define common and OS-specific packages
 COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "alacritty" "htop" "ghostty" "nushell" "misc" "sketchybar" "karabiner") #kitty
 MACOS_CONFS=("zsh" "aerospace") 
@@ -36,7 +39,6 @@ BREW_CASK_PACKAGES=(
 
 BREW_PACKAGES=(
   tmux
-  neovim
   git
   ripgrep
   fzf
@@ -67,7 +69,6 @@ APT_PACKAGES=(
   git
   bat
   zoxide
-  neovim
   ripgrep
   nodejs
   npm
@@ -92,6 +93,13 @@ print_message() {
   echo "========================================"
 }
 
+# Function to print error messages
+print_error() {
+  echo "----------------------------------------"
+  echo "ERROR: $1"
+  echo "----------------------------------------"
+}
+
 # ============================
 # OS Detection
 # ============================
@@ -105,7 +113,7 @@ if [ "$OS" == "Darwin" ]; then
 elif [ "$OS" == "Linux" ]; then
   is_linux=true
 else
-  echo "Unsupported OS: $OS"
+  print_error "Unsupported OS: $OS"
   exit 1
 fi
 
@@ -214,30 +222,50 @@ backup_existing_configs() {
 stow_dotfiles() {
   print_message "Stowing Dotfiles..."
   sleep 1
+  
+  # Check if dotfiles directory exists
+  if [ ! -d "$DOTFILES_DIR" ]; then
+    print_error "Dotfiles directory not found at $DOTFILES_DIR"
+    echo "Please clone your dotfiles repository first or set DOTFILES_DIR correctly."
+    exit 1
+  fi
+  
   cd "$DOTFILES_DIR"
 
   # Stow common packages
   for pkg in "${COMMON_CONFS[@]}"; do
-    echo "Stowing $pkg..."
-    stow --ignore='\.DS_Store' "$pkg"
+    if [ -d "$pkg" ]; then
+      echo "Stowing $pkg..."
+      stow --ignore='\.DS_Store' "$pkg"
+    else
+      echo "Warning: $pkg directory not found, skipping."
+    fi
   done
 
   # Stow OS-specific packages
   if $is_mac; then
     for pkg in "${MACOS_CONFS[@]}"; do
-      echo "Stowing $pkg..."
-      stow --ignore='\.DS_Store' "$pkg"
+      if [ -d "$pkg" ]; then
+        echo "Stowing $pkg..."
+        stow --ignore='\.DS_Store' "$pkg"
+      else
+        echo "Warning: $pkg directory not found, skipping."
+      fi
     done
   elif $is_linux; then
     for pkg in "${LINUX_CONFS[@]}"; do
-      echo "Stowing $pkg..."
-      stow "$pkg"
+      if [ -d "$pkg" ]; then
+        echo "Stowing $pkg..."
+        stow "$pkg"
+      else
+        echo "Warning: $pkg directory not found, skipping."
+      fi
     done
   fi
 
   echo "Dotfiles have been symlinked successfully."
 
-  cd -
+  cd - > /dev/null
 }
 
 # ============================
@@ -249,7 +277,12 @@ install_brew_cask_packages() {
     print_message "Installing Homebrew Cask packages..."
     sleep 1
     for package in "${BREW_CASK_PACKAGES[@]}"; do
-      if ! brew list --cask | grep -q "^$package\$"; then
+      # Skip commented packages
+      if [[ $package == \#* ]]; then
+        continue
+      fi
+      
+      if ! brew list --cask "$package" &>/dev/null; then
         echo "Installing $package..."
         brew install --cask "$package"
       else
@@ -282,13 +315,87 @@ install_brew_packages() {
     fi
 
     for package in "${BREW_PACKAGES[@]}"; do
-      if ! brew list | grep -q "^$package\$"; then
+      # Skip commented packages
+      if [[ $package == \#* ]]; then
+        continue
+      fi
+      
+      if ! brew list "$package" &>/dev/null; then
         echo "Installing $package..."
         brew install "$package"
       else
         echo "$package is already installed."
       fi
     done
+  fi
+}
+
+# ============================
+# Install Specific Neovim Version
+# ============================
+
+install_neovim() {
+  print_message "Installing Neovim $NEOVIM_VERSION..."
+  sleep 1
+
+  # Check if Neovim is already installed with the right version
+  if command -v nvim &> /dev/null; then
+    current_version=$(nvim --version | head -n 1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+    if [ "$current_version" = "$NEOVIM_VERSION" ]; then
+      echo "Neovim $NEOVIM_VERSION is already installed."
+      return
+    else
+      echo "Neovim $current_version is installed, but we need $NEOVIM_VERSION."
+      
+      # Remove existing Neovim installation
+      if $is_mac; then
+        brew uninstall neovim
+      elif $is_linux; then
+        sudo apt remove -y neovim
+      fi
+    fi
+  fi
+
+  if $is_mac; then
+    # Install specific version on macOS
+    brew tap neovim/neovim
+    brew install neovim@$NEOVIM_VERSION || brew install neovim
+    
+    # If specific version install fails, warn the user
+    if ! nvim --version | grep -q $NEOVIM_VERSION; then
+      echo "Warning: Couldn't install Neovim $NEOVIM_VERSION specifically."
+      echo "Installed: $(nvim --version | head -n 1)"
+    fi
+  elif $is_linux; then
+    # Try to install from apt first
+    if apt-cache show neovim | grep -q "Version: $NEOVIM_VERSION"; then
+      sudo apt install -y neovim
+    else
+      # Install from AppImage for specific version
+      echo "Installing Neovim $NEOVIM_VERSION from GitHub releases..."
+      
+      # Create directory for AppImage
+      mkdir -p "$HOME/.local/bin"
+      
+      # Download AppImage
+      APPIMAGE_URL="https://github.com/neovim/neovim/releases/download/v$NEOVIM_VERSION/nvim.appimage"
+      curl -L "$APPIMAGE_URL" -o "$HOME/.local/bin/nvim"
+      chmod +x "$HOME/.local/bin/nvim"
+      
+      # Add to PATH if not already there
+      if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
+        export PATH="$HOME/.local/bin:$PATH"
+      fi
+    fi
+  fi
+  
+  # Verify installation
+  if command -v nvim &> /dev/null; then
+    echo "Neovim installed successfully:"
+    nvim --version | head -n 1
+  else
+    print_error "Failed to install Neovim."
   fi
 }
 
@@ -300,7 +407,7 @@ install_font_hack() {
   print_message "Installing font-hack-nerd-font..."
   sleep 1
   if $is_mac; then
-    if ! brew list --cask | grep -q "^font-hack-nerd-font\$"; then
+    if ! brew list --cask font-hack-nerd-font &>/dev/null; then
       brew tap homebrew/cask-fonts
       brew install --cask font-hack-nerd-font
     else
@@ -311,9 +418,19 @@ install_font_hack() {
       echo "Installing Hack Nerd Font..."
       mkdir -p ~/.local/share/fonts
       cd ~/.local/share/fonts
-      curl -fLo "Hack Regular Nerd Font Complete.ttf" \
-        https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/complete/Hack%20Regular%20Nerd%20Font%20Complete.ttf
+      
+      # Download each font variant
+      for variant in "Regular" "Bold" "Italic" "BoldItalic"; do
+        echo "Downloading Hack ${variant}..."
+        FONT_URL="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/${variant}/complete/Hack%20${variant}%20Nerd%20Font%20Complete.ttf"
+        curl -fLo "Hack ${variant} Nerd Font Complete.ttf" "$FONT_URL"
+      done
+      
+      # Update font cache
       fc-cache -fv
+      cd - > /dev/null
+      
+      echo "Hack Nerd Font installed successfully."
     else
       echo "font-hack-nerd-font is already installed."
     fi
@@ -391,21 +508,19 @@ install_neovim_plugins() {
 
     echo "Neovim plugins installed successfully using lazy.nvim."
   else
-    echo "Neovim is not installed. Skipping Neovim plugin installation."
+    print_error "Neovim is not installed. Skipping Neovim plugin installation."
   fi
 }
-
 
 # ============================
 # Install Atuin
 # ============================
 install_atuin() {
-  print_message "Intalling Atuin with Curl command"
+  print_message "Installing Atuin with Curl command"
   sleep 1
   curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
-  echo "Finishe installing Atuin"
+  echo "Finished installing Atuin"
 }
-
 
 # ============================
 # Install Tmux Plugins
@@ -416,8 +531,9 @@ install_tmux_plugins() {
   sleep 1
   TPM_DIR="$HOME/.tmux/plugins/tpm"
 
-  if [ ! - "$TPM_DIR" ]; then
+  if [ ! -d "$TPM_DIR" ]; then
     echo "Tmux Plugin Manager (TPM) not found. Cloning TPM..."
+    mkdir -p "$HOME/.tmux/plugins"
     git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
   else
     echo "Tmux Plugin Manager is already installed."
@@ -439,7 +555,7 @@ install_tmux_plugins() {
 
     echo "Tmux plugins installed successfully."
   else
-    echo "Tmux is not installed. Skipping Tmux plugin installation."
+    print_error "Tmux is not installed. Skipping Tmux plugin installation."
   fi
 }
 
@@ -465,6 +581,8 @@ source_zshrc() {
 # ============================
 
 main() {
+  print_message "Starting dotfiles installation for $(hostname) (OS: $OS)"
+  sleep 1
 
   if $is_mac; then
     install_homebrew
@@ -481,15 +599,24 @@ main() {
     install_apt_packages
   fi
 
+  # Install Neovim with specific version
+  install_neovim
+  
   install_font_hack
   install_oh_my_zsh
   install_zsh_plugins
   install_neovim_plugins
   install_tmux_plugins
+  install_atuin  # Added Atuin installation
   source_zshrc
 
   print_message "Installation Completed!"
   echo "Your development environment is set up successfully."
+  
+  # Print Neovim version as confirmation
+  if command -v nvim &> /dev/null; then
+    echo "Neovim version: $(nvim --version | head -n 1)"
+  fi
 }
 
 main
