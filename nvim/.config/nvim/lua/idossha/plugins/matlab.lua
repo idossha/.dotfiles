@@ -1,5 +1,6 @@
   return {
     'idossha/matlab.nvim',
+    branch = 'main',
     ft = 'matlab',
     config = function()
       require('matlab').setup({
