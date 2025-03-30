@@ -2,10 +2,123 @@
 
 ########################################
 # dotfiles installation script of Ido Haber
-# Last update: March 26, 2025
+# Last update: March 29, 2025
 ########################################
 
-set -e  # Exit immediately if a command exits with a non-zero status
+# ============================
+# Logging Configuration
+# ============================
+LOG_FILE="$HOME/dotfiles_install.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+echo "========== Installation started at $(date) =========="
+
+# Exit on error - after logging setup
+set -e
+
+# ============================
+# Cleanup and Error Handler
+# ============================
+TEMP_FILES=()
+INSTALLED_PACKAGES=()
+BACKED_UP_FILES=()
+CREATED_DIRS=()
+
+cleanup() {
+  echo "========== Cleanup triggered at $(date) =========="
+  
+  # Check if the script was successful or failed
+  local exit_code=$?
+  
+  if [ $exit_code -ne 0 ]; then
+    echo "Error detected (code $exit_code). Performing cleanup..."
+    
+    # Restore backed up configs
+    for file in "${BACKED_UP_FILES[@]}"; do
+      if [ -f "${file}.backup" ]; then
+        echo "Restoring backup: ${file}"
+        mv "${file}.backup" "${file}"
+      fi
+    done
+    
+    # Remove installed packages (if user confirms)
+    if [ ${#INSTALLED_PACKAGES[@]} -gt 0 ] && confirm "Do you want to remove installed packages?"; then
+      echo "Removing installed packages..."
+      if $is_mac; then
+        brew uninstall "${INSTALLED_PACKAGES[@]}" || true
+      elif $is_linux; then
+        sudo apt remove -y "${INSTALLED_PACKAGES[@]}" || true
+      fi
+    fi
+    
+    # Remove created directories
+    for dir in "${CREATED_DIRS[@]}"; do
+      if [ -d "$dir" ] && confirm "Remove directory: $dir?"; then
+        echo "Removing directory: $dir"
+        rm -rf "$dir"
+      fi
+    done
+    
+    # Clean up temp files
+    for file in "${TEMP_FILES[@]}"; do
+      if [ -f "$file" ]; then
+        echo "Removing temporary file: $file"
+        rm -f "$file"
+      fi
+    done
+    
+    echo "Cleanup completed. Check $LOG_FILE for details."
+    echo "Installation FAILED. Please check the log for errors."
+  else
+    echo "Installation SUCCEEDED."
+  fi
+  
+  echo "========== Installation finished at $(date) =========="
+}
+
+trap cleanup EXIT
+
+# ============================
+# Helper Functions
+# ============================
+
+# Function for user confirmation
+confirm() {
+  read -p "$1 (y/n) " -n 1 -r
+  echo
+  [[ $REPLY =~ ^[Yy]$ ]]
+}
+
+# Function to print messages with separators for better readability
+print_message() {
+  echo "========================================"
+  echo "$1"
+  echo "========================================"
+}
+
+# Function to print error messages
+print_error() {
+  echo "----------------------------------------"
+  echo "ERROR: $1"
+  echo "----------------------------------------"
+}
+
+# Function to track installed package
+track_installed() {
+  INSTALLED_PACKAGES+=("$1")
+  echo "Tracking installed package: $1" >> "$LOG_FILE"
+}
+
+# Function to track created directory
+track_directory() {
+  CREATED_DIRS+=("$1")
+  echo "Tracking created directory: $1" >> "$LOG_FILE"
+}
+
+# Function to track backed up file
+track_backup() {
+  BACKED_UP_FILES+=("$1")
+  echo "Tracking backed up file: $1" >> "$LOG_FILE"
+}
 
 # ============================
 # Variables and Configuration
@@ -34,7 +147,6 @@ BREW_CASK_PACKAGES=(
   #raycask
   zen-browser
   ghostty
-  # kitty                     # Kitty terminal emulator
 )
 
 BREW_PACKAGES=(
@@ -60,7 +172,7 @@ BREW_PACKAGES=(
   stats
   nushell
   imagemagick
-  # alacritty
+  fd
 )
 
 # Define APT packages (Linux)
@@ -82,23 +194,8 @@ APT_PACKAGES=(
   zsh
   neofetch
   ghostty
-  # kitty
-  # alacritty
+  fd
 )
-
-# Function to print messages with separators for better readability
-print_message() {
-  echo "========================================"
-  echo "$1"
-  echo "========================================"
-}
-
-# Function to print error messages
-print_error() {
-  echo "----------------------------------------"
-  echo "ERROR: $1"
-  echo "----------------------------------------"
-}
 
 # ============================
 # OS Detection
@@ -117,6 +214,8 @@ else
   exit 1
 fi
 
+echo "Detected OS: $OS (macOS: $is_mac, Linux: $is_linux)" >> "$LOG_FILE"
+
 # ============================
 # Package Manager Installation
 # ============================
@@ -125,23 +224,28 @@ install_homebrew() {
   print_message "Checking for Homebrew..."
   sleep 1
   if ! command -v brew &> /dev/null; then
-    echo "Homebrew not found. Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    if confirm "Homebrew not found. Would you like to install it?"; then
+      echo "Installing Homebrew..."
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-    # Add Homebrew to PATH
-    if $is_mac; then
-      # For Apple Silicon Macs
-      if [[ $(uname -m) == 'arm64' ]]; then
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-      else
-        # For Intel Macs
-        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$HOME/.zprofile"
-        eval "$(/usr/local/bin/brew shellenv)"
+      # Add Homebrew to PATH
+      if $is_mac; then
+        # For Apple Silicon Macs
+        if [[ $(uname -m) == 'arm64' ]]; then
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+          eval "$(/opt/homebrew/bin/brew shellenv)"
+        else
+          # For Intel Macs
+          echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$HOME/.zprofile"
+          eval "$(/usr/local/bin/brew shellenv)"
+        fi
+      elif $is_linux; then
+        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "$HOME/.profile"
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
       fi
-    elif $is_linux; then
-      echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "$HOME/.profile"
-      eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    else
+      print_error "Homebrew is required but won't be installed. Exiting."
+      exit 1
     fi
   else
     echo "Homebrew is already installed."
@@ -163,7 +267,11 @@ install_apt_packages() {
   for package in "${APT_PACKAGES[@]}"; do
     if ! dpkg -l | grep -q "^ii  $package "; then
       echo "Installing $package..."
-      sudo apt install -y "$package"
+      if sudo apt install -y "$package"; then
+        track_installed "$package"
+      else
+        print_error "Failed to install $package"
+      fi
     else
       echo "$package is already installed."
     fi
@@ -180,9 +288,19 @@ install_stow() {
   if ! command -v stow &> /dev/null; then
     echo "GNU Stow not found. Installing GNU Stow..."
     if $is_mac; then
-      brew install stow
+      if brew install stow; then
+        track_installed "stow"
+      else
+        print_error "Failed to install GNU Stow"
+        exit 1
+      fi
     elif $is_linux; then
-      sudo apt install -y stow
+      if sudo apt install -y stow; then
+        track_installed "stow"
+      else
+        print_error "Failed to install GNU Stow"
+        exit 1
+      fi
     fi
   else
     echo "GNU Stow is already installed."
@@ -211,6 +329,7 @@ backup_existing_configs() {
     if [ -e "$target" ] && [ ! -L "$target" ]; then
       echo "Backing up $target to $target.backup"
       mv "$target" "$target.backup"
+      track_backup "$target"
     fi
   done
 }
@@ -226,8 +345,20 @@ stow_dotfiles() {
   # Check if dotfiles directory exists
   if [ ! -d "$DOTFILES_DIR" ]; then
     print_error "Dotfiles directory not found at $DOTFILES_DIR"
-    echo "Please clone your dotfiles repository first or set DOTFILES_DIR correctly."
-    exit 1
+    if confirm "Would you like to clone your dotfiles repository now?"; then
+      echo "Enter your dotfiles repository URL:"
+      read -r repo_url
+      mkdir -p "$DOTFILES_DIR"
+      if git clone "$repo_url" "$DOTFILES_DIR"; then
+        track_directory "$DOTFILES_DIR"
+      else
+        print_error "Failed to clone repository. Exiting."
+        exit 1
+      fi
+    else
+      print_error "Dotfiles directory is required. Exiting."
+      exit 1
+    fi
   fi
   
   cd "$DOTFILES_DIR"
@@ -236,7 +367,9 @@ stow_dotfiles() {
   for pkg in "${COMMON_CONFS[@]}"; do
     if [ -d "$pkg" ]; then
       echo "Stowing $pkg..."
-      stow --ignore='\.DS_Store' "$pkg"
+      if ! stow --ignore='\.DS_Store' "$pkg"; then
+        print_error "Failed to stow $pkg"
+      fi
     else
       echo "Warning: $pkg directory not found, skipping."
     fi
@@ -247,7 +380,9 @@ stow_dotfiles() {
     for pkg in "${MACOS_CONFS[@]}"; do
       if [ -d "$pkg" ]; then
         echo "Stowing $pkg..."
-        stow --ignore='\.DS_Store' "$pkg"
+        if ! stow --ignore='\.DS_Store' "$pkg"; then
+          print_error "Failed to stow $pkg"
+        fi
       else
         echo "Warning: $pkg directory not found, skipping."
       fi
@@ -256,7 +391,9 @@ stow_dotfiles() {
     for pkg in "${LINUX_CONFS[@]}"; do
       if [ -d "$pkg" ]; then
         echo "Stowing $pkg..."
-        stow "$pkg"
+        if ! stow "$pkg"; then
+          print_error "Failed to stow $pkg"
+        fi
       else
         echo "Warning: $pkg directory not found, skipping."
       fi
@@ -280,11 +417,15 @@ install_brew_cask_packages() {
       # Skip commented packages
       if [[ $package == \#* ]]; then
         continue
-      fi
+      }
       
       if ! brew list --cask "$package" &>/dev/null; then
         echo "Installing $package..."
-        brew install --cask "$package"
+        if brew install --cask "$package"; then
+          track_installed "$package"
+        else
+          print_error "Failed to install $package"
+        fi
       else
         echo "$package is already installed."
       fi
@@ -318,11 +459,15 @@ install_brew_packages() {
       # Skip commented packages
       if [[ $package == \#* ]]; then
         continue
-      fi
+      }
       
       if ! brew list "$package" &>/dev/null; then
         echo "Installing $package..."
-        brew install "$package"
+        if brew install "$package"; then
+          track_installed "$package"
+        else
+          print_error "Failed to install $package"
+        fi
       else
         echo "$package is already installed."
       fi
@@ -347,11 +492,16 @@ install_neovim() {
     else
       echo "Neovim $current_version is installed, but we need $NEOVIM_VERSION."
       
-      # Remove existing Neovim installation
-      if $is_mac; then
-        brew uninstall neovim
-      elif $is_linux; then
-        sudo apt remove -y neovim
+      if confirm "Would you like to remove the current version and install version $NEOVIM_VERSION?"; then
+        # Remove existing Neovim installation
+        if $is_mac; then
+          brew uninstall neovim
+        elif $is_linux; then
+          sudo apt remove -y neovim
+        fi
+      else
+        echo "Keeping current Neovim version $current_version."
+        return
       fi
     fi
   fi
@@ -359,7 +509,11 @@ install_neovim() {
   if $is_mac; then
     # Install specific version on macOS
     brew tap neovim/neovim
-    brew install neovim@$NEOVIM_VERSION || brew install neovim
+    if brew install neovim@$NEOVIM_VERSION || brew install neovim; then
+      track_installed "neovim"
+    else
+      print_error "Failed to install Neovim"
+    fi
     
     # If specific version install fails, warn the user
     if ! nvim --version | grep -q $NEOVIM_VERSION; then
@@ -369,23 +523,31 @@ install_neovim() {
   elif $is_linux; then
     # Try to install from apt first
     if apt-cache show neovim | grep -q "Version: $NEOVIM_VERSION"; then
-      sudo apt install -y neovim
+      if sudo apt install -y neovim; then
+        track_installed "neovim"
+      else
+        print_error "Failed to install Neovim from apt"
+      fi
     else
       # Install from AppImage for specific version
       echo "Installing Neovim $NEOVIM_VERSION from GitHub releases..."
       
       # Create directory for AppImage
       mkdir -p "$HOME/.local/bin"
+      track_directory "$HOME/.local/bin"
       
       # Download AppImage
       APPIMAGE_URL="https://github.com/neovim/neovim/releases/download/v$NEOVIM_VERSION/nvim.appimage"
-      curl -L "$APPIMAGE_URL" -o "$HOME/.local/bin/nvim"
-      chmod +x "$HOME/.local/bin/nvim"
-      
-      # Add to PATH if not already there
-      if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
-        export PATH="$HOME/.local/bin:$PATH"
+      if curl -L "$APPIMAGE_URL" -o "$HOME/.local/bin/nvim"; then
+        chmod +x "$HOME/.local/bin/nvim"
+        
+        # Add to PATH if not already there
+        if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+          echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
+          export PATH="$HOME/.local/bin:$PATH"
+        fi
+      else
+        print_error "Failed to download Neovim AppImage"
       fi
     fi
   fi
@@ -409,7 +571,11 @@ install_font_hack() {
   if $is_mac; then
     if ! brew list --cask font-hack-nerd-font &>/dev/null; then
       brew tap homebrew/cask-fonts
-      brew install --cask font-hack-nerd-font
+      if brew install --cask font-hack-nerd-font; then
+        track_installed "font-hack-nerd-font"
+      else
+        print_error "Failed to install font-hack-nerd-font"
+      fi
     else
       echo "font-hack-nerd-font is already installed."
     fi
@@ -417,13 +583,16 @@ install_font_hack() {
     if ! fc-list | grep -i "Hack Nerd Font" &> /dev/null; then
       echo "Installing Hack Nerd Font..."
       mkdir -p ~/.local/share/fonts
+      track_directory "~/.local/share/fonts"
       cd ~/.local/share/fonts
       
       # Download each font variant
       for variant in "Regular" "Bold" "Italic" "BoldItalic"; do
         echo "Downloading Hack ${variant}..."
         FONT_URL="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/${variant}/complete/Hack%20${variant}%20Nerd%20Font%20Complete.ttf"
-        curl -fLo "Hack ${variant} Nerd Font Complete.ttf" "$FONT_URL"
+        if ! curl -fLo "Hack ${variant} Nerd Font Complete.ttf" "$FONT_URL"; then
+          print_error "Failed to download Hack ${variant} font"
+        fi
       done
       
       # Update font cache
@@ -445,15 +614,64 @@ install_oh_my_zsh() {
   print_message "Setting Up Oh My Zsh..."
   sleep 1
   if [ ! -d "$OH_MY_ZSH_DIR" ]; then
-    echo "Oh My Zsh not found. Installing Oh My Zsh..."
+    echo "Oh My Zsh not found."
+    if confirm "Would you like to install Oh My Zsh?"; then
+      # Set ZSH environment variable to install to $HOME/oh-my-zsh
+      export ZSH="$OH_MY_ZSH_DIR"
 
-    # Set ZSH environment variable to install to $HOME/oh-my-zsh
-    export ZSH="$OH_MY_ZSH_DIR"
-
-    # Install Oh My Zsh without modifying .zshrc
-    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+      # Install Oh My Zsh without modifying .zshrc
+      RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+      
+      if [ -d "$OH_MY_ZSH_DIR" ]; then
+        track_directory "$OH_MY_ZSH_DIR"
+      else
+        print_error "Failed to install Oh My Zsh"
+      fi
+    else
+      echo "Skipping Oh My Zsh installation."
+    fi
   else
     echo "Oh My Zsh is already installed."
+  fi
+}
+
+# ============================
+# Set Zsh as Default Shell
+# ============================
+
+set_zsh_as_default() {
+  print_message "Checking shell configuration..."
+  sleep 1
+  
+  # Check if zsh is installed
+  if ! command -v zsh &> /dev/null; then
+    print_error "Zsh is not installed. Please install it first."
+    return 1
+  fi
+  
+  # Check current shell
+  if [[ "$SHELL" != *"zsh"* ]]; then
+    if confirm "Your current shell is not Zsh. Would you like to set Zsh as your default shell?"; then
+      echo "Setting Zsh as default shell..."
+      ZSH_PATH=$(which zsh)
+      
+      # Check if zsh is in /etc/shells
+      if ! grep -q "$ZSH_PATH" /etc/shells; then
+        echo "Adding $ZSH_PATH to /etc/shells..."
+        echo "$ZSH_PATH" | sudo tee -a /etc/shells
+      fi
+      
+      # Change shell
+      if chsh -s "$ZSH_PATH"; then
+        echo "Shell changed to Zsh. Please log out and log back in for changes to take effect."
+      else
+        print_error "Failed to change shell to Zsh."
+      fi
+    else
+      echo "Keeping current shell: $SHELL"
+    fi
+  else
+    echo "Zsh is already your default shell."
   fi
 }
 
@@ -468,6 +686,7 @@ install_zsh_plugins() {
 
   # Ensure the custom/plugins directory exists
   mkdir -p "$ZSH_CUSTOM_PLUGINS"
+  track_directory "$ZSH_CUSTOM_PLUGINS"
 
   # Define Zsh plugins
   ZSH_PLUGINS=(
@@ -479,7 +698,11 @@ install_zsh_plugins() {
   for plugin in "${ZSH_PLUGINS[@]}"; do
     if [ ! -d "${ZSH_CUSTOM_PLUGINS}/$plugin" ]; then
       echo "Cloning $plugin..."
-      git clone "https://github.com/zsh-users/$plugin.git" "${ZSH_CUSTOM_PLUGINS}/$plugin"
+      if git clone "https://github.com/zsh-users/$plugin.git" "${ZSH_CUSTOM_PLUGINS}/$plugin"; then
+        track_directory "${ZSH_CUSTOM_PLUGINS}/$plugin"
+      else
+        print_error "Failed to clone $plugin"
+      fi
     else
       echo "$plugin is already installed."
     fi
@@ -498,15 +721,22 @@ install_neovim_plugins() {
     LAZY_NVIM_DIR="$HOME/.local/share/nvim/lazy/lazy.nvim"
     if [ ! -d "$LAZY_NVIM_DIR" ]; then
       echo "Installing lazy.nvim plugin manager..."
-      git clone --filter=blob:none https://github.com/folke/lazy.nvim.git --branch=stable "$LAZY_NVIM_DIR"
+      if git clone --filter=blob:none https://github.com/folke/lazy.nvim.git --branch=stable "$LAZY_NVIM_DIR"; then
+        track_directory "$LAZY_NVIM_DIR"
+      else
+        print_error "Failed to install lazy.nvim"
+        return 1
+      fi
     else
       echo "lazy.nvim is already installed."
     fi
 
     echo "Running Neovim to install plugins via lazy.nvim..."
-    nvim --headless "+Lazy! sync" +qa
-
-    echo "Neovim plugins installed successfully using lazy.nvim."
+    if ! nvim --headless "+Lazy! sync" +qa; then
+      print_error "Failed to install Neovim plugins"
+    else
+      echo "Neovim plugins installed successfully using lazy.nvim."
+    fi
   else
     print_error "Neovim is not installed. Skipping Neovim plugin installation."
   fi
@@ -518,8 +748,15 @@ install_neovim_plugins() {
 install_atuin() {
   print_message "Installing Atuin with Curl command"
   sleep 1
-  curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
-  echo "Finished installing Atuin"
+  if confirm "Would you like to install Atuin (shell history tool)?"; then
+    if curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh; then
+      echo "Finished installing Atuin"
+    else
+      print_error "Failed to install Atuin"
+    fi
+  else
+    echo "Skipping Atuin installation."
+  fi
 }
 
 # ============================
@@ -532,9 +769,20 @@ install_tmux_plugins() {
   TPM_DIR="$HOME/.tmux/plugins/tpm"
 
   if [ ! -d "$TPM_DIR" ]; then
-    echo "Tmux Plugin Manager (TPM) not found. Cloning TPM..."
-    mkdir -p "$HOME/.tmux/plugins"
-    git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+    echo "Tmux Plugin Manager (TPM) not found."
+    if confirm "Would you like to install Tmux Plugin Manager?"; then
+      mkdir -p "$HOME/.tmux/plugins"
+      track_directory "$HOME/.tmux/plugins"
+      if git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"; then
+        track_directory "$TPM_DIR"
+      else
+        print_error "Failed to clone TPM"
+        return 1
+      fi
+    else
+      echo "Skipping Tmux Plugin Manager installation."
+      return 0
+    fi
   else
     echo "Tmux Plugin Manager is already installed."
   fi
@@ -543,15 +791,33 @@ install_tmux_plugins() {
   if command -v tmux &> /dev/null; then
     echo "Installing Tmux plugins..."
 
-    # Start a new detached tmux session that runs the necessary commands
-    tmux new-session -d -s plugin_install_session \
-      "tmux source-file ~/.tmux.conf; ~/.tmux/plugins/tpm/scripts/install_plugins.sh; sleep 5"
-
-    # Wait for the session to complete
-    sleep 15  # Adjust this if needed
-
-    # Kill the temporary session
-    tmux kill-session -t plugin_install_session
+    # Start a new detached tmux session
+    if ! tmux new-session -d -s plugin_install_session; then
+      print_error "Failed to create tmux session"
+      return 1
+    fi
+    
+    # Source tmux config and install plugins
+    tmux send-keys -t plugin_install_session "tmux source-file ~/.tmux.conf" C-m
+    tmux send-keys -t plugin_install_session "~/.tmux/plugins/tpm/scripts/install_plugins.sh" C-m
+    
+    # Wait a bit for installation
+    echo "Waiting for Tmux plugins to install..."
+    sleep 10
+    
+    # Check if the session is still running
+    max_wait=30
+    wait_count=0
+    while tmux has-session -t plugin_install_session 2>/dev/null && [ $wait_count -lt $max_wait ]; do
+      sleep 1
+      wait_count=$((wait_count + 1))
+    done
+    
+    # Kill the session if it's still running
+    if tmux has-session -t plugin_install_session 2>/dev/null; then
+      echo "Installation taking longer than expected, killing session..."
+      tmux kill-session -t plugin_install_session
+    fi
 
     echo "Tmux plugins installed successfully."
   else
@@ -569,7 +835,7 @@ source_zshrc() {
   # Source .zshrc if Zsh is the current shell
   if [ -n "$ZSH_VERSION" ]; then
     echo "Sourcing $HOME/.zshrc"
-    source "$HOME/.zshrc"
+    source "$HOME/.zshrc" || true  # Don't fail if there are issues
     echo ".zshrc has been sourced."
   else
     echo "Current shell is not Zsh. Please restart your terminal or run 'source ~/.zshrc' manually."
@@ -583,6 +849,12 @@ source_zshrc() {
 main() {
   print_message "Starting dotfiles installation for $(hostname) (OS: $OS)"
   sleep 1
+
+  # First check if the user wants to continue
+  if ! confirm "This script will set up your development environment. Continue?"; then
+    echo "Installation cancelled by user."
+    exit 0
+  fi
 
   if $is_mac; then
     install_homebrew
@@ -605,9 +877,10 @@ main() {
   install_font_hack
   install_oh_my_zsh
   install_zsh_plugins
+  set_zsh_as_default  # Added ZSH as default shell option
   install_neovim_plugins
   install_tmux_plugins
-  install_atuin  # Added Atuin installation
+  install_atuin
   source_zshrc
 
   print_message "Installation Completed!"
@@ -616,6 +889,12 @@ main() {
   # Print Neovim version as confirmation
   if command -v nvim &> /dev/null; then
     echo "Neovim version: $(nvim --version | head -n 1)"
+  fi
+  
+  echo "Check $LOG_FILE for installation details and any errors."
+  
+  if [[ "$SHELL" != *"zsh"* ]] && confirm "Would you like to start a new Zsh shell now?"; then
+    exec zsh
   fi
 }
 
