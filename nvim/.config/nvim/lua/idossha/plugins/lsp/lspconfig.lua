@@ -136,31 +136,39 @@ return {
       on_attach = on_attach,
       filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
     })
+ 
+    -- configure python server
+    lspconfig["pyright"].setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+      settings = {
+        python = {
+          analysis = {
+            autoSearchPaths = true,
+            diagnosticMode = "workspace", -- Changed from "openFilesOnly" 
+            useLibraryCodeForTypes = true,
+            typeCheckingMode = "basic", -- Add this for better type checking
+          }
+        }
+      },
+    })
 
     -- configure python server
     lspconfig["pyright"].setup({
       capabilities = capabilities,
       on_attach = on_attach,
-    })
-
-    -- configure lua server (with special settings)
-    lspconfig["lua_ls"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = { -- custom settings for lua
-        Lua = {
-          -- make the language server recognize "vim" global
-          diagnostics = {
-            globals = { "vim" },
-          },
-          workspace = {
-            -- make language server aware of runtime files
-            library = {
-              [vim.fn.expand("$VIMRUNTIME/lua")] = true,
-              [vim.fn.stdpath("config") .. "/lua"] = true,
+      settings = {
+        python = {
+          analysis = {
+            extraPaths = { 
+              vim.fn.expand("$HOME") .. "/Applications/SimNIBS-4.5"
             },
-          },
-        },
+            autoSearchPaths = true,
+            diagnosticMode = "workspace",
+            useLibraryCodeForTypes = true,
+            typeCheckingMode = "basic",
+          }
+        }
       },
     })
   end,
