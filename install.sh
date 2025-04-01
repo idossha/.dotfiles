@@ -417,8 +417,6 @@ install_brew_cask_packages() {
       # Skip commented packages
       if [[ $package == \#* ]]; then
         continue
-      }
-      
       if ! brew list --cask "$package" &>/dev/null; then
         echo "Installing $package..."
         if brew install --cask "$package"; then
