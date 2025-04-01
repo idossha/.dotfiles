@@ -9,7 +9,7 @@ return {
     local obsidian = require("obsidian")
     obsidian.setup({
       -- Replace with the path to your Obsidian vault.
-      dir = "/Users/idohaber/Desktop/Silicon_Mind",  -- remove trailing slash if necessary
+      dir = "/Users/idohaber/Silicon_Mind",  -- remove trailing slash if necessary
       templates = {  -- use "templates" (plural) here
         folder = "Templates",  -- must exactly match your folder name in the vault
         date_format = "%Y-%m-%d",
