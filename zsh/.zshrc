@@ -22,7 +22,7 @@ export DOCKER_HOST_IP=host.docker.internal
 export DISPLAY=host.docker.internal:0
 
 # automatic prompt for new terminals
-~/terminal_info.sh 
+# ~/terminal_info.sh 
 
 # shell prompt
 export PS1='%n|%1~ > '
@@ -49,13 +49,31 @@ source $ZSH/oh-my-zsh.sh  # Now source oh-my-zsh
 
 alias zshconfig="mate ~/.zshrc"
 alias mp="cd ~/Git-Projects/"
-alias ms="cd ~/Applications/SimNIBS-4.1/"
+alias ms="cd ~/Applications/SimNIBS-4.5/"
 alias md="cd ~/.dotfiles/"
 alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
 alias vi='nvim'
 
 
 . "$HOME/.atuin/bin/env"
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/Users/idohaber/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/Users/idohaber/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/Users/idohaber/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/Users/idohaber/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
+
+
 
 # export XDG_CONFIG_HOME="/Users/idohaber/.config"
 
