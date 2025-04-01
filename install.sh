@@ -417,6 +417,7 @@ install_brew_cask_packages() {
       # Skip commented packages
       if [[ $package == \#* ]]; then
         continue
+      fi
       if ! brew list --cask "$package" &>/dev/null; then
         echo "Installing $package..."
         if brew install --cask "$package"; then
@@ -457,7 +458,7 @@ install_brew_packages() {
       # Skip commented packages
       if [[ $package == \#* ]]; then
         continue
-      }
+      fi
       
       if ! brew list "$package" &>/dev/null; then
         echo "Installing $package..."
