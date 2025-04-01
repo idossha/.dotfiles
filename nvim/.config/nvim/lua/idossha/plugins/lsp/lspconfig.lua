@@ -144,22 +144,6 @@ return {
       settings = {
         python = {
           analysis = {
-            autoSearchPaths = true,
-            diagnosticMode = "workspace", -- Changed from "openFilesOnly" 
-            useLibraryCodeForTypes = true,
-            typeCheckingMode = "basic", -- Add this for better type checking
-          }
-        }
-      },
-    })
-
-    -- configure python server
-    lspconfig["pyright"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = {
-        python = {
-          analysis = {
             extraPaths = { 
               vim.fn.expand("$HOME") .. "/Applications/SimNIBS-4.5"
             },
