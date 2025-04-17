@@ -1,69 +1,92 @@
-
+-- obsidian.nvim plugin configuration
+-- This goes in your plugins directory
 return {
   "epwalsh/obsidian.nvim",
-  dependencies = { "nvim-lua/plenary.nvim" },
-  version = "*",  -- recommended: use latest release instead of latest commit
+  dependencies = { 
+    "nvim-lua/plenary.nvim",
+  },
+  version = "*",
   lazy = true,
   ft = "markdown",
+  cmd = {
+    "ObsidianOpen", 
+    "ObsidianQuickSwitch", 
+    "ObsidianNew", 
+    "ObsidianTemplate", 
+    "ObsidianNewFromTemplate", 
+    "ObsidianSearch",
+    "ObsidianPasteImg"
+  },
   config = function()
     local obsidian = require("obsidian")
     obsidian.setup({
-      -- Replace with the path to your Obsidian vault.
-      dir = "/Users/idohaber/Silicon_Mind",  -- remove trailing slash if necessary
-      templates = {  -- use "templates" (plural) here
-        folder = "Templates",  -- must exactly match your folder name in the vault
-        date_format = "%Y-%m-%d",
-        time_format = "%H:%M",
+      -- Your Obsidian vault path
+      dir = "/Users/idohaber/Silicon_Mind",
+      
+      -- Disable frontmatter management
+      disable_frontmatter = true,
+      
+      -- Template configuration
+      templates = {
+        folder = "Templates",
+        date_format = "%Y%m%d",
+        time_format = "%H%M",
         substitutions = {},
       },
+      
+      -- Enable nvim-cmp completion
       completion = {
         nvim_cmp = true,
       },
+      
+      -- Simple title-based note naming (no dates)
       note_id_func = function(title)
-        local date = vim.fn.strftime("%Y-%m-%d")
         if title and title ~= "" then
-          return date .. "-" .. title:gsub(" ", "-")
+          -- Simply convert spaces to hyphens
+          return title:gsub(" ", "-")
         else
-          return date
+          -- Fallback if no title
+          return "untitled-note"
         end
       end,
+      
+      -- Basic mappings
       mappings = {
-        -- Overrides the 'gf' mapping to work on markdown/wiki links within your vault.
+        -- Smart link handling
         ["gf"] = {
           action = function()
             return require("obsidian").util.gf_passthrough()
           end,
           opts = { noremap = false, expr = true, buffer = true },
         },
-        -- Remove the default <CR> mapping and assign the smart action to <leader>oc
-        ["<leader>os"] = {
-          action = function()
-            return require("obsidian").util.smart_action()
-          end,
-          opts = { buffer = true, expr = true, desc = "Obsidian: Smart Action" },
-        },
       },
     })
-
-    -- Create an autocommand for Markdown filetypes to set keybindings for additional commands
+    
+    -- Create keybindings for Markdown files only
     vim.api.nvim_create_autocmd("FileType", {
       pattern = "markdown",
       callback = function()
         local bufnr = vim.api.nvim_get_current_buf()
-
-        -- Mapping for gf: call gf_passthrough()
-        vim.keymap.set("n", "gf", function()
-          return obsidian.util.gf_passthrough()
-        end, { buffer = bufnr, noremap = false, expr = true, desc = "Obsidian: gf passthrough" })
-
-        -- Additional built-in Obsidian commands:
-        vim.keymap.set("n", "<leader>oo", "<cmd>ObsidianOpen<CR>", { buffer = bufnr, desc = "Obsidian: Open Note" })
-        vim.keymap.set("n", "<leader>oq", "<cmd>ObsidianQuickSwitch<CR>", { buffer = bufnr, desc = "Obsidian: Quick Switch" })
-        vim.keymap.set("n", "<leader>oT", "<cmd>ObsidianTemplate<CR>", { buffer = bufnr, desc = "Obsidian: fill in template" })
-        vim.keymap.set("n", "<leader>ot", "<cmd>ObsidianNewFromTemplate<CR>", { buffer = bufnr, desc = "Obsidian: New from Template" })
-        vim.keymap.set("n", "<leader>oi", "<cmd>ObsidianPasteImg<CR>", { buffer = bufnr, desc = "Obsidian: Paste Image" })
+        
+        -- Check if the current file is in the Obsidian vault
+        local current_file = vim.fn.expand('%:p')
+        local in_vault = string.find(current_file, "/Users/idohaber/Silicon_Mind") ~= nil
+        
+        -- Only set obsidian keybindings if we're in the vault
+        if in_vault then
+          -- Link navigation
+          vim.keymap.set("n", "gf", function()
+            return obsidian.util.gf_passthrough()
+          end, { buffer = bufnr, noremap = false, expr = true, desc = "Obsidian: Follow link" })
+          
+          -- Open current file in Obsidian GUI
+          vim.keymap.set("n", "<leader>oo", ":ObsidianOpen<CR>", 
+            { buffer = bufnr, desc = "Open in Obsidian" })
+        end
+        
+        -- Add conceallevel setting for Obsidian syntax features
+        vim.opt_local.conceallevel = 1
       end,
     })
   end,
 }
-

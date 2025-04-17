@@ -57,10 +57,6 @@ alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
 alias vi='nvim'
 alias t=tmux
 
-# Obsidian
-alias oo='cd $HOME/Silicon_Mind'
-alias or='vim $HOME/Silicon_Mind/inbox/*.md'
-
 
 . "$HOME/.atuin/bin/env"
 
