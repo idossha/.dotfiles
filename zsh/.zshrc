@@ -3,6 +3,7 @@
 # December 30, 2024
 
 # personal
+export PATH="$HOME/bin:$PATH"
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:/Users/idohaber/.my_scripts/
 export SKETCHY_DIR=$CONFIG_DIR/sketchybar/
@@ -51,8 +52,14 @@ alias zshconfig="mate ~/.zshrc"
 alias mp="cd ~/Git-Projects/"
 alias ms="cd ~/Applications/SimNIBS-4.5/"
 alias md="cd ~/.dotfiles/"
+alias mo="cd ~/Silicon_Mind/"
 alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
 alias vi='nvim'
+alias t=tmux
+
+# Obsidian
+alias oo='cd $HOME/Silicon_Mind'
+alias or='vim $HOME/Silicon_Mind/inbox/*.md'
 
 
 . "$HOME/.atuin/bin/env"
