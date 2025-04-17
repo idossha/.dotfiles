@@ -1,0 +1,36 @@
+#!/bin/zsh
+# oz - Process Inbox to Zettelkasten
+# Moves markdown files from inbox to Zettelkasten and removes date prefixes
+
+VAULT_DIR="/Users/idohaber/Silicon_Mind"
+SOURCE_DIR="$VAULT_DIR/inbox"
+TARGET_DIR="$VAULT_DIR/Zettelkasten"
+
+echo "Moves markdown files from inbox to Zettelkasten and removes date prefixes"
+
+# Create target directory if it doesn't exist
+mkdir -p "$TARGET_DIR"
+
+# Check if there are files to process
+file_count=$(find "$SOURCE_DIR" -name "*.md" | wc -l)
+if [ "$file_count" -eq 0 ]; then
+  echo "No markdown files found in inbox."
+  exit 0
+fi
+
+echo "Processing inbox files..."
+
+# Process each markdown file in the inbox
+find "$SOURCE_DIR" -name "*.md" | while read -r file; do
+  filename=$(basename "$file")
+  
+  # Remove date prefix (format: YYYY-MM-DD_ or any similar pattern)
+  clean_filename=$(echo "$filename" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}_(.*)$/\1/')
+  
+  # Move file to Zettelkasten
+  mv "$file" "$TARGET_DIR/$clean_filename"
+  
+  echo "Moved: $filename → $clean_filename"
+done
+
+echo "Done! Processed files from inbox to Zettelkasten."
