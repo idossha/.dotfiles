@@ -38,7 +38,12 @@ return {
       completion = {
         nvim_cmp = true,
       },
-      
+
+      ui = {
+        enable = true, -- keep general ui features
+        checkboxes =  {}, -- specifically disable checkboxes
+
+      },  
       -- Simple title-based note naming (no dates)
       note_id_func = function(title)
         if title and title ~= "" then
