@@ -137,7 +137,7 @@ OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 NEOVIM_VERSION="0.11.0"
 
 # Define common and OS-specific packages
-COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "alacritty" "htop" "ghostty" "nushell" "misc" "sketchybar" "karabiner") #kitty
+COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner") 
 MACOS_CONFS=("zsh" "aerospace") 
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
@@ -145,7 +145,6 @@ LINUX_CONFS=()  # Add any Linux-specific packages if needed
 BREW_CASK_PACKAGES=(
   keyboardcleantool     
   #raycask
-  zen-browser
   ghostty
 )
 
