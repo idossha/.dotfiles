@@ -83,3 +83,7 @@ unset __conda_setup
 eval "$(zoxide init zsh)"
 eval "$(atuin init zsh)"
 eval "$(direnv hook zsh)"
+
+# VI mode for terminal 
+bindkey -v
+
