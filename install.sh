@@ -141,14 +141,8 @@ COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty"
 MACOS_CONFS=("zsh" "aerospace") 
 LINUX_CONFS=()  # Add any Linux-specific packages if needed
 
-# Define Homebrew Cask and Brew packages (macOS)
-BREW_CASK_PACKAGES=(
-  keyboardcleantool     
-  #raycask
-  ghostty
-)
-
-BREW_PACKAGES=(
+# Define common packages available via Homebrew on both macOS and Linux
+COMMON_BREW_PACKAGES=(
   tmux
   git
   ripgrep
@@ -157,25 +151,33 @@ BREW_PACKAGES=(
   zoxide
   bat
   direnv
-  sketchybar
   htop
   lazygit
   lazydocker
   neofetch
   node
   jq
-  pillow
   pandoc
   ffmpeg
-  nikitabobko/tap/aerospace   
-  stats
   nushell
   imagemagick
   fd
 )
 
-# Define APT packages (Linux)
-APT_PACKAGES=(
+# Define macOS-specific packages
+BREW_CASK_PACKAGES=(
+  keyboardcleantool
+  #raycask
+  ghostty
+)
+
+MACOS_BREW_PACKAGES=(
+  nikitabobko/tap/aerospace
+  stats
+)
+
+# Define Linux-specific packages via APT
+LINUX_APT_PACKAGES=(
   tmux
   git
   bat
@@ -256,25 +258,27 @@ install_homebrew() {
 }
 
 install_apt_packages() {
-  print_message "Updating APT..."
-  sudo apt update
+  if $is_linux; then
+    print_message "Updating APT..."
+    sudo apt update
 
-  print_message "Upgrading existing packages..."
-  sudo apt upgrade -y
+    print_message "Upgrading existing packages..."
+    sudo apt upgrade -y
 
-  print_message "Installing APT packages..."
-  for package in "${APT_PACKAGES[@]}"; do
-    if ! dpkg -l | grep -q "^ii  $package "; then
-      echo "Installing $package..."
-      if sudo apt install -y "$package"; then
-        track_installed "$package"
+    print_message "Installing APT packages..."
+    for package in "${LINUX_APT_PACKAGES[@]}"; do
+      if ! dpkg -l | grep -q "^ii  $package "; then
+        echo "Installing $package..."
+        if sudo apt install -y "$package"; then
+          track_installed "$package"
+        else
+          print_error "Failed to install $package"
+        fi
       else
-        print_error "Failed to install $package"
+        echo "$package is already installed."
       fi
-    else
-      echo "$package is already installed."
-    fi
-  done
+    done
+  fi
 }
 
 # ============================
@@ -440,25 +444,22 @@ install_brew_packages() {
     print_message "Installing Homebrew packages..."
     sleep 1
 
-    # Taps required for certain packages
-    # Tap for aerospace
-    if ! brew tap | grep -q "nikitabobko/tap"; then
-      echo "Tapping nikitabobko/tap..."
-      brew tap nikitabobko/tap
+    # Taps required for certain packages (macOS only)
+    if $is_mac; then
+      # Tap for aerospace
+      if ! brew tap | grep -q "nikitabobko/tap"; then
+        echo "Tapping nikitabobko/tap..."
+        brew tap nikitabobko/tap
+      fi
     fi
 
-    # Tap for sketchybar
-    if ! brew tap | grep -q "FelixKratz/formulae"; then
-      echo "Tapping FelixKratz/formulae..."
-      brew tap FelixKratz/formulae
-    fi
-
-    for package in "${BREW_PACKAGES[@]}"; do
+    # Install common packages
+    for package in "${COMMON_BREW_PACKAGES[@]}"; do
       # Skip commented packages
       if [[ $package == \#* ]]; then
         continue
       fi
-      
+
       if ! brew list "$package" &>/dev/null; then
         echo "Installing $package..."
         if brew install "$package"; then
@@ -470,6 +471,27 @@ install_brew_packages() {
         echo "$package is already installed."
       fi
     done
+
+    # Install macOS-specific packages
+    if $is_mac; then
+      for package in "${MACOS_BREW_PACKAGES[@]}"; do
+        # Skip commented packages
+        if [[ $package == \#* ]]; then
+          continue
+        fi
+
+        if ! brew list "$package" &>/dev/null; then
+          echo "Installing $package..."
+          if brew install "$package"; then
+            track_installed "$package"
+          else
+            print_error "Failed to install $package"
+          fi
+        else
+          echo "$package is already installed."
+        fi
+      done
+    fi
   fi
 }
 
@@ -489,13 +511,17 @@ install_neovim() {
       return
     else
       echo "Neovim $current_version is installed, but we need $NEOVIM_VERSION."
-      
+
       if confirm "Would you like to remove the current version and install version $NEOVIM_VERSION?"; then
         # Remove existing Neovim installation
         if $is_mac; then
-          brew uninstall neovim
+          brew uninstall neovim 2>/dev/null || true
+          # Also remove any manually installed version
+          rm -rf "$HOME/.local/bin/nvim" "$HOME/.local/nvim" 2>/dev/null || true
         elif $is_linux; then
-          sudo apt remove -y neovim
+          sudo apt remove -y neovim 2>/dev/null || true
+          # Also remove any manually installed version
+          rm -rf "$HOME/.local/bin/nvim" "$HOME/.local/nvim" 2>/dev/null || true
         fi
       else
         echo "Keeping current Neovim version $current_version."
@@ -504,58 +530,68 @@ install_neovim() {
     fi
   fi
 
+  # Install Neovim from GitHub releases for exact version control
+  echo "Installing Neovim $NEOVIM_VERSION from GitHub releases..."
+
+  # Create directory for Neovim
+  mkdir -p "$HOME/.local/bin"
+  track_directory "$HOME/.local/bin"
+
+  # Determine architecture and download URL
   if $is_mac; then
-    # Install specific version on macOS
-    brew tap neovim/neovim
-    if brew install neovim@$NEOVIM_VERSION || brew install neovim; then
-      track_installed "neovim"
+    if [[ $(uname -m) == 'arm64' ]]; then
+      TAR_NAME="nvim-macos-arm64.tar.gz"
     else
-      print_error "Failed to install Neovim"
-    fi
-    
-    # If specific version install fails, warn the user
-    if ! nvim --version | grep -q $NEOVIM_VERSION; then
-      echo "Warning: Couldn't install Neovim $NEOVIM_VERSION specifically."
-      echo "Installed: $(nvim --version | head -n 1)"
+      TAR_NAME="nvim-macos-x86_64.tar.gz"
     fi
   elif $is_linux; then
-    # Try to install from apt first
-    if apt-cache show neovim | grep -q "Version: $NEOVIM_VERSION"; then
-      if sudo apt install -y neovim; then
-        track_installed "neovim"
-      else
-        print_error "Failed to install Neovim from apt"
-      fi
+    if [[ $(uname -m) == 'aarch64' ]]; then
+      TAR_NAME="nvim-linux-arm64.tar.gz"
     else
-      # Install from AppImage for specific version
-      echo "Installing Neovim $NEOVIM_VERSION from GitHub releases..."
-      
-      # Create directory for AppImage
-      mkdir -p "$HOME/.local/bin"
-      track_directory "$HOME/.local/bin"
-      
-      # Download AppImage
-      APPIMAGE_URL="https://github.com/neovim/neovim/releases/download/v$NEOVIM_VERSION/nvim.appimage"
-      if curl -L "$APPIMAGE_URL" -o "$HOME/.local/bin/nvim"; then
-        chmod +x "$HOME/.local/bin/nvim"
-        
-        # Add to PATH if not already there
-        if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
-          echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
-          export PATH="$HOME/.local/bin:$PATH"
-        fi
-      else
-        print_error "Failed to download Neovim AppImage"
-      fi
+      TAR_NAME="nvim-linux-x86_64.tar.gz"
     fi
   fi
-  
+
+  RELEASE_URL="https://github.com/neovim/neovim/releases/download/v$NEOVIM_VERSION/$TAR_NAME"
+
+  # Download and extract Neovim
+  TEMP_DIR=$(mktemp -d)
+  track_directory "$TEMP_DIR"
+
+  if curl -L "$RELEASE_URL" -o "$TEMP_DIR/$TAR_NAME"; then
+    cd "$TEMP_DIR"
+    tar xzf "$TAR_NAME"
+
+    # Copy Neovim binary and share files
+    cp -r nvim-macos-*/* "$HOME/.local/" 2>/dev/null || cp -r nvim-linux-*/* "$HOME/.local/" 2>/dev/null || true
+
+    # Make sure the binary is executable
+    chmod +x "$HOME/.local/bin/nvim"
+
+    # Add to PATH if not already there
+    if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+      if $is_mac; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zprofile"
+      fi
+      echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
+      export PATH="$HOME/.local/bin:$PATH"
+    fi
+
+    cd - > /dev/null
+  else
+    print_error "Failed to download Neovim $NEOVIM_VERSION"
+    return 1
+  fi
+
+  # Clean up temp directory
+  rm -rf "$TEMP_DIR"
+
   # Verify installation
-  if command -v nvim &> /dev/null; then
-    echo "Neovim installed successfully:"
+  if command -v nvim &> /dev/null && nvim --version | grep -q "$NEOVIM_VERSION"; then
+    echo "Neovim $NEOVIM_VERSION installed successfully:"
     nvim --version | head -n 1
   else
-    print_error "Failed to install Neovim."
+    print_error "Failed to install Neovim $NEOVIM_VERSION."
   fi
 }
 

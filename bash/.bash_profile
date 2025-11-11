@@ -34,3 +34,4 @@ export DOCKER_DISPLAY=/private/tmp/com.apple.launchd.sLp1ABjeSB/org.xquartz:0
 ## Added by SimNIBS
 SIMNIBS_BIN="/Users/idohaber/Applications/SimNIBS-4.5/bin"
 export PATH=${PATH}:${SIMNIBS_BIN}
+. "$HOME/.local/bin/env"
