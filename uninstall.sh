@@ -17,7 +17,7 @@ HOME_DIR="$HOME"
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
 # Define common and OS-specific packages (matching install.sh)
-COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner")
+COMMON_CONFS=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner")
 MACOS_CONFS=("zsh" "aerospace")
 LINUX_CONFS=("linux-bash")
 

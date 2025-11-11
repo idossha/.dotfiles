@@ -137,7 +137,7 @@ OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 NEOVIM_VERSION="0.11.0"
 
 # Define common and OS-specific packages
-COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner") 
+COMMON_CONFS=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner") 
 MACOS_CONFS=("zsh" "aerospace") 
 LINUX_CONFS=("linux-bash")  # Linux-specific bash configuration
 
@@ -500,7 +500,7 @@ install_brew_packages() {
 # ============================
 
 install_neovim() {
-  print_message "Installing Neovim $NEOVIM_VERSION..."
+  print_message "Installing Neovim $NEOVIM_VERSION from source..."
   sleep 1
 
   # Check if Neovim is already installed with the right version
@@ -530,61 +530,59 @@ install_neovim() {
     fi
   fi
 
-  # Install Neovim from GitHub releases for exact version control
-  echo "Installing Neovim $NEOVIM_VERSION from GitHub releases..."
-
-  # Create directory for Neovim
-  mkdir -p "$HOME/.local/bin"
-  track_directory "$HOME/.local/bin"
-
-  # Determine architecture and download URL
+  # Install build dependencies
+  echo "Installing build dependencies..."
   if $is_mac; then
-    if [[ $(uname -m) == 'arm64' ]]; then
-      TAR_NAME="nvim-macos-arm64.tar.gz"
-    else
-      TAR_NAME="nvim-macos-x86_64.tar.gz"
+    # macOS - ensure cmake and other tools are available
+    if ! command -v cmake &> /dev/null; then
+      echo "Installing cmake..."
+      brew install cmake || print_error "Failed to install cmake"
     fi
   elif $is_linux; then
-    if [[ $(uname -m) == 'aarch64' ]]; then
-      TAR_NAME="nvim-linux-arm64.tar.gz"
-    else
-      TAR_NAME="nvim-linux-x86_64.tar.gz"
-    fi
+    # Linux - install build dependencies
+    echo "Installing build dependencies for Linux..."
+    sudo apt update
+    sudo apt install -y cmake make gcc g++ git ninja-build gettext libtool libtool-bin autoconf automake pkg-config unzip || print_error "Failed to install build dependencies"
   fi
 
-  RELEASE_URL="https://github.com/neovim/neovim/releases/download/v$NEOVIM_VERSION/$TAR_NAME"
+  # Build Neovim from source
+  echo "Building Neovim $NEOVIM_VERSION from source..."
 
-  # Download and extract Neovim
-  TEMP_DIR=$(mktemp -d)
-  track_directory "$TEMP_DIR"
-
-  if curl -L "$RELEASE_URL" -o "$TEMP_DIR/$TAR_NAME"; then
-    cd "$TEMP_DIR"
-    tar xzf "$TAR_NAME"
-
-    # Copy Neovim binary and share files
-    cp -r nvim-macos-*/* "$HOME/.local/" 2>/dev/null || cp -r nvim-linux-*/* "$HOME/.local/" 2>/dev/null || true
-
-    # Make sure the binary is executable
-    chmod +x "$HOME/.local/bin/nvim"
-
-    # Add to PATH if not already there
-    if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
-      if $is_mac; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zprofile"
+  # Clone and build Neovim
+  if git clone https://github.com/neovim/neovim.git /tmp/neovim; then
+    cd /tmp/neovim
+    if git checkout v$NEOVIM_VERSION; then
+      echo "Building Neovim with CMAKE_BUILD_TYPE=Release..."
+      if make CMAKE_BUILD_TYPE=Release; then
+        echo "Installing Neovim..."
+        if make install; then
+          echo "Neovim installed successfully"
+        else
+          print_error "Failed to install Neovim"
+          cd - > /dev/null
+          rm -rf /tmp/neovim
+          return 1
+        fi
+      else
+        print_error "Failed to build Neovim"
+        cd - > /dev/null
+        rm -rf /tmp/neovim
+        return 1
       fi
-      echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
-      export PATH="$HOME/.local/bin:$PATH"
+    else
+      print_error "Failed to checkout Neovim version $NEOVIM_VERSION"
+      cd - > /dev/null
+      rm -rf /tmp/neovim
+      return 1
     fi
-
-    cd - > /dev/null
   else
-    print_error "Failed to download Neovim $NEOVIM_VERSION"
+    print_error "Failed to clone Neovim repository"
     return 1
   fi
 
-  # Clean up temp directory
-  rm -rf "$TEMP_DIR"
+  # Clean up
+  cd - > /dev/null
+  rm -rf /tmp/neovim
 
   # Verify installation
   if command -v nvim &> /dev/null && nvim --version | grep -q "$NEOVIM_VERSION"; then
