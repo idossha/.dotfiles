@@ -139,7 +139,7 @@ NEOVIM_VERSION="0.11.0"
 # Define common and OS-specific packages
 COMMON_CONFS=("bash" "nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner") 
 MACOS_CONFS=("zsh" "aerospace") 
-LINUX_CONFS=()  # Add any Linux-specific packages if needed
+LINUX_CONFS=("linux-bash")  # Linux-specific bash configuration
 
 # Define common packages available via Homebrew on both macOS and Linux
 COMMON_BREW_PACKAGES=(
