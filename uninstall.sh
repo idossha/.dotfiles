@@ -1,87 +1,58 @@
-
 #!/bin/bash
 
-set -e  # Exit immediately if a command exits with a non-zero status
+########################################
+# dotfiles uninstallation script of Ido Haber
+# Last update: March 29, 2025
+########################################
+
+# Exit on error with better error handling
+set -euo pipefail
 
 # ============================
-# Variables and Configuration
+# Get Script Directory
 # ============================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Directory where the dotfiles are located
-DOTFILES_DIR="$HOME/.dotfiles"
+# ============================
+# OS Detection
+# ============================
+OS="$(uname)"
+is_mac=false
+is_linux=false
 
-# Home directory
+if [ "$OS" == "Darwin" ]; then
+  is_mac=true
+elif [ "$OS" == "Linux" ]; then
+  is_linux=true
+else
+  echo "ERROR: Unsupported OS: $OS"
+  exit 1
+fi
+
+# ============================
+# Configuration
+# ============================
+DOTFILES_DIR="$SCRIPT_DIR"
+INSTALL_MANIFEST="$SCRIPT_DIR/install_manifest.txt"
 HOME_DIR="$HOME"
-
-# Oh My Zsh installation directory
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 
-# Define common and OS-specific packages (matching install.sh)
-COMMON_CONFS=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner")
-MACOS_CONFS=("zsh" "aerospace")
-LINUX_CONFS=("linux-bash")
-
-# Define packages matching install.sh structure
-COMMON_BREW_PACKAGES=(
-  tmux
-  git
-  ripgrep
-  fzf
-  tree-sitter
-  zoxide
-  bat
-  direnv
-  htop
-  lazygit
-  lazydocker
-  neofetch
-  node
-  jq
-  pandoc
-  ffmpeg
-  nushell
-  imagemagick
-  fd
-  stow
-)
-
-BREW_CASK_PACKAGES=(
-  keyboardcleantool
-  ghostty
-  font-hack-nerd-font
-)
-
-MACOS_BREW_PACKAGES=(
-  nikitabobko/tap/aerospace
-  stats
-)
-
-LINUX_APT_PACKAGES=(
-  tmux
-  git
-  bat
-  zoxide
-  ripgrep
-  nodejs
-  npm
-  jq
-  direnv
-  tree
-  pandoc
-  ffmpeg
-  htop
-  fzf
-  zsh
-  neofetch
-  ghostty
-  fd
-)
+# ============================
+# Helper Functions
+# ============================
 
 # Function to print messages with separators for better readability
 print_message() {
   echo "========================================"
   echo "$1"
   echo "========================================"
+}
+
+# Function to print error messages
+print_error() {
+  echo "----------------------------------------"
+  echo "ERROR: $1"
+  echo "----------------------------------------"
 }
 
 # Function for user confirmation
@@ -92,167 +63,204 @@ confirm() {
 }
 
 # ============================
-# OS Detection
+# Check for Installation Manifest
 # ============================
 
-OS="$(uname)"
-is_mac=false
-is_linux=false
-
-if [ "$OS" == "Darwin" ]; then
-  is_mac=true
-elif [ "$OS" == "Linux" ]; then
-  is_linux=true
-else
-  echo "Unsupported OS: $OS"
-  exit 1
-fi
-
-# ============================
-# Unstow Dotfiles
-# ============================
-
-unstow_dotfiles() {
-  print_message "Unstowing Dotfiles..."
-  sleep 1
-  cd "$DOTFILES_DIR"
-
-  # Unstow common packages
-  for pkg in "${COMMON_CONFS[@]}"; do
-    if [ -d "$pkg" ]; then
-      echo "Unstowing $pkg..."
-      stow -D --ignore='\.DS_Store' "$pkg" 2>/dev/null || echo "Warning: Failed to unstow $pkg"
+check_manifest() {
+  if [ ! -f "$INSTALL_MANIFEST" ]; then
+    print_error "Installation manifest not found at $INSTALL_MANIFEST"
+    echo "This means either:"
+    echo "  1. The installation was not completed successfully"
+    echo "  2. The manifest file was deleted"
+    echo "  3. You're running uninstall from a different directory"
+    echo ""
+    if confirm "Do you want to proceed with manual uninstallation (not recommended)?"; then
+      echo "Proceeding with manual uninstallation..."
+      return 1
+    else
+      echo "Uninstallation cancelled. Please locate the correct manifest file."
+      exit 0
     fi
-  done
+  fi
+  return 0
+}
 
-  # Unstow OS-specific packages
-  if $is_mac; then
-    for pkg in "${MACOS_CONFS[@]}"; do
+# ============================
+# Parse Manifest and Uninstall
+# ============================
+
+uninstall_from_manifest() {
+  print_message "Uninstalling based on manifest..."
+  
+  local packages_to_remove=()
+  local snap_packages_to_remove=()
+  local stow_packages=()
+  local backup_files=()
+  local directories_to_remove=()
+  local font_files=()
+  local binary_files=()
+  local neovim_installed=false
+  
+  # Parse the manifest file
+  while IFS=: read -r action_type item; do
+    case "$action_type" in
+      PACKAGE)
+        packages_to_remove+=("$item")
+        ;;
+      SNAP_PACKAGE)
+        snap_packages_to_remove+=("$item")
+        ;;
+      STOW)
+        stow_packages+=("$item")
+        ;;
+      BACKUP)
+        backup_files+=("$item")
+        ;;
+      BACKUP_FILE)
+        # These are the actual backup file paths
+        echo "Found backup file: $item"
+        ;;
+      DIRECTORY)
+        directories_to_remove+=("$item")
+        ;;
+      FONT_FILE)
+        font_files+=("$item")
+        ;;
+      BINARY)
+        binary_files+=("$item")
+        ;;
+      NEOVIM)
+        neovim_installed=true
+        ;;
+      CLONED_REPO)
+        echo "Note: Repository was cloned at: $item"
+        ;;
+    esac
+  done < "$INSTALL_MANIFEST"
+  
+  # Unstow packages
+  if [ ${#stow_packages[@]} -gt 0 ]; then
+    print_message "Unstowing dotfiles packages..."
+    local original_dir="$PWD"
+    cd "$DOTFILES_DIR"
+    for pkg in "${stow_packages[@]}"; do
       if [ -d "$pkg" ]; then
         echo "Unstowing $pkg..."
         stow -D --ignore='\.DS_Store' "$pkg" 2>/dev/null || echo "Warning: Failed to unstow $pkg"
       fi
     done
-  elif $is_linux; then
-    for pkg in "${LINUX_CONFS[@]}"; do
-      if [ -d "$pkg" ]; then
-        echo "Unstowing $pkg..."
-        stow -D "$pkg" 2>/dev/null || echo "Warning: Failed to unstow $pkg"
+    cd "$original_dir"
+  fi
+  
+  # Restore backups
+  if [ ${#backup_files[@]} -gt 0 ]; then
+    print_message "Restoring backup files..."
+    for file in "${backup_files[@]}"; do
+      # Look for the most recent backup
+      local backup_pattern="${file}.backup.*"
+      local latest_backup=$(ls -t ${backup_pattern} 2>/dev/null | head -n 1)
+      if [ -n "$latest_backup" ] && [ -f "$latest_backup" ]; then
+        echo "Restoring backup for $file from $latest_backup"
+        mv "$latest_backup" "$file"
+        # Remove any other backups
+        rm -f ${backup_pattern} 2>/dev/null || true
+      else
+        echo "No backup found for $file"
       fi
     done
   fi
-
-  echo "Dotfiles have been unstowed successfully."
-
-  cd - >/dev/null
-}
-
-# ============================
-# Restore Backup Config Files
-# ============================
-
-restore_backup_configs() {
-  print_message "Restoring Backup Config Files..."
-  sleep 1
-  # List of config files to check
-  CONFIG_FILES=(
-    ".zshrc"
-    ".bashrc"
-    ".tmux.conf"
-    ".zprofile"
-    ".config/kitty/kitty.conf"
-  )
-
-  for config in "${CONFIG_FILES[@]}"; do
-    target="$HOME/$config"
-    backup="$HOME/${config}.backup"
-    if [ -f "$backup" ]; then
-      echo "Restoring backup for $config"
-      mv "$backup" "$target"
-    else
-      echo "No backup found for $config"
+  
+  # Remove packages
+  if [ ${#packages_to_remove[@]} -gt 0 ]; then
+    if confirm "Do you want to remove installed packages? (${#packages_to_remove[@]} packages)"; then
+      print_message "Removing packages..."
+      if $is_mac; then
+        for pkg in "${packages_to_remove[@]}"; do
+          if brew list "$pkg" &>/dev/null || brew list --cask "$pkg" &>/dev/null; then
+            echo "Removing $pkg..."
+            brew uninstall "$pkg" 2>/dev/null || brew uninstall --cask "$pkg" 2>/dev/null || echo "Warning: Failed to remove $pkg"
+          fi
+        done
+      elif $is_linux; then
+        for pkg in "${packages_to_remove[@]}"; do
+          if dpkg -l | grep -q "^ii  $pkg "; then
+            echo "Removing $pkg..."
+            sudo apt remove -y "$pkg" 2>/dev/null || echo "Warning: Failed to remove $pkg"
+          fi
+        done
+      fi
     fi
-  done
-}
-
-# ============================
-# Uninstall Homebrew Cask Packages (macOS only)
-# ============================
-
-uninstall_brew_cask_packages() {
-  if $is_mac; then
-    print_message "Uninstalling Homebrew Cask packages..."
-    sleep 1
-    for package in "${BREW_CASK_PACKAGES[@]}"; do
-      # Skip commented packages
-      if [[ $package == \#* ]]; then
-        continue
-      fi
-      if brew list --cask | grep -q "^$package\$"; then
-        echo "Uninstalling $package..."
-        brew uninstall --cask "$package" 2>/dev/null || echo "Warning: Failed to uninstall $package"
-      else
-        echo "$package is not installed."
-      fi
-    done
   fi
-}
-
-# ============================
-# Uninstall Homebrew Packages
-# ============================
-
-uninstall_brew_packages() {
-  if $is_mac || $is_linux; then
-    print_message "Uninstalling Homebrew packages..."
-    sleep 1
-
-    # Uninstall common packages
-    for package in "${COMMON_BREW_PACKAGES[@]}"; do
-      # Skip commented packages
-      if [[ $package == \#* ]]; then
-        continue
-      fi
-      if brew list | grep -q "^$package\$"; then
-        echo "Uninstalling $package..."
-        brew uninstall "$package" 2>/dev/null || echo "Warning: Failed to uninstall $package"
-      else
-        echo "$package is not installed."
-      fi
-    done
-
-    # Uninstall macOS-specific packages
-    if $is_mac; then
-      for package in "${MACOS_BREW_PACKAGES[@]}"; do
-        # Skip commented packages
-        if [[ $package == \#* ]]; then
-          continue
-        fi
-        if brew list | grep -q "^$package\$"; then
-          echo "Uninstalling $package..."
-          brew uninstall "$package" 2>/dev/null || echo "Warning: Failed to uninstall $package"
-        else
-          echo "$package is not installed."
+  
+  # Remove snap packages
+  if $is_linux && [ ${#snap_packages_to_remove[@]} -gt 0 ]; then
+    if confirm "Do you want to remove snap packages? (${#snap_packages_to_remove[@]} packages)"; then
+      print_message "Removing snap packages..."
+      for pkg in "${snap_packages_to_remove[@]}"; do
+        if snap list | grep -q "^$pkg "; then
+          echo "Removing $pkg..."
+          sudo snap remove "$pkg" || echo "Warning: Failed to remove $pkg"
         fi
       done
     fi
   fi
-}
-
-# ============================
-# Uninstall APT Packages
-# ============================
-
-uninstall_apt_packages() {
-  if $is_linux; then
-    print_message "Uninstalling APT packages..."
-    sleep 1
-    for package in "${LINUX_APT_PACKAGES[@]}"; do
-      if dpkg -l | grep -q "^ii  $package "; then
-        echo "Uninstalling $package..."
-        sudo apt remove -y "$package" 2>/dev/null || echo "Warning: Failed to uninstall $package"
-      else
-        echo "$package is not installed."
+  
+  # Remove Neovim if it was installed
+  if $neovim_installed; then
+    if confirm "Do you want to remove custom Neovim installation?"; then
+      print_message "Removing Neovim..."
+      remove_custom_neovim
+    fi
+  fi
+  
+  # Remove font files
+  if [ ${#font_files[@]} -gt 0 ]; then
+    if confirm "Do you want to remove installed fonts? (${#font_files[@]} files)"; then
+      print_message "Removing font files..."
+      for font in "${font_files[@]}"; do
+        if [ -f "$font" ]; then
+          echo "Removing $font..."
+          rm -f "$font"
+        fi
+      done
+      # Update font cache if available
+      if command -v fc-cache &>/dev/null; then
+        fc-cache -f 2>/dev/null || true
+      fi
+    fi
+  fi
+  
+  # Remove binary files (lazygit, lazydocker, etc.)
+  if [ ${#binary_files[@]} -gt 0 ]; then
+    if confirm "Do you want to remove installed binaries? (${#binary_files[@]} files)"; then
+      print_message "Removing binary files..."
+      for binary in "${binary_files[@]}"; do
+        if [ -f "$binary" ]; then
+          echo "Removing $binary..."
+          sudo rm -f "$binary"
+        fi
+      done
+    fi
+  fi
+  
+  # Remove directories (ask individually for safety)
+  if [ ${#directories_to_remove[@]} -gt 0 ]; then
+    print_message "Checking directories created during installation..."
+    for dir in "${directories_to_remove[@]}"; do
+      if [ -d "$dir" ]; then
+        # Check if directory is empty or only has dotfiles-related content
+        local item_count=$(ls -A "$dir" 2>/dev/null | wc -l)
+        if [ "$item_count" -eq 0 ]; then
+          echo "Removing empty directory: $dir"
+          rmdir "$dir" 2>/dev/null || true
+        else
+          if confirm "Directory $dir is not empty ($item_count items). Remove it?"; then
+            echo "Removing directory: $dir"
+            rm -rf "$dir"
+          else
+            echo "Keeping directory: $dir"
+          fi
+        fi
       fi
     done
   fi
@@ -263,175 +271,74 @@ uninstall_apt_packages() {
 # ============================
 
 remove_custom_neovim() {
-  print_message "Removing custom Neovim installation..."
-  sleep 1
-  NEOVIM_LOCAL_DIR="$HOME/.local"
-  NEOVIM_BIN_DIR="$HOME/.local/bin"
-  NEOVIM_SHARE_DIR="$HOME/.local/share/nvim"
-
-  # Remove Neovim binary and related files
-  if [ -f "$NEOVIM_BIN_DIR/nvim" ]; then
-    echo "Removing custom Neovim binary..."
-    rm -f "$NEOVIM_BIN_DIR/nvim"
+  echo "Removing custom Neovim installation..."
+  local neovim_bin="$HOME/.local/bin/nvim"
+  local neovim_share="$HOME/.local/share/nvim"
+  local neovim_lib="$HOME/.local/lib/nvim"
+  
+  # Remove Neovim binary
+  if [ -f "$neovim_bin" ]; then
+    echo "Removing Neovim binary..."
+    rm -f "$neovim_bin"
   fi
-
-  if [ -d "$NEOVIM_SHARE_DIR" ]; then
-    echo "Removing Neovim share directory..."
-    rm -rf "$NEOVIM_SHARE_DIR"
+  
+  # Remove Neovim share directory
+  if [ -d "$neovim_share" ]; then
+    if confirm "Remove Neovim data directory (includes plugins)? $neovim_share"; then
+      echo "Removing Neovim share directory..."
+      rm -rf "$neovim_share"
+    fi
   fi
-
-  # Remove Neovim lib directory if it exists
-  if [ -d "$NEOVIM_LOCAL_DIR/lib/nvim" ]; then
+  
+  # Remove Neovim lib directory
+  if [ -d "$neovim_lib" ]; then
     echo "Removing Neovim lib directory..."
-    rm -rf "$NEOVIM_LOCAL_DIR/lib/nvim"
+    rm -rf "$neovim_lib"
   fi
-
-  # Clean up empty directories
-  if [ -d "$NEOVIM_BIN_DIR" ] && [ -z "$(ls -A $NEOVIM_BIN_DIR)" ]; then
-    rmdir "$NEOVIM_BIN_DIR" 2>/dev/null || true
-  fi
-  if [ -d "$NEOVIM_LOCAL_DIR" ] && [ -z "$(ls -A $NEOVIM_LOCAL_DIR)" ]; then
-    rmdir "$NEOVIM_LOCAL_DIR" 2>/dev/null || true
-  fi
-}
-
-# ============================
-# Remove Atuin
-# ============================
-
-remove_atuin() {
-  print_message "Removing Atuin..."
-  sleep 1
-  # Atuin installs itself to ~/.atuin and adds to PATH
-  if [ -d "$HOME/.atuin" ]; then
-    echo "Removing Atuin directory..."
-    rm -rf "$HOME/.atuin"
-  fi
-
-  # Remove Atuin binary if it exists
-  if command -v atuin &>/dev/null; then
-    ATUIN_PATH=$(which atuin)
-    if [[ $ATUIN_PATH == *"$HOME"* ]]; then
-      echo "Removing Atuin binary..."
-      rm -f "$ATUIN_PATH"
+  
+  # Remove Neovim config (ask first)
+  local neovim_config="$HOME/.config/nvim"
+  if [ -d "$neovim_config" ]; then
+    if confirm "Remove Neovim configuration? $neovim_config"; then
+      echo "Removing Neovim config directory..."
+      rm -rf "$neovim_config"
     fi
   fi
 }
 
 # ============================
-# Remove Zsh Plugins
+# Remove Additional Components (Optional)
 # ============================
 
-remove_zsh_plugins() {
-  print_message "Removing Zsh plugins..."
-  sleep 1
-  ZSH_CUSTOM_PLUGINS="$OH_MY_ZSH_DIR/custom/plugins"
-
-  # Remove specific plugins installed by the script
-  PLUGINS_TO_REMOVE=("zsh-autosuggestions" "zsh-syntax-highlighting")
-  for plugin in "${PLUGINS_TO_REMOVE[@]}"; do
-    if [ -d "${ZSH_CUSTOM_PLUGINS}/$plugin" ]; then
-      echo "Removing $plugin..."
-      rm -rf "${ZSH_CUSTOM_PLUGINS}/$plugin"
+remove_additional_components() {
+  print_message "Checking for additional components..."
+  
+  # Remove Atuin
+  if [ -d "$HOME/.atuin" ] || command -v atuin &>/dev/null; then
+    if confirm "Remove Atuin (shell history tool)?"; then
+      echo "Removing Atuin..."
+      rm -rf "$HOME/.atuin"
+      local atuin_bin=$(command -v atuin 2>/dev/null || echo "")
+      if [ -n "$atuin_bin" ] && [[ "$atuin_bin" == *"$HOME"* ]]; then
+        rm -f "$atuin_bin"
+      fi
     fi
-  done
-
-  # Clean up empty plugins directory
-  if [ -d "$ZSH_CUSTOM_PLUGINS" ] && [ -z "$(ls -A $ZSH_CUSTOM_PLUGINS)" ]; then
-    rmdir "$ZSH_CUSTOM_PLUGINS" 2>/dev/null || true
   fi
-}
-
-# ============================
-# Remove Fonts
-# ============================
-
-remove_fonts() {
-  print_message "Removing custom fonts..."
-  sleep 1
-  FONTS_DIR="$HOME/.local/share/fonts"
-
-  if [ -d "$FONTS_DIR" ]; then
-    echo "Removing fonts directory..."
-    rm -rf "$FONTS_DIR"
-  fi
-
-  # Update font cache if fc-cache exists
-  if command -v fc-cache &>/dev/null; then
-    echo "Updating font cache..."
-    fc-cache -f 2>/dev/null || true
-  fi
-}
-
-# ============================
-# Remove Oh My Zsh and Zsh Plugins
-# ============================
-
-remove_oh_my_zsh() {
-  print_message "Removing Oh My Zsh..."
-  sleep 1
+  
+  # Remove Oh My Zsh (only on macOS or if explicitly installed)
   if [ -d "$OH_MY_ZSH_DIR" ]; then
-    echo "Removing Oh My Zsh directory..."
-    rm -rf "$OH_MY_ZSH_DIR"
-  else
-    echo "Oh My Zsh is not installed."
+    if confirm "Remove Oh My Zsh? $OH_MY_ZSH_DIR"; then
+      echo "Removing Oh My Zsh..."
+      rm -rf "$OH_MY_ZSH_DIR"
+    fi
   fi
-}
-
-# ============================
-# Remove Neovim Plugins and Configuration
-# ============================
-
-remove_neovim_plugins() {
-  print_message "Removing Neovim plugins and configuration..."
-  sleep 1
-  NEOVIM_DATA_DIR="$HOME/.local/share/nvim"
-  NEOVIM_CONFIG_DIR="$HOME/.config/nvim"
-
-  if [ -d "$NEOVIM_DATA_DIR" ]; then
-    echo "Removing Neovim data directory..."
-    rm -rf "$NEOVIM_DATA_DIR"
-  else
-    echo "Neovim data directory does not exist."
-  fi
-
-  if [ -d "$NEOVIM_CONFIG_DIR" ]; then
-    echo "Removing Neovim configuration directory..."
-    rm -rf "$NEOVIM_CONFIG_DIR"
-  else
-    echo "Neovim configuration directory does not exist."
-  fi
-}
-
-# ============================
-# Remove Tmux Plugins
-# ============================
-
-remove_tmux_plugins() {
-  print_message "Removing Tmux plugins..."
-  sleep 1
-  TMUX_PLUGIN_DIR="$HOME/.tmux/plugins"
-
-  if [ -d "$TMUX_PLUGIN_DIR" ]; then
-    echo "Removing Tmux plugins directory..."
-    rm -rf "$TMUX_PLUGIN_DIR"
-  else
-    echo "Tmux plugins directory does not exist."
-  fi
-}
-
-# ============================
-# Uninstall Homebrew (Optional)
-# ============================
-
-uninstall_homebrew() {
-  print_message "Uninstalling Homebrew (Optional)..."
-  sleep 1
-  if command -v brew &> /dev/null; then
-    echo "Uninstalling Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"
-  else
-    echo "Homebrew is not installed."
+  
+  # Remove Tmux plugins
+  if [ -d "$HOME/.tmux/plugins" ]; then
+    if confirm "Remove Tmux plugins?"; then
+      echo "Removing Tmux plugins..."
+      rm -rf "$HOME/.tmux/plugins"
+    fi
   fi
 }
 
@@ -440,45 +347,52 @@ uninstall_homebrew() {
 # ============================
 
 main() {
+  print_message "Dotfiles Uninstallation Script"
+  echo "OS: $OS (macOS: $is_mac, Linux: $is_linux)"
+  echo ""
+  
+  # Check for manifest
+  if check_manifest; then
+    echo "Found installation manifest with $(wc -l < "$INSTALL_MANIFEST") entries."
+    echo ""
+  else
+    # Manual uninstallation mode (not recommended)
+    print_error "Proceeding without manifest - cannot guarantee safe uninstallation"
+    echo "This mode is not recommended and may not properly restore your system."
+    return 1
+  fi
+  
   # Ask for confirmation
-  echo "This script will uninstall all components installed by the dotfiles setup."
-  echo "This includes removing packages, configurations, and custom installations."
+  echo "This script will uninstall components that were installed by the dotfiles setup."
+  echo "Your original configuration files will be restored from backups where available."
+  echo ""
   if ! confirm "Are you sure you want to continue with the uninstallation?"; then
     echo "Uninstallation cancelled."
     exit 0
   fi
-
-  unstow_dotfiles
-  restore_backup_configs
-
-  # Remove custom installations first
-  remove_custom_neovim
-  remove_atuin
-  remove_fonts
-  remove_zsh_plugins
-
-  # Remove packages
-  if $is_mac; then
-    uninstall_brew_cask_packages
+  
+  # Uninstall from manifest
+  uninstall_from_manifest
+  
+  # Ask about additional components
+  if confirm "Do you want to check for additional components to remove?"; then
+    remove_additional_components
   fi
-  uninstall_brew_packages
-  if $is_linux; then
-    uninstall_apt_packages
+  
+  # Archive the manifest
+  if [ -f "$INSTALL_MANIFEST" ]; then
+    local archive_name="${INSTALL_MANIFEST}.$(date +%Y%m%d_%H%M%S).removed"
+    mv "$INSTALL_MANIFEST" "$archive_name"
+    echo "Installation manifest archived to: $archive_name"
   fi
-
-  # Remove framework/tool installations
-  remove_oh_my_zsh
-  remove_neovim_plugins
-  remove_tmux_plugins
-
-  # Optional: uninstall Homebrew (commented out by default)
-  #uninstall_homebrew
-
+  
   print_message "Uninstallation Completed!"
-  echo "Your development environment has been cleaned up."
-  echo "Note: You may need to restart your shell or terminal for all changes to take effect."
+  echo "Your system has been restored to its pre-installation state."
+  echo "You may need to restart your terminal for all changes to take effect."
+  echo ""
+  echo "Note: Some system packages may still be installed as they might be used by other software."
+  echo "If you installed Homebrew during setup, it was NOT removed (run manually if needed)."
 }
 
 # Execute the main function
 main
-

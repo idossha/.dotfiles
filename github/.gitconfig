@@ -4,10 +4,12 @@
 	name = idossha
 	email = idochaber@gmail.com
 
+[credential]
+	helper = store
+
 # config for handling large files pushed to github
 [filter "lfs"]
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
-
