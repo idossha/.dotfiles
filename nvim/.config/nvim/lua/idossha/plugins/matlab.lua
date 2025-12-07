@@ -1,7 +1,7 @@
 return {
   'idossha/matlab.nvim',
   
-  branch = 'debug',  -- Changed from 'main' to 'debug'
+  branch = 'main',  -- Changed from 'main' to 'debug'
   ft = 'matlab',
   config = function()
     require('matlab').setup({
@@ -17,7 +17,7 @@ return {
       -- Behavior options
       auto_start = false,
       default_mappings = true,
-      debug = false,
+      debug = true,
       minimal_notifications = true,
     })
   end
