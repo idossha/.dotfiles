@@ -38,7 +38,7 @@ return {
       },
     },
     explorer = { enabled = false },
-    indent = { enabled = true },
+    indent = { enabled = false }, -- Disabled to prevent conflicts with virtual text
     input = { enabled = true },
     notifier = {
       enabled = true,
@@ -48,7 +48,7 @@ return {
     quickfile = { enabled = true },
     scope = { enabled = true },
     scroll = { enabled = true },
-    statuscolumn = { enabled = true },
+    statuscolumn = { enabled = false }, -- Disabled to prevent conflicts with virtual text
     words = { enabled = true },
     styles = {
       notification = {

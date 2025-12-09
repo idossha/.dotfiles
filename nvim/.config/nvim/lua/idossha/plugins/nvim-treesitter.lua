@@ -42,6 +42,7 @@ return {
           "dockerfile",
           "gitignore",
           "query",
+          "python",  -- Required for nvim-dap-virtual-text
         },
         incremental_selection = {
           enable = true,
