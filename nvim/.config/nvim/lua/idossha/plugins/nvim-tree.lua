@@ -3,51 +3,68 @@ return {
   dependencies = { "nvim-tree/nvim-web-devicons" },
   config = function()
     local nvimtree = require("nvim-tree")
+    local api = vim.api
+    local events = require("nvim-tree.events")
+    local view = require("nvim-tree.view")
 
-    -- recommended settings from nvim-tree documentation
     vim.g.loaded_netrw = 1
     vim.g.loaded_netrwPlugin = 1
 
-    -- change color for arrows in tree to light blue
     vim.cmd([[ highlight NvimTreeFolderArrowClosed guifg=#3FC5FF ]])
     vim.cmd([[ highlight NvimTreeFolderArrowOpen guifg=#3FC5FF ]])
 
-    -- configure nvim-tree
+    -- nvim-tree setup
     nvimtree.setup({
-      view = {
-        width = 35,
-        relativenumber = true,
-      },
-      -- change folder arrow icons
+      view = { adaptive_size = false, relativenumber = true },
       renderer = {
-        indent_markers = {
-          enable = true,
-        },
-        icons = {
-          glyphs = {
-            folder = {
-              arrow_closed = "", -- arrow when folder is closed
-              arrow_open = "", -- arrow when folder is open
-            },
-          },
-        },
+        indent_markers = { enable = true },
+        icons = { glyphs = { folder = { arrow_closed = "", arrow_open = "" } } },
       },
-      -- disable window_picker for
-      -- explorer to work well with
-      -- window splits
-      actions = {
-        open_file = {
-          window_picker = {
-            enable = false,
-          },
-        },
-      },
-      filters = {
-        custom = { ".DS_Store" },
-      },
-      git = {
-        ignore = false,
-      },
+      actions = { open_file = { window_picker = { enable = false } } },
+      filters = { custom = { ".DS_Store" } },
+      git = { ignore = false },
     })
+
+    -- resize function
+    local function resize_tree(delta)
+      if view.is_visible() and view.get_winnr() == vim.api.nvim_get_current_win() then
+        vim.cmd("NvimTreeResize " .. delta)
+      end
+    end
+
+    -- enable buffer-local repeatable keys
+    local function enable_resize_keys(bufnr)
+      api.nvim_buf_set_keymap(bufnr, "n", "+", "", {
+        callback = function() resize_tree("+5") end,
+        noremap = true,
+        silent = true,
+      })
+      api.nvim_buf_set_keymap(bufnr, "n", "_", "", {
+        callback = function() resize_tree("-5") end,
+        noremap = true,
+        silent = true,
+      })
+    end
+
+    -- leader keys to activate resize mode
+    vim.keymap.set("n", "<leader>+", function()
+      local bufnr = view.get_bufnr()
+      if bufnr then enable_resize_keys(bufnr) end
+    end, { desc = "Activate nvim-tree resize mode" })
+
+    vim.keymap.set("n", "<leader>_", function()
+      local bufnr = view.get_bufnr()
+      if bufnr then enable_resize_keys(bufnr) end
+    end, { desc = "Activate nvim-tree resize mode" })
+
+    -- remove buffer-local keys when tree closes
+    events.on_nvim_tree_close(function()
+      local bufnr = view.get_bufnr()
+      if bufnr then
+        pcall(api.nvim_buf_del_keymap, bufnr, "n", "+")
+        pcall(api.nvim_buf_del_keymap, bufnr, "n", "_")
+      end
+    end)
   end,
 }
+
