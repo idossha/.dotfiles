@@ -23,10 +23,7 @@ export DOCKER_HOST_IP=host.docker.internal
 export DISPLAY=host.docker.internal:0
 
 # automatic prompt for new terminals
-# ~/terminal_info.sh 
-
-# shell prompt
-export PS1='%n|%1~ > '
+# ~/terminal_info.sh
 
 # command auto-correction.
 ENABLE_CORRECTION="true"
@@ -66,6 +63,10 @@ eval "$(zoxide init zsh)"
 eval "$(atuin init zsh)"
 eval "$(direnv hook zsh)"
 
-# VI mode for terminal 
+# VI mode for terminal
 bindkey -v
+
+# shell prompt with git branch (at the very end)
+setopt PROMPT_SUBST
+PROMPT='%n|%1~$(git rev-parse --git-dir > /dev/null 2>&1 && echo " ($(git branch --show-current 2>/dev/null))") > '
 
