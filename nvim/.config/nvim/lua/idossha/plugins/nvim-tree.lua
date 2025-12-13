@@ -58,7 +58,7 @@ return {
     end, { desc = "Activate nvim-tree resize mode" })
 
     -- remove buffer-local keys when tree closes
-    events.on_nvim_tree_close(function()
+    events.subscribe(events.Event.TreeClose, function()
       local bufnr = view.get_bufnr()
       if bufnr then
         pcall(api.nvim_buf_del_keymap, bufnr, "n", "+")
