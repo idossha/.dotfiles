@@ -46,14 +46,14 @@ source $ZSH/oh-my-zsh.sh  # Now source oh-my-zsh
 # For a full list of active aliases, run `alias`.
 
 alias zshconfig="mate ~/.zshrc"
+alias vi='nvim'
+alias t=tmux
 alias mp="cd ~/Git-Projects/"
 alias ms="cd ~/Applications/SimNIBS-4.5/"
 alias md="cd ~/.dotfiles/"
+alias mn="cd ~/.dotfiles/nvim/.config/nvim/ && vi ."
 alias mo="cd ~/Silicon_Mind/"
 alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
-alias vi='nvim'
-alias t=tmux
-
 
 . "$HOME/.atuin/bin/env"
 
