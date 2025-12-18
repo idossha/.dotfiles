@@ -321,6 +321,7 @@ COMMON_BREW_PACKAGES=(
   nushell
   imagemagick
   fd
+  keycastr
 )
 
 # Define macOS-specific packages
