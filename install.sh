@@ -322,6 +322,7 @@ COMMON_BREW_PACKAGES=(
   imagemagick
   fd
   keycastr
+  navi
   gromgit/brewtils/taproom # have not tested this yet
 )
 
@@ -362,6 +363,7 @@ LINUX_APT_PACKAGES=(
   g++
   curl
   wget
+  navi
 )
 
 # Optional Linux packages (not in standard repos, installed separately)
