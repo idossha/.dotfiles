@@ -322,6 +322,7 @@ COMMON_BREW_PACKAGES=(
   imagemagick
   fd
   keycastr
+  gromgit/brewtils/taproom # have not tested this yet
 )
 
 # Define macOS-specific packages
