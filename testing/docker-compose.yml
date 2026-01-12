@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  dotfiles-test:
+    build: .
+    container_name: dotfiles-test
+    tty: true
+    stdin_open: true
+    volumes:
+      # Mount the current directory so changes are reflected in the container
+      - .:/workspace
+      # Mount the host's docker socket so we can run docker commands inside the container
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /workspace
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    command: /bin/bash

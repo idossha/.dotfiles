@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+docker-compose.yml
+test_docker.sh
+.dockerignore
+
+# Logs and temporary files
+*.log
+*.tmp
+*~
+
+# macOS specific
+.DS_Store
+__MACOSX
+
+# IDE files
+.vscode
+.idea
+
+# Documentation (not needed in container)
+README.md
+
+# Original unified scripts (we have the new split ones)
+install.sh
+uninstall.sh

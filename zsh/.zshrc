@@ -55,6 +55,14 @@ alias mn="cd ~/.dotfiles/nvim/.config/nvim/ && vi ."
 alias mo="cd ~/Silicon_Mind/"
 alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
 
+
+stam () {
+  name=${1:-$(date "+%Y-%m-%d_%H-%M-%S")}
+  mkdir -p "$HOME/sandbox/$name" &&
+  cd "$HOME/sandbox/$name" &&
+  vi .
+}
+
 . "$HOME/.atuin/bin/env"
 
 # export XDG_CONFIG_HOME="/Users/idohaber/.config"
@@ -70,3 +78,4 @@ bindkey -v
 setopt PROMPT_SUBST
 PROMPT='%n|%1~$(git rev-parse --git-dir > /dev/null 2>&1 && echo " ($(git branch --show-current 2>/dev/null))") > '
 
+export PATH="$HOME:$PATH"
