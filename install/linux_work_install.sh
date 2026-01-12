@@ -494,34 +494,49 @@ install_neovim_plugins_work() {
     return 0
   fi
 
-  # Check if Neovim config exists
+  # Check if Neovim config exists (debug output)
+  echo "Checking for Neovim config..."
+  echo "Looking for: $HOME/.config/nvim"
+  ls -la "$HOME/.config/" | grep nvim || echo "No nvim directory found in ~/.config/"
+
   if [ ! -d "$HOME/.config/nvim" ] && [ ! -f "$HOME/.config/nvim/init.lua" ] && [ ! -f "$HOME/.config/nvim/init.vim" ]; then
     echo "Warning: Neovim config not found. Skipping plugin installation."
+    echo "Expected to find config at: $HOME/.config/nvim"
     return 0
   fi
 
   # Install lazy.nvim if not already installed
   LAZY_NVIM_DIR="$HOME/.local/share/nvim/lazy/lazy.nvim"
+  echo "Lazy.nvim directory: $LAZY_NVIM_DIR"
   if [ ! -d "$LAZY_NVIM_DIR" ]; then
     echo "Installing lazy.nvim plugin manager..."
+    mkdir -p "$(dirname "$LAZY_NVIM_DIR")"
     if git clone --filter=blob:none https://github.com/folke/lazy.nvim.git --branch=stable "$LAZY_NVIM_DIR"; then
       track_directory "$LAZY_NVIM_DIR"
       record_action "DIRECTORY" "$LAZY_NVIM_DIR"
+      echo "lazy.nvim cloned successfully to: $LAZY_NVIM_DIR"
+      ls -la "$LAZY_NVIM_DIR" | head -5
     else
       print_error "Failed to install lazy.nvim"
       return 1
     fi
   else
-    echo "lazy.nvim is already installed."
+    echo "lazy.nvim is already installed at: $LAZY_NVIM_DIR"
+    ls -la "$LAZY_NVIM_DIR" | head -3
   fi
 
   echo "Running Neovim to install plugins via lazy.nvim..."
+  echo "Running command: nvim --headless \"+Lazy! sync\" +qa"
   if nvim --headless "+Lazy! sync" +qa 2>&1 | tee /tmp/nvim_plugin_install.log; then
     echo "Neovim plugins installed successfully using lazy.nvim."
     rm -f /tmp/nvim_plugin_install.log
   else
     echo "Warning: Neovim plugin installation encountered some issues."
     echo "Check /tmp/nvim_plugin_install.log for details."
+    if [ -f /tmp/nvim_plugin_install.log ]; then
+      echo "Last 10 lines of log:"
+      tail -10 /tmp/nvim_plugin_install.log
+    fi
   fi
 }
 
