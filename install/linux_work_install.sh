@@ -238,8 +238,8 @@ handle_stow_conflicts() {
 # Home directory
 HOME_DIR="$HOME"
 
-# Directory where the dotfiles are located
-DOTFILES_DIR="$SCRIPT_DIR"
+# Directory where the dotfiles are located (parent of script directory)
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Neovim version
 NEOVIM_VERSION="0.11.0"
@@ -352,6 +352,9 @@ stow_dotfiles_work() {
   print_message "Stowing Dotfiles..."
   sleep 1
 
+  # Debug: Show what directory we're looking in
+  echo "Looking for dotfiles in: $DOTFILES_DIR"
+
   # Check if dotfiles directory exists
   if [ ! -d "$DOTFILES_DIR" ]; then
     print_error "Dotfiles directory not found at $DOTFILES_DIR"
@@ -441,16 +444,29 @@ install_font_hack_work() {
     track_directory "$fonts_dir"
     cd "$fonts_dir"
 
-    # Download each font variant
-    for variant in "Regular" "Bold" "Italic" "BoldItalic"; do
-      echo "Downloading Hack ${variant}..."
-      FONT_URL="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/${variant}/complete/Hack%20${variant}%20Nerd%20Font%20Complete.ttf"
-      if curl -fLo "Hack ${variant} Nerd Font Complete.ttf" "$FONT_URL"; then
-        record_action "FONT_FILE" "$fonts_dir/Hack ${variant} Nerd Font Complete.ttf"
+    # Download Hack Nerd Font zip and extract
+    echo "Downloading Hack Nerd Font..."
+    FONT_ZIP_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.zip"
+    if curl -fLo "hack-nerd-font.zip" "$FONT_ZIP_URL"; then
+      # Extract only the TTF files we need
+      unzip -j "hack-nerd-font.zip" "*Hack*Regular*.ttf" "*Hack*Bold*.ttf" "*Hack*Italic*.ttf" "*Hack*BoldItalic*.ttf" -d "$fonts_dir" 2>/dev/null || true
+      rm -f "hack-nerd-font.zip"
+
+      # Record the extracted fonts
+      for font_file in "$fonts_dir"/*.ttf; do
+        if [ -f "$font_file" ]; then
+          record_action "FONT_FILE" "$font_file"
+        fi
+      done
+
+      if [ "$(ls "$fonts_dir"/*.ttf 2>/dev/null | wc -l)" -gt 0 ]; then
+        echo "Hack Nerd Font downloaded and extracted successfully."
       else
-        print_error "Failed to download Hack ${variant} font"
+        print_error "Failed to extract fonts from zip file"
       fi
-    done
+    else
+      print_error "Failed to download Hack Nerd Font zip"
+    fi
 
     # Update font cache if available (no sudo)
     if command -v fc-cache &>/dev/null; then
@@ -685,6 +701,31 @@ install_neovim_work() {
 
 
 # ============================
+# Ensure PATH is set in shell config
+# ============================
+
+ensure_path_in_shell_config() {
+  print_message "Ensuring PATH is set in shell configuration..."
+  sleep 1
+
+  local path_line="export PATH=\"\$HOME/.local/bin:\$PATH\""
+  local bashrc="$HOME/.bashrc"
+
+  # Check if .bashrc exists and if PATH line is already there
+  if [ -f "$bashrc" ] && ! grep -q "export PATH.*\$HOME/.local/bin" "$bashrc"; then
+    echo "Adding ~/.local/bin to PATH in .bashrc..."
+    echo "" >> "$bashrc"
+    echo "# Added by dotfiles installation" >> "$bashrc"
+    echo "$path_line" >> "$bashrc"
+    echo "PATH updated in .bashrc. Please run 'source ~/.bashrc' to apply changes."
+  elif [ -f "$bashrc" ]; then
+    echo "PATH already configured in .bashrc"
+  else
+    echo "Warning: .bashrc not found. You may need to manually add: $path_line"
+  fi
+}
+
+# ============================
 # Main Installation Flow (Work version)
 # ============================
 
@@ -719,6 +760,7 @@ main() {
   install_neovim_work
   install_neovim_plugins_work
   install_tmux_plugins_work
+  ensure_path_in_shell_config
 
   # ============================
   # Finalization

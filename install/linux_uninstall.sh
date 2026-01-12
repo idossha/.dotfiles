@@ -25,7 +25,7 @@ fi
 # ============================
 # Configuration
 # ============================
-DOTFILES_DIR="$SCRIPT_DIR"
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 INSTALL_MANIFEST_DESKTOP="$SCRIPT_DIR/install_manifest_linux_desktop.txt"
 INSTALL_MANIFEST_SERVER="$SCRIPT_DIR/install_manifest_linux_server.txt"
 INSTALL_MANIFEST=""  # Will be set based on which one exists

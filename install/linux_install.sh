@@ -286,8 +286,8 @@ handle_stow_conflicts() {
 # Home directory
 HOME_DIR="$HOME"
 
-# Directory where the dotfiles are located
-DOTFILES_DIR="$SCRIPT_DIR"
+# Directory where the dotfiles are located (parent of script directory)
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Neovim version
 NEOVIM_VERSION="0.11.0"

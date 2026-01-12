@@ -255,8 +255,8 @@ handle_stow_conflicts() {
 # Home directory
 HOME_DIR="$HOME"
 
-# Directory where the dotfiles are located
-DOTFILES_DIR="$SCRIPT_DIR"
+# Directory where the dotfiles are located (parent of script directory)
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Oh My Zsh installation directory
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"

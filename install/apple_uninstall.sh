@@ -25,7 +25,7 @@ fi
 # ============================
 # Configuration
 # ============================
-DOTFILES_DIR="$SCRIPT_DIR"
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 INSTALL_MANIFEST="$SCRIPT_DIR/install_manifest_apple.txt"
 HOME_DIR="$HOME"
 OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
