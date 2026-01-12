@@ -61,9 +61,10 @@ Last update: January 12, 2026
 #### Linux Work Server (no sudo)
 - Personal dotfile configuration via GNU Stow
 - **Uses server_config/** for nvim and tmux (lighter, server-optimized configs)
+- Creates symlinks: `~/.config` → `server_config/config` and `~/.tmux.conf` → `server_config/config/.tmux.conf`
 - Neovim compiled to ~/.local/bin
 - Font downloads to ~/.local/share/fonts
-- Tmux plugins in home directory
+- Tmux plugins in home directory and config automatically sourced
 - Assumes basic tools (git, tmux, etc.) are pre-installed
 
 ---

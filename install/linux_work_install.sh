@@ -387,10 +387,9 @@ stow_dotfiles_work() {
       # Special handling for server_config (different directory structure)
       if [ "$pkg" = "server_config" ]; then
         echo "Using server_config with special handling..."
-        # For server_config, we need to stow from the config/ subdirectory
-        # Create a temporary symlink structure for stowing
+        # For server_config, we need to create symlinks for both .config and .tmux.conf
         if [ -d "$pkg/config" ]; then
-          # Create symlink from ~/.config to server_config/config
+          # Create symlink from ~/.config to server_config/config (for nvim)
           mkdir -p ~/.config
           if [ ! -L ~/.config ]; then
             # Backup existing .config if it exists
@@ -402,6 +401,23 @@ stow_dotfiles_work() {
             echo "Created symlink: ~/.config -> $DOTFILES_DIR/$pkg/config"
           else
             echo "~/.config symlink already exists"
+          fi
+
+          # Create symlink from ~/.tmux.conf to server_config/config/.tmux.conf
+          if [ -f "$pkg/config/.tmux.conf" ]; then
+            if [ ! -L ~/.tmux.conf ]; then
+              # Backup existing .tmux.conf if it exists
+              if [ -f ~/.tmux.conf ] && [ ! -L ~/.tmux.conf ]; then
+                mv ~/.tmux.conf ~/.tmux.conf.backup.$(date +%Y%m%d_%H%M%S)
+              fi
+              ln -sf "$DOTFILES_DIR/$pkg/config/.tmux.conf" ~/.tmux.conf
+              record_action "SYMLINK" "~/.tmux.conf"
+              echo "Created symlink: ~/.tmux.conf -> $DOTFILES_DIR/$pkg/config/.tmux.conf"
+            else
+              echo "~/.tmux.conf symlink already exists"
+            fi
+          else
+            echo "Warning: .tmux.conf not found in server_config/config"
           fi
         else
           print_error "server_config/config directory not found"
@@ -808,6 +824,12 @@ main() {
   print_message "Installation Completed!"
   echo "Your personal development environment is set up on the work server."
   echo "All installations were done in your home directory (no sudo required)."
+
+  # Source tmux config if tmux is available
+  if command -v tmux &> /dev/null && [ -f ~/.tmux.conf ]; then
+    echo "Sourcing tmux configuration..."
+    tmux source ~/.tmux.conf 2>/dev/null && echo "Tmux config sourced successfully" || echo "Tmux config sourced (some warnings ok)"
+  fi
 
   # Print Neovim version as confirmation
   if command -v nvim &> /dev/null; then
