@@ -104,6 +104,7 @@ uninstall_from_manifest() {
   local directories_to_remove=()
   local font_files=()
   local binary_files=()
+  local symlinks_to_remove=()
   local neovim_installed=false
 
   # Parse the manifest file
@@ -137,6 +138,9 @@ uninstall_from_manifest() {
       NEOVIM)
         neovim_installed=true
         ;;
+      SYMLINK)
+        symlinks_to_remove+=("$item")
+        ;;
       CLONED_REPO)
         echo "Note: Repository was cloned at: $item"
         ;;
@@ -155,6 +159,17 @@ uninstall_from_manifest() {
       fi
     done
     cd "$original_dir"
+  fi
+
+  # Remove symlinks
+  if [ ${#symlinks_to_remove[@]} -gt 0 ]; then
+    print_message "Removing symlinks..."
+    for link in "${symlinks_to_remove[@]}"; do
+      if [ -L "$link" ]; then
+        echo "Removing symlink: $link"
+        rm -f "$link"
+      fi
+    done
   fi
 
   # Restore backups

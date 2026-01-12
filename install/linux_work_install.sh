@@ -244,8 +244,8 @@ DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Neovim version
 NEOVIM_VERSION="0.11.0"
 
-# Define common and Linux-specific packages (work version - no GUI apps)
-COMMON_CONFS=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "nushell" "misc")
+# Define common and Linux-specific packages (work version - no GUI apps, uses server config)
+COMMON_CONFS=("server_config" "vscode" "github" "neofetch" "htop" "nushell" "misc")
 LINUX_CONFS=("linux-bash")  # Linux-specific bash configuration
 
 echo "Detected OS: $OS (Work installation - no sudo required)" >> "$LOG_FILE"
@@ -383,19 +383,44 @@ stow_dotfiles_work() {
   for pkg in "${COMMON_CONFS[@]}"; do
     if [ -d "$pkg" ]; then
       echo "Stowing $pkg..."
-      # Handle conflicts before stowing
-      handle_stow_conflicts "$pkg"
 
-      # Try to stow, and if it fails due to conflicts, try with --adopt
-      if ! stow "$pkg" 2>/dev/null; then
-        echo "Retrying $pkg with --adopt..."
-        if stow --adopt "$pkg"; then
-          record_action "STOW" "$pkg"
+      # Special handling for server_config (different directory structure)
+      if [ "$pkg" = "server_config" ]; then
+        echo "Using server_config with special handling..."
+        # For server_config, we need to stow from the config/ subdirectory
+        # Create a temporary symlink structure for stowing
+        if [ -d "$pkg/config" ]; then
+          # Create symlink from ~/.config to server_config/config
+          mkdir -p ~/.config
+          if [ ! -L ~/.config ]; then
+            # Backup existing .config if it exists
+            if [ -d ~/.config ] && [ ! -L ~/.config ]; then
+              mv ~/.config ~/.config.backup.$(date +%Y%m%d_%H%M%S)
+            fi
+            ln -sf "$DOTFILES_DIR/$pkg/config" ~/.config
+            record_action "SYMLINK" "~/.config"
+            echo "Created symlink: ~/.config -> $DOTFILES_DIR/$pkg/config"
+          else
+            echo "~/.config symlink already exists"
+          fi
         else
-          print_error "Failed to stow $pkg even with --adopt"
+          print_error "server_config/config directory not found"
         fi
       else
-        record_action "STOW" "$pkg"
+        # Handle conflicts before stowing
+        handle_stow_conflicts "$pkg"
+
+        # Try to stow, and if it fails due to conflicts, try with --adopt
+        if ! stow "$pkg" 2>/dev/null; then
+          echo "Retrying $pkg with --adopt..."
+          if stow --adopt "$pkg"; then
+            record_action "STOW" "$pkg"
+          else
+            print_error "Failed to stow $pkg even with --adopt"
+          fi
+        else
+          record_action "STOW" "$pkg"
+        fi
       fi
     else
       echo "Warning: $pkg directory not found, skipping."

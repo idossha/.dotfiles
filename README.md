@@ -25,14 +25,14 @@ Last update: January 12, 2026
 
    **Linux Work Server (no sudo access):**
    ```bash
-   ./install/linux_work_install.sh       # Personal config only, no system changes
+   ./install/linux_work_install.sh       # Personal config only, uses server-optimized configs
    ```
 
 ### Available Scripts
 
 - `install/apple_install.sh` - Full macOS installation with all tools and GUI applications
 - `install/linux_install.sh` - Linux installation with sudo (accepts `desktop` or `server` argument)
-- `install/linux_work_install.sh` - Linux work server installation (no sudo required)
+- `install/linux_work_install.sh` - Linux work server installation (no sudo, uses server configs)
 - `install/apple_uninstall.sh` - Uninstall macOS installation
 - `install/linux_uninstall.sh` - Uninstall Linux installation
 
@@ -60,6 +60,7 @@ Last update: January 12, 2026
 
 #### Linux Work Server (no sudo)
 - Personal dotfile configuration via GNU Stow
+- **Uses server_config/** for nvim and tmux (lighter, server-optimized configs)
 - Neovim compiled to ~/.local/bin
 - Font downloads to ~/.local/share/fonts
 - Tmux plugins in home directory
