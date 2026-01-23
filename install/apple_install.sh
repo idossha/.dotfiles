@@ -284,6 +284,7 @@ BREW_CASK_PACKAGES=(
 BREW_PACKAGES=(
   tmux
   git
+  gh
   ripgrep
   fzf
   tree-sitter
