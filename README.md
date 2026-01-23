@@ -17,8 +17,9 @@ Last update: January 22, 2026
 
 - App store install: Microsoft Office apps
 - some macOS setting configs (example, karabiner elements)
+- mouse speed, dock setting,
 - github authentication
-
+- Download GlobalProtect via https://uwmadison.vpn.wisc.edu/global-protect/getsoftwarepage.esp
 
 ---
 
