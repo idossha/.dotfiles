@@ -1,8 +1,2 @@
-
-eval "$(/opt/homebrew/bin/brew shellenv)"
-
-
-
-## Added by SimNIBS
-SIMNIBS_BIN="/Users/idohaber/Applications/SimNIBS-4.5/bin"
-export PATH=${PATH}:${SIMNIBS_BIN}
+# All zsh configuration is in .zshrc
+# This file is kept for compatibility but is intentionally empty

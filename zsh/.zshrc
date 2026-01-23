@@ -2,49 +2,64 @@
 # Ido Haber // ihaber@wisc.edu
 # December 30, 2024
 
-# personal
-export PATH="$HOME/bin:$PATH"
-export PATH=$PATH:/usr/local/go/bin
-export PATH=$PATH:/Users/idohaber/.my_scripts/
-export SKETCHY_DIR=$CONFIG_DIR/sketchybar/
+# ============================
+# Homebrew Setup (must be first)
+# ============================
+# Initialize Homebrew - check both possible locations
+if [ -f "/opt/homebrew/bin/brew" ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f "/usr/local/bin/brew" ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
 
-# neuro programs 
-export FREESURFER_HOME=/Applications/freesurfer/7.4.1
-export SUBJECTS_DIR=$HOME/Desktop/subjects
-source $FREESURFER_HOME/SetUpFreeSurfer.sh >/dev/null 2>&1  #print output is surpressed.
-export PATH="/Users/idohaber/Applications/mrtrix3/bin:$PATH"
+# ============================
+# PATH Configuration
+# ============================
+export PATH="$HOME/bin:$PATH"
+export PATH="$PATH:/usr/local/go/bin"
+export PATH="$PATH:/Users/idohaber/.my_scripts/"
+export PATH="$HOME/.local/bin:$PATH"
+
+# ============================
+# Environment Variables
+# ============================
+export SKETCHY_DIR="$HOME/.config/sketchybar/"
 
 # matlab
 export DYLD_LIBRARY_PATH=/Applications/MATLAB/MATLAB_Runtime/R2024a/runtime/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/bin/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/sys/osmaca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/extern/bin/maca64:$DYLD_LIBRARY_PATH
 
-# docker variables
-export PATH=`brew --prefix`/opt/qt5/bin:$PATH
+# Docker variables
+if command -v brew &> /dev/null; then
+  export PATH="$(brew --prefix)/opt/qt5/bin:$PATH"
+fi
 export DOCKER_HOST_IP=host.docker.internal
 export DISPLAY=host.docker.internal:0
 
-# automatic prompt for new terminals
-# ~/terminal_info.sh
+# ============================
+# Oh My Zsh Configuration
+# ============================
+# Note: Oh My Zsh will set up plugins, themes, and some default settings
+# Custom settings below will override oh-my-zsh defaults
+if [ -d "$HOME/oh-my-zsh" ]; then
+  export ZSH="$HOME/oh-my-zsh"
+  
+  # Oh My Zsh settings (set before sourcing)
+  ENABLE_CORRECTION="true"
+  COMPLETION_WAITING_DOTS="true"
+  
+  # Oh My Zsh plugins
+  plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search aliases)
+  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#d79921'
+  
+  # Source oh-my-zsh (this will load plugins and set default theme)
+  source "$ZSH/oh-my-zsh.sh"
+else
+  echo "Warning: Oh My Zsh not found at $HOME/oh-my-zsh. Some features may not work."
+fi
 
-# command auto-correction.
-ENABLE_CORRECTION="true"
-
-# display red dots whilst waiting for completion.
-COMPLETION_WAITING_DOTS="true"
-
-# oh-my-zsh stuff:
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Add wisely, as too many plugins slow down shell startup.
-
-export ZSH="$HOME/oh-my-zsh"
-# oh-my-zsh theme (if you have one), plugin definitions, etc.
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting web-search aliases)
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#d79921'
-source $ZSH/oh-my-zsh.sh  # Now source oh-my-zsh
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# For a full list of active aliases, run `alias`.
-
+# ============================
+# Custom Aliases (override oh-my-zsh defaults)
+# ============================
 alias zshconfig="mate ~/.zshrc"
 alias vi='nvim'
 alias t=tmux
@@ -55,7 +70,9 @@ alias mn="cd ~/.dotfiles/nvim/.config/nvim/ && vi ."
 alias mo="cd ~/Silicon_Mind/"
 alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
 
-
+# ============================
+# Custom Functions
+# ============================
 stam () {
   name=${1:-$(date "+%Y-%m-%d_%H-%M-%S")}
   mkdir -p "$HOME/sandbox/$name" &&
@@ -63,19 +80,37 @@ stam () {
   vi .
 }
 
-. "$HOME/.atuin/bin/env"
+# ============================
+# Tool Initializations
+# ============================
+# Load atuin environment if installed
+if [ -f "$HOME/.atuin/bin/env" ]; then
+  . "$HOME/.atuin/bin/env"
+fi
 
-# export XDG_CONFIG_HOME="/Users/idohaber/.config"
+# Initialize zoxide if available
+if command -v zoxide &> /dev/null; then
+  eval "$(zoxide init zsh)"
+fi
 
-eval "$(zoxide init zsh)"
-eval "$(atuin init zsh)"
-eval "$(direnv hook zsh)"
+# Initialize atuin if available
+if command -v atuin &> /dev/null; then
+  eval "$(atuin init zsh)"
+fi
 
-# VI mode for terminal
-bindkey -v
+# Initialize direnv if available
+if command -v direnv &> /dev/null; then
+  eval "$(direnv hook zsh)"
+fi
 
-# shell prompt with git branch (at the very end)
+# ============================
+# Custom Keybindings (override oh-my-zsh defaults)
+# ============================
+bindkey -v  # Enable VI mode
+
+# ============================
+# Custom Prompt (override oh-my-zsh theme)
+# ============================
+# This must be at the end to override oh-my-zsh's prompt
 setopt PROMPT_SUBST
 PROMPT='%n|%1~$(git rev-parse --git-dir > /dev/null 2>&1 && echo " ($(git branch --show-current 2>/dev/null))") > '
-
-export PATH="$HOME:$PATH"
