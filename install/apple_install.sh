@@ -264,24 +264,24 @@ OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 # Neovim version
 NEOVIM_VERSION="0.11.0"
 
-# Define common and macOS-specific packages
-COMMON_CONFS=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner")
-MACOS_CONFS=("zsh" "aerospace")
+# Define packages to stow (all packages for macOS installation)
+STOW_PACKAGES=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner" "zsh" "aerospace")
 
 # Define Homebrew Cask packages
 BREW_CASK_PACKAGES=(
   keyboardcleantool
-  #raycask
+  raycast
+  cursor
+  karabiner-elements
+  docker
+  zoom
+  slack
   ghostty
+  arc
 )
 
-MACOS_BREW_PACKAGES=(
-  nikitabobko/tap/aerospace
-  stats
-)
-
-# Define common packages available via Homebrew on macOS
-COMMON_BREW_PACKAGES=(
+# Define Homebrew packages (all packages for macOS installation)
+BREW_PACKAGES=(
   tmux
   git
   ripgrep
@@ -304,6 +304,8 @@ COMMON_BREW_PACKAGES=(
   keycastr
   navi
   gromgit/brewtils/taproom # have not tested this yet
+  nikitabobko/tap/aerospace
+  stats
 )
 
 echo "Detected OS: $OS" >> "$LOG_FILE"
@@ -315,27 +317,46 @@ echo "Detected OS: $OS" >> "$LOG_FILE"
 install_homebrew() {
   print_message "Checking for Homebrew..."
   sleep 1
-  if ! command -v brew &> /dev/null; then
-    if confirm "Homebrew not found. Would you like to install it?"; then
-      echo "Installing Homebrew..."
-      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-      # Add Homebrew to PATH
-      # For Apple Silicon Macs
-      if [[ $(uname -m) == 'arm64' ]]; then
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-      else
-        # For Intel Macs
-        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$HOME/.zprofile"
-        eval "$(/usr/local/bin/brew shellenv)"
-      fi
-    else
-      print_error "Homebrew is required but won't be installed. Exiting."
-      exit 1
-    fi
+  
+  # Check if brew is in PATH
+  if command -v brew &> /dev/null; then
+    echo "Homebrew is already installed and in PATH."
   else
-    echo "Homebrew is already installed."
+    # Check common Homebrew locations
+    local brew_path=""
+    if [[ $(uname -m) == 'arm64' ]] && [ -f "/opt/homebrew/bin/brew" ]; then
+      brew_path="/opt/homebrew/bin/brew"
+      echo "Found Homebrew at $brew_path, initializing..."
+      eval "$($brew_path shellenv)"
+    elif [ -f "/usr/local/bin/brew" ]; then
+      brew_path="/usr/local/bin/brew"
+      echo "Found Homebrew at $brew_path, initializing..."
+      eval "$($brew_path shellenv)"
+    fi
+    
+    # Verify brew is now available
+    if command -v brew &> /dev/null; then
+      echo "Homebrew is now available."
+    else
+      # Homebrew not found, offer to install
+      if confirm "Homebrew not found. Would you like to install it?"; then
+        echo "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+        # Add Homebrew to PATH for current session
+        # Note: Homebrew will be added to .zshrc by stow, not .zprofile
+        # For Apple Silicon Macs
+        if [[ $(uname -m) == 'arm64' ]]; then
+          eval "$(/opt/homebrew/bin/brew shellenv)"
+        else
+          # For Intel Macs
+          eval "$(/usr/local/bin/brew shellenv)"
+        fi
+      else
+        print_error "Homebrew is required but won't be installed. Exiting."
+        exit 1
+      fi
+    fi
   fi
 
   # Update Homebrew
@@ -424,31 +445,8 @@ stow_dotfiles() {
   local original_dir="$PWD"
   cd "$DOTFILES_DIR"
 
-  # Stow common packages
-  for pkg in "${COMMON_CONFS[@]}"; do
-    if [ -d "$pkg" ]; then
-      echo "Stowing $pkg..."
-      # Handle conflicts before stowing
-      handle_stow_conflicts "$pkg"
-
-      # Try to stow, and if it fails due to conflicts, try with --adopt
-      if ! stow --ignore='\.DS_Store' "$pkg" 2>/dev/null; then
-        echo "Retrying $pkg with --adopt..."
-        if stow --ignore='\.DS_Store' --adopt "$pkg"; then
-          record_action "STOW" "$pkg"
-        else
-          print_error "Failed to stow $pkg even with --adopt"
-        fi
-      else
-        record_action "STOW" "$pkg"
-      fi
-    else
-      echo "Warning: $pkg directory not found, skipping."
-    fi
-  done
-
-  # Stow macOS-specific packages
-  for pkg in "${MACOS_CONFS[@]}"; do
+  # Stow all packages
+  for pkg in "${STOW_PACKAGES[@]}"; do
     if [ -d "$pkg" ]; then
       echo "Stowing $pkg..."
       # Handle conflicts before stowing
@@ -515,27 +513,8 @@ install_brew_packages() {
     brew tap nikitabobko/tap
   fi
 
-  # Install common packages
-  for package in "${COMMON_BREW_PACKAGES[@]}"; do
-    # Skip commented packages
-    if [[ $package == \#* ]]; then
-      continue
-    fi
-
-    if ! brew list "$package" &>/dev/null; then
-      echo "Installing $package..."
-      if brew install "$package"; then
-        track_installed "$package"
-      else
-        print_error "Failed to install $package"
-      fi
-    else
-      echo "$package is already installed."
-    fi
-  done
-
-  # Install macOS-specific packages
-  for package in "${MACOS_BREW_PACKAGES[@]}"; do
+  # Install all packages
+  for package in "${BREW_PACKAGES[@]}"; do
     # Skip commented packages
     if [[ $package == \#* ]]; then
       continue
@@ -562,7 +541,8 @@ install_font_hack() {
   print_message "Installing font-hack-nerd-font..."
   sleep 1
   if ! brew list --cask font-hack-nerd-font &>/dev/null; then
-    brew tap homebrew/cask-fonts
+    # Fonts are now available directly from the main cask repository
+    # No need to tap homebrew/cask-fonts (deprecated)
     if brew install --cask font-hack-nerd-font; then
       track_installed "font-hack-nerd-font"
     else
@@ -873,9 +853,10 @@ install_neovim() {
         echo "Neovim installed successfully"
         record_action "NEOVIM" "$NEOVIM_VERSION"
         # Add Neovim to PATH for current session
+        # Note: PATH is already configured in .zshrc via stow
         if [ -d "$HOME/.local/bin" ]; then
           export PATH="$HOME/.local/bin:$PATH"
-          echo "Added $HOME/.local/bin to PATH"
+          echo "Added $HOME/.local/bin to PATH for current session"
         fi
         # Return to original directory before cleanup
         cd "$original_dir" || cd /tmp
@@ -912,15 +893,23 @@ install_neovim() {
 # ============================
 
 source_zshrc() {
-  print_message "Sourcing .zshrc..."
+  print_message "Checking .zshrc configuration..."
   sleep 1
+  # Check if .zshrc exists
+  if [ ! -f "$HOME/.zshrc" ]; then
+    echo "Warning: $HOME/.zshrc not found. It should have been created by stow."
+    return 1
+  fi
+  
   # Source .zshrc if Zsh is the current shell
   if [ -n "$ZSH_VERSION" ]; then
-    echo "Sourcing $HOME/.zshrc"
-    source "$HOME/.zshrc" || true  # Don't fail if there are issues
+    echo "Sourcing $HOME/.zshrc (errors will be suppressed)..."
+    # Source with error suppression to handle missing dependencies gracefully
+    source "$HOME/.zshrc" 2>/dev/null || true
     echo ".zshrc has been sourced."
   else
     echo "Current shell is not Zsh. Please restart your terminal or run 'source ~/.zshrc' manually."
+    echo "Note: Some tools may not be available until you restart your terminal."
   fi
 }
 
@@ -942,9 +931,16 @@ main() {
   fi
 
   # ============================
+  # Install Homebrew (First Step)
+  # ============================
+  print_message "Phase 1: Installing Homebrew"
+  
+  install_homebrew
+
+  # ============================
   # Common Setup
   # ============================
-  print_message "Phase 1: Common Setup"
+  print_message "Phase 2: Common Setup"
 
   install_stow
   backup_existing_configs
@@ -953,9 +949,7 @@ main() {
   # ============================
   # macOS-Specific Installation
   # ============================
-  print_message "Phase 2: macOS-Specific Setup"
-
-  install_homebrew
+  print_message "Phase 3: macOS-Specific Setup"
   install_brew_cask_packages
   install_brew_packages
   install_font_hack
@@ -966,7 +960,7 @@ main() {
   # ============================
   # Common Tools
   # ============================
-  print_message "Phase 3: Common Tools Installation"
+  print_message "Phase 4: Common Tools Installation"
 
   install_neovim
   install_neovim_plugins
