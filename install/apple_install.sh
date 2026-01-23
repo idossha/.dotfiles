@@ -278,6 +278,7 @@ BREW_CASK_PACKAGES=(
   slack
   ghostty
   arc
+  obs
 )
 
 # Define Homebrew packages (all packages for macOS installation)
