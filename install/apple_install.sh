@@ -293,6 +293,7 @@ BREW_PACKAGES=(
   bat
   direnv
   htop
+  btop
   lazygit
   lazydocker
   neofetch
