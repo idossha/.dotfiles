@@ -308,6 +308,7 @@ BREW_PACKAGES=(
   gromgit/brewtils/taproom # have not tested this yet
   nikitabobko/tap/aerospace
   stats
+  ruby@3.3
 )
 
 echo "Detected OS: $OS" >> "$LOG_FILE"
