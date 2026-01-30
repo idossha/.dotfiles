@@ -4,7 +4,7 @@ return {
   lazy = false,
   ---@type snacks.Config
   opts = {
-    image = {enabled = true},
+    image = {enabled = flase },
     bigfile = { enabled = true },
     dashboard = { 
       enabled = true,

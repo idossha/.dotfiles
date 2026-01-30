@@ -1,62 +1,35 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    event = { "BufReadPre", "BufNewFile" },
-    build = ":TSUpdate",
+    build = ":TSUpdate",                -- keep parsers up to date
     dependencies = {
-      "nvim-treesitter/nvim-treesitter-textobjects",
-      "windwp/nvim-ts-autotag",
+      "windwp/nvim-ts-autotag",        -- optional: auto-close HTML/JSX tags
+      "JoosepAlviste/nvim-ts-context-commentstring", -- optional: context-aware commenting
     },
     config = function()
-      -- import nvim-treesitter plugin
-      local treesitter = require("nvim-treesitter.configs")
-
-      -- configure treesitter
-      treesitter.setup({ -- enable syntax highlighting
-        highlight = {
-          enable = true,
+      local ts = require("nvim-treesitter")
+      ts.setup({
+        highlight = { enable = true },  -- enable syntax highlighting
+        indent = { enable = true },     -- enable Treesitter-based indentation
+        autotag = { enable = true },    -- auto-close tags if you installed nvim-ts-autotag
+        ensure_installed = {            -- parsers to always install
+          "json", "javascript", "typescript", "tsx", "html", "css",
+          "lua", "python", "bash", "yaml", "markdown", "markdown_inline",
         },
-        -- enable indentation
-        indent = { enable = true },
-        -- enable autotagging (w/ nvim-ts-autotag plugin)
-        autotag = {
-          enable = true,
-        },
-        -- ensure these language parsers are installed
-        ensure_installed = {
-          "json",
-          "javascript",
-          "typescript",
-          "tsx",
-          "yaml",
-          "html",
-          "css",
-          "prisma",
-          "markdown",
-          "markdown_inline",
-          "svelte",
-          "graphql",
-          "bash",
-          "lua",
-          "vim",
-          "dockerfile",
-          "gitignore",
-          "query",
-          "python",  -- Required for nvim-dap-virtual-text
-        },
-        incremental_selection = {
+        incremental_selection = {       -- optional, lightweight incremental selection
           enable = true,
           keymaps = {
             init_selection = "<C-space>",
             node_incremental = "<C-space>",
-            scope_incremental = false,
             node_decremental = "<bs>",
+            scope_incremental = false,
           },
         },
       })
 
-      -- enable nvim-ts-context-commentstring plugin for commenting tsx and jsx
-      require('ts_context_commentstring').setup {}
+      -- optional: enable ts-context-commentstring for JSX/TSX files
+      require("ts_context_commentstring").setup({})
     end,
   },
 }
+
