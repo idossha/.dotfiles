@@ -1,0 +1,25 @@
+#!/bin/bash
+# mnt-home: Mount homelab SSD over WireGuard
+
+MOUNTPOINT="$HOME/homelab"
+REMOTE="idohaber@10.200.200.1:/srv/storage"
+
+# Check if already mounted
+if mount | grep -q "$MOUNTPOINT"; then
+    echo "✅ $MOUNTPOINT is already mounted."
+    exit 0
+fi
+
+# Mount via SSHFS
+echo "🔗 Mounting $MOUNTPOINT..."
+sshfs -o uid=$(id -u),gid=$(id -g),reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 \
+      "$REMOTE" "$MOUNTPOINT"
+
+if [ $? -eq 0 ]; then
+    echo "✅ Mounted successfully!"
+    df -h "$MOUNTPOINT"
+else
+    echo "❌ Mount failed! Is WireGuard active?"
+fi
+
+
