@@ -310,6 +310,8 @@ BREW_PACKAGES=(
   nikitabobko/tap/aerospace
   stats
   ruby@3.3
+  sqlite3
+  postgresql
 )
 
 echo "Detected OS: $OS" >> "$LOG_FILE"
