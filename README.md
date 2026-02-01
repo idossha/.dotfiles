@@ -15,10 +15,10 @@ Last update: January 22, 2026
 
 ### Manual Installation (to be automated in the future)
 
-- App store install: Microsoft Office apps
+- App store install: Microsoft Office apps, WireGuard, Keymap (zsa), Windows Desktop
 - some macOS setting configs (example, karabiner elements)
 - mouse speed, dock setting,
-- github authentication
+- github authentication via SSH pub key
 - Download GlobalProtect via https://uwmadison.vpn.wisc.edu/global-protect/getsoftwarepage.esp
 
 ---
