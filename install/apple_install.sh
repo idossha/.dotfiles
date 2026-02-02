@@ -279,6 +279,7 @@ BREW_CASK_PACKAGES=(
   ghostty
   arc
   obs
+  tailscale-app
 )
 
 # Define Homebrew packages (all packages for macOS installation)
