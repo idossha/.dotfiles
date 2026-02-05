@@ -35,6 +35,11 @@ fi
 export DOCKER_HOST_IP=host.docker.internal
 export DISPLAY=host.docker.internal:0
 
+# Whoop API credentials (get from https://developer.whoop.com)
+# Set these in your shell or add them here:
+# export WHOOP_CLIENT_ID="your_client_id"
+# export WHOOP_CLIENT_SECRET="your_client_secret"
+
 # ============================
 # Oh My Zsh Configuration
 # ============================
@@ -114,3 +119,11 @@ bindkey -v  # Enable VI mode
 # This must be at the end to override oh-my-zsh's prompt
 setopt PROMPT_SUBST
 PROMPT='%n|%1~$(git rev-parse --git-dir > /dev/null 2>&1 && echo " ($(git branch --show-current 2>/dev/null))") > '
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/idohaber/.lmstudio/bin"
+# End of LM Studio CLI section
+
+
+# opencode
+export PATH=/Users/idohaber/.opencode/bin:$PATH
