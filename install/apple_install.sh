@@ -313,6 +313,7 @@ BREW_PACKAGES=(
   ruby@3.3
   sqlite3
   postgresql
+  cloc
 )
 
 echo "Detected OS: $OS" >> "$LOG_FILE"
