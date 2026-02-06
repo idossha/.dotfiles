@@ -280,6 +280,7 @@ BREW_CASK_PACKAGES=(
   arc
   obs
   tailscale-app
+  cyberduck
 )
 
 # Define Homebrew packages (all packages for macOS installation)
