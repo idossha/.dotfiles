@@ -69,5 +69,5 @@
   "vimtex": { "branch": "master", "commit": "f707368022cdb851716be0d2970b90599c84a6a6" },
   "vscode.nvim": { "branch": "main", "commit": "aa1102a7e15195c9cca22730b09224a7f7745ba8" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" },
-  "whoop.nvim": { "branch": "master", "commit": "f72160179d4b9925be0d1ab878fdf8743cae8877" }
+  "whoop.nvim": { "branch": "master", "commit": "ba45c2ca6c95134a12e14e22705e794353b87877" }
 }
