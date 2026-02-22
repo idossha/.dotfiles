@@ -265,7 +265,7 @@ OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 NEOVIM_VERSION="0.11.0"
 
 # Define packages to stow (all packages for macOS installation)
-STOW_PACKAGES=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner" "zsh" "aerospace")
+STOW_PACKAGES=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner" "zsh" "aerospace" "syncthing")
 
 # Define Homebrew Cask packages
 BREW_CASK_PACKAGES=(
@@ -315,6 +315,7 @@ BREW_PACKAGES=(
   sqlite3
   postgresql
   cloc
+  syncthing
 )
 
 echo "Detected OS: $OS" >> "$LOG_FILE"
