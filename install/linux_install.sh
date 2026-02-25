@@ -498,30 +498,12 @@ install_syncthing() {
     return 0
   fi
   if confirm "Install Syncthing?"; then
-    local tmpdir; tmpdir=$(mktemp -d)
-    local version
-    version=$(curl -fsSL "https://api.github.com/repos/syncthing/syncthing/releases/latest" \
-      | grep '"tag_name"' | grep -oE 'v[0-9.]+' | head -1) || true
-    if [ -z "$version" ]; then
-      echo "Warning: Could not determine Syncthing version."
-      return 0
-    fi
-    local arch
-    arch=$(uname -m)
-    case "$arch" in
-      x86_64) arch="amd64" ;;
-      aarch64|arm64) arch="arm64" ;;
-    esac
-    local url="https://github.com/syncthing/syncthing/releases/latest/download/syncthing-linux-${arch}-${version#v}.tar.gz"
-    if curl -fLo "$tmpdir/syncthing.tar.gz" "$url"; then
-      tar -xzf "$tmpdir/syncthing.tar.gz" -C "$tmpdir"
-      sudo install -m 755 "$tmpdir/syncthing-linux-${arch}-${version#v}/syncthing" /usr/local/bin/syncthing
-      record_action "SYNCTHING" "${version}"
-      echo "Syncthing ${version} installed."
-    else
-      print_error "Failed to download Syncthing"
-    fi
-    rm -rf "$tmpdir"
+    curl -fsSL https://syncthing.net/release-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/syncthing-archive-keyring.gpg
+    echo "deb [signed-by=/usr/share/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing release" | sudo tee /etc/apt/sources.list.d/syncthing.list
+    sudo apt-get update -qq
+    sudo apt-get install -y syncthing
+    record_action "SYNCTHING" "$(syncthing --version 2>/dev/null | head -1)"
+    echo "Syncthing installed."
   else
     echo "Skipping Syncthing."
   fi
@@ -604,7 +586,6 @@ main() {
   # Phase 3: Additional tools
   print_message "Phase 3: Additional tools"
   install_ghostty
-  install_font_hack
   install_neovim
 
   # Phase 4: Editor and shell plugin setup
