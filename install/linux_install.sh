@@ -433,8 +433,9 @@ install_docker() {
     curl -fsSL https://get.docker.com -o /tmp/get-docker.sh && \
       sudo sh /tmp/get-docker.sh && \
       sudo usermod -aG docker "$USER" && \
+      newgrp docker && \
       record_action "DOCKER" "installed" && \
-      echo "Docker installed. You may need to log out/in for group changes." || \
+      echo "Docker installed. Run 'newgrp docker' or log out/in to use docker without sudo." || \
       print_error "Failed to install Docker (non-fatal)"
     rm -f /tmp/get-docker.sh
   else
