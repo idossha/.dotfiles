@@ -51,16 +51,9 @@ echo "Host: $(hostname) | Dotfiles: $DOTFILES_DIR"
 NEOVIM_VERSION="0.11.0"
 
 # Packages to stow (common to all Linux installs)
-COMMON_CONFS=(nvim tmux vscode github neofetch htop ghostty nushell misc)
+COMMON_CONFS=(nvim tmux github htop ghostty nushell misc)
 LINUX_CONFS=(linux-bash)
 
-# APT packages to install
-# Notes:
-#   'bat'      binary is 'batcat' on Debian/Ubuntu  (alias: bat=batcat)
-#   'fd-find'  binary is 'fdfind' on Debian/Ubuntu  (alias: fd=fdfind)
-#   'nodejs'   and 'npm' from apt are broken on Debian trixie — use nvm instead
-#   'neofetch' was removed from Debian trixie — fastfetch is the modern replacement
-#   'gh'       may need the GitHub CLI apt repo on older distros; skip gracefully if missing
 LINUX_APT_PACKAGES=(
   tmux git bat zoxide ripgrep jq direnv tree
   pandoc ffmpeg htop btop fzf zsh fastfetch fd-find imagemagick
@@ -349,63 +342,6 @@ install_font_hack() {
   rm -rf "$tmpdir"
 }
 
-# ============================
-# lazygit
-# ============================
-install_lazygit() {
-  print_message "Installing lazygit..."
-  if command -v lazygit &>/dev/null; then
-    echo "lazygit already installed: $(lazygit --version | head -1)"
-    return 0
-  fi
-  local version
-  version=$(curl -fsSL "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" \
-    | grep '"tag_name"' | grep -oE 'v[0-9.]+' | head -1) || true
-  if [ -z "$version" ]; then
-    echo "Warning: Could not determine lazygit version. Skipping."
-    return 0
-  fi
-  local tmpdir; tmpdir=$(mktemp -d)
-  local url="https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${version#v}_Linux_x86_64.tar.gz"
-  if curl -fLo "$tmpdir/lazygit.tar.gz" "$url"; then
-    tar -xf "$tmpdir/lazygit.tar.gz" -C "$tmpdir" lazygit
-    sudo install -m 755 "$tmpdir/lazygit" /usr/local/bin/lazygit
-    record_action "BINARY" "/usr/local/bin/lazygit"
-    echo "lazygit ${version} installed."
-  else
-    echo "Warning: Failed to download lazygit."
-  fi
-  rm -rf "$tmpdir"
-}
-
-# ============================
-# lazydocker
-# ============================
-install_lazydocker() {
-  print_message "Installing lazydocker..."
-  if command -v lazydocker &>/dev/null; then
-    echo "lazydocker already installed."
-    return 0
-  fi
-  if ! command -v docker &>/dev/null; then
-    echo "Docker not found — skipping lazydocker."
-    return 0
-  fi
-  local tmpdir; tmpdir=$(mktemp -d)
-  echo "Downloading lazydocker installer..."
-  if curl -fsSL \
-      https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh \
-      | INSTALL_DIR="$tmpdir" bash 2>/dev/null; then
-    if [ -f "$tmpdir/lazydocker" ]; then
-      sudo install -m 755 "$tmpdir/lazydocker" /usr/local/bin/lazydocker
-      record_action "BINARY" "/usr/local/bin/lazydocker"
-      echo "lazydocker installed."
-    fi
-  else
-    echo "Warning: Failed to install lazydocker."
-  fi
-  rm -rf "$tmpdir"
-}
 
 # ============================
 # Neovim — prebuilt binary (much faster than building from source)
@@ -669,8 +605,6 @@ main() {
   print_message "Phase 3: Additional tools"
   install_ghostty
   install_font_hack
-  install_lazygit
-  install_lazydocker
   install_neovim
 
   # Phase 4: Editor and shell plugin setup
