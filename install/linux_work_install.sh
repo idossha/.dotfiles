@@ -183,9 +183,16 @@ backup_existing_configs() {
 
 # ============================
 # Safe stow: resolve conflicts automatically
-# Strategy: --adopt moves conflicting files into dotfiles,
-# then git checkout restores the dotfiles to committed state,
-# leaving the target path clear for the correct symlink.
+#
+# Why --restow and NOT --no-folding:
+#   --restow  = unstow + stow, so already-linked packages are re-linked cleanly
+#   --no-folding interferes with previously folded directory symlinks (e.g.
+#   ~/.config/nvim → dotfiles/nvim/.config/nvim) causing spurious conflicts.
+#
+# Conflict recovery:
+#   --adopt moves conflicting target files INTO the dotfiles dir (overwriting),
+#   then git checkout restores dotfiles to committed state.
+#   Net effect: the conflicting file at the target is gone → stow succeeds.
 # ============================
 safe_stow() {
   local pkg="$1"
@@ -195,22 +202,25 @@ safe_stow() {
   fi
 
   echo "  Stowing $pkg..."
-  if stow --no-folding "$pkg" 2>/dev/null; then
+  local output
+  if output=$(stow --restow "$pkg" 2>&1); then
     echo "  [ok] $pkg"
     record_action "STOW" "$pkg"
     return 0
   fi
 
-  # Conflict: adopt existing files into dotfiles, then restore dotfiles
-  echo "  [conflict] $pkg — resolving..."
-  stow --no-folding --adopt "$pkg" 2>/dev/null || true
+  # Conflict: adopt into dotfiles, restore from git, then re-stow
+  echo "  Resolving conflicts for $pkg..."
+  stow --adopt "$pkg" 2>/dev/null || true
   git -C "$DOTFILES_DIR" checkout -- . 2>/dev/null || true
 
-  if stow --no-folding "$pkg" 2>/dev/null; then
-    echo "  [ok] $pkg (after conflict resolution)"
+  if output=$(stow --restow "$pkg" 2>&1); then
+    echo "  [ok] $pkg (conflicts resolved)"
     record_action "STOW" "$pkg"
   else
-    print_error "Could not stow $pkg — check manually"
+    # Non-fatal: warn and continue so one bad package doesn't abort everything
+    echo "  [warning] $pkg — could not fully stow (manual fix may be needed):"
+    echo "$output" | head -5 | sed 's/^/    /'
   fi
 }
 
