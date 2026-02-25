@@ -55,12 +55,17 @@ COMMON_CONFS=(nvim tmux vscode github neofetch htop ghostty nushell misc)
 LINUX_CONFS=(linux-bash)
 
 # APT packages to install
-# Note: 'bat' binary is 'batcat' on Debian/Ubuntu; 'fd-find' binary is 'fdfind'
-# Note: 'navi' is NOT in standard Ubuntu/Debian repos — install manually via cargo if needed
+# Notes:
+#   'bat'      binary is 'batcat' on Debian/Ubuntu  (alias: bat=batcat)
+#   'fd-find'  binary is 'fdfind' on Debian/Ubuntu  (alias: fd=fdfind)
+#   'nodejs'   and 'npm' from apt are broken on Debian trixie — use nvm instead
+#   'neofetch' was removed from Debian trixie — fastfetch is the modern replacement
+#   'gh'       may need the GitHub CLI apt repo on older distros; skip gracefully if missing
 LINUX_APT_PACKAGES=(
-  tmux git bat zoxide ripgrep nodejs npm jq direnv tree
-  pandoc ffmpeg htop fzf zsh neofetch fd-find imagemagick
-  make gcc g++ curl wget stow
+  tmux git bat zoxide ripgrep jq direnv tree
+  pandoc ffmpeg htop btop fzf zsh fastfetch fd-find imagemagick
+  make gcc g++ curl wget stow gh
+  python3-pip python3-venv
 )
 
 # ============================
@@ -172,19 +177,55 @@ install_apt_packages() {
 }
 
 # ============================
-# Backup existing configs
-# Pre-backup before stowing so stow finds no conflicts
+# Backup existing configs + fix symlinks that block stow
 # ============================
 backup_existing_configs() {
   print_message "Backing up existing config files..."
   local ts; ts=$(date +%Y%m%d_%H%M%S)
-  local configs=(.zshrc .bashrc .tmux.conf .bash_profile)
 
+  # ── Fix ~/.config ───────────────────────────────────────────────────────────
+  # stow recurses INTO ~/.config to place per-tool symlinks. If ~/.config is
+  # itself a symlink (e.g., from the work install script pointing to
+  # server_config/config), stow cannot manage its contents and reports every
+  # .config/* package as "existing target is not owned by stow: .config".
+  if [ -L "$HOME/.config" ]; then
+    local ct; ct=$(readlink "$HOME/.config")
+    echo "  ~/.config is a symlink → $ct"
+    echo "  Replacing with a real directory so stow can manage its contents..."
+    rm "$HOME/.config"
+    mkdir -p "$HOME/.config"
+    record_action "FIXED_SYMLINK" "~/.config was → $ct (now a real directory)"
+  else
+    mkdir -p "$HOME/.config"
+  fi
+
+  # ── Remove stale absolute dotfile symlinks ──────────────────────────────────
+  # The work install creates absolute symlinks (e.g., ~/.tmux.conf →
+  # /abs/path/dotfiles/server_config/config/.tmux.conf). stow treats these as
+  # "not owned by stow" and --adopt cannot resolve symlink conflicts (only file
+  # conflicts). We must remove them before stowing so stow can create correct ones.
+  local to_check=(.tmux.conf .gitconfig .zshrc .bashrc)
+  for f in "${to_check[@]}"; do
+    local t="$HOME/$f"
+    if [ -L "$t" ]; then
+      local dest; dest=$(readlink "$t")
+      # Only remove symlinks that point into our dotfiles dir
+      # (foreign symlinks are left alone)
+      if [[ "$dest" == "$DOTFILES_DIR"* ]]; then
+        echo "  Removing stale dotfile symlink: $t → $dest"
+        rm "$t"
+        record_action "REMOVED_SYMLINK" "$t was → $dest"
+      fi
+    fi
+  done
+
+  # ── Backup regular (non-symlink) config files ───────────────────────────────
+  local configs=(.zshrc .bashrc .tmux.conf .bash_profile)
   for cfg in "${configs[@]}"; do
     local target="$HOME/$cfg"
     if [ -e "$target" ] && [ ! -L "$target" ]; then
       local backup="${target}.backup.${ts}"
-      echo "  $target → $backup"
+      echo "  Backing up $target → $backup"
       cp "$target" "$backup"
       track_backup "$target"
       record_action "BACKUP_FILE" "$backup"
@@ -444,6 +485,132 @@ install_atuin() {
 }
 
 # ============================
+# Docker
+# ============================
+install_docker() {
+  print_message "Installing Docker..."
+  if command -v docker &>/dev/null; then
+    echo "Docker already installed: $(docker --version 2>/dev/null || echo 'version unknown')"
+    return 0
+  fi
+  if confirm "Install Docker?"; then
+    curl -fsSL https://get.docker.com -o /tmp/get-docker.sh && \
+      sudo sh /tmp/get-docker.sh && \
+      sudo usermod -aG docker "$USER" && \
+      record_action "DOCKER" "installed" && \
+      echo "Docker installed. You may need to log out/in for group changes." || \
+      print_error "Failed to install Docker (non-fatal)"
+    rm -f /tmp/get-docker.sh
+  else
+    echo "Skipping Docker."
+  fi
+}
+
+# ============================
+# k3s (lightweight Kubernetes)
+# ============================
+install_k3s() {
+  print_message "Installing k3s..."
+  if command -v k3s &>/dev/null; then
+    echo "k3s already installed: $(k3s --version 2>/dev/null || echo 'version unknown')"
+    return 0
+  fi
+  if confirm "Install k3s?"; then
+    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh - && \
+      record_action "K3S" "installed" && \
+      echo "k3s installed (service not started). Run: sudo k3s serve" || \
+      print_error "Failed to install k3s (non-fatal)"
+  else
+    echo "Skipping k3s."
+  fi
+}
+
+# ============================
+# Node.js and npm via nvm
+# ============================
+install_node_nvm() {
+  print_message "Installing Node.js and npm via nvm..."
+  if command -v node &>/dev/null; then
+    echo "Node.js already installed: $(node --version)"
+    return 0
+  fi
+  if [ -d "$HOME/.nvm" ]; then
+    echo "nvm already installed. Loading..."
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  fi
+  if confirm "Install Node.js via nvm?"; then
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && \
+      export NVM_DIR="$HOME/.nvm" && \
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+      nvm install --lts && \
+      record_action "NODE_NVM" "installed" && \
+      echo "Node.js installed via nvm." || \
+      print_error "Failed to install Node.js via nvm (non-fatal)"
+  else
+    echo "Skipping Node.js."
+  fi
+}
+
+# ============================
+# Syncthing
+# ============================
+install_syncthing() {
+  print_message "Installing Syncthing..."
+  if command -v syncthing &>/dev/null; then
+    echo "Syncthing already installed: $(syncthing --version 2>/dev/null | head -1)"
+    return 0
+  fi
+  if confirm "Install Syncthing?"; then
+    local tmpdir; tmpdir=$(mktemp -d)
+    local version
+    version=$(curl -fsSL "https://api.github.com/repos/syncthing/syncthing/releases/latest" \
+      | grep '"tag_name"' | grep -oE 'v[0-9.]+' | head -1) || true
+    if [ -z "$version" ]; then
+      echo "Warning: Could not determine Syncthing version."
+      return 0
+    fi
+    local arch
+    arch=$(uname -m)
+    case "$arch" in
+      x86_64) arch="amd64" ;;
+      aarch64|arm64) arch="arm64" ;;
+    esac
+    local url="https://github.com/syncthing/syncthing/releases/latest/download/syncthing-linux-${arch}-${version#v}.tar.gz"
+    if curl -fLo "$tmpdir/syncthing.tar.gz" "$url"; then
+      tar -xzf "$tmpdir/syncthing.tar.gz" -C "$tmpdir"
+      sudo install -m 755 "$tmpdir/syncthing-linux-${arch}-${version#v}/syncthing" /usr/local/bin/syncthing
+      record_action "SYNCTHING" "${version}"
+      echo "Syncthing ${version} installed."
+    else
+      print_error "Failed to download Syncthing"
+    fi
+    rm -rf "$tmpdir"
+  else
+    echo "Skipping Syncthing."
+  fi
+}
+
+# ============================
+# Tailscale
+# ============================
+install_tailscale() {
+  print_message "Installing Tailscale..."
+  if command -v tailscale &>/dev/null; then
+    echo "Tailscale already installed: $(tailscale --version 2>/dev/null || echo 'version unknown')"
+    return 0
+  fi
+  if confirm "Install Tailscale?"; then
+    curl -fsSL https://tailscale.com/install.sh | sh && \
+      record_action "TAILSCALE" "installed" && \
+      echo "Tailscale installed." || \
+      print_error "Failed to install Tailscale (non-fatal)"
+  else
+    echo "Skipping Tailscale."
+  fi
+}
+
+# ============================
 # tmux plugins via TPM
 # Install plugins directly — no tmux session gymnastics needed
 # ============================
@@ -511,6 +678,14 @@ main() {
   install_neovim_plugins
   install_tmux_plugins
   install_atuin
+
+  # Phase 5: Server tools
+  print_message "Phase 5: Server tools"
+  install_docker
+  install_k3s
+  install_node_nvm
+  install_syncthing
+  install_tailscale
 
   print_message "Installation complete!"
   echo "Log:      $LOG_FILE"
