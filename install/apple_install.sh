@@ -281,6 +281,7 @@ BREW_CASK_PACKAGES=(
   obs
   tailscale-app
   cyberduck
+  zotero
 )
 
 # Define Homebrew packages (all packages for macOS installation)
