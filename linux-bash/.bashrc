@@ -14,11 +14,6 @@ alias md="cd ~/.dotfiles/"
 alias vi='nvim'
 alias t=tmux
 
-# Atuin shell history
-if [ -f "$HOME/.atuin/bin/env" ]; then
-    . "$HOME/.atuin/bin/env"
-fi
-
 # Local bin path
 if [ -d "$HOME/.local/bin" ]; then
     export PATH="$HOME/.local/bin:$PATH"
@@ -27,16 +22,19 @@ fi
 # export XDG_CONFIG_HOME="$HOME/.config"
 
 # Initialize tools (bash versions)
+# zoxide init (if installed)
 if command -v zoxide >/dev/null 2>&1; then
     eval "$(zoxide init bash)"
 fi
 
-if command -v atuin >/dev/null 2>&1; then
-    eval "$(atuin init bash)"
-fi
-
+# direnv hook (if installed)
 if command -v direnv >/dev/null 2>&1; then
     eval "$(direnv hook bash)"
+fi
+
+# Atuin shell history (after other hooks)
+if command -v atuin >/dev/null 2>&1; then
+    eval "$(atuin init bash)"
 fi
 
 # VI mode for terminal

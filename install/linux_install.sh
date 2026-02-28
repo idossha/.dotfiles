@@ -413,8 +413,25 @@ install_atuin() {
     return 0
   fi
   if confirm "Install Atuin (shell history sync tool)?"; then
+    # Install Atuin
     curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh || \
       print_error "Failed to install Atuin (non-fatal)"
+
+    # Install bash-preexec for Bash shell integration
+    if [ ! -d "$HOME/.bash-preexec" ]; then
+      git clone https://github.com/rcaloras/bash-preexec.git "$HOME/.bash-preexec" || \
+        print_error "Failed to clone bash-preexec (non-fatal)"
+    fi
+
+    # Ensure ~/.bashrc sources bash-preexec and initializes Atuin
+    if ! grep -q "bash-preexec.sh" "$HOME/.bashrc"; then
+      echo 'source "$HOME/.bash-preexec/bash-preexec.sh"' >> "$HOME/.bashrc"
+    fi
+    if ! grep -q 'eval "$(atuin init bash)"' "$HOME/.bashrc"; then
+      echo 'eval "$(atuin init bash)"' >> "$HOME/.bashrc"
+    fi
+
+    echo "Atuin installation complete. Restart your terminal or run 'source ~/.bashrc'."
   else
     echo "Skipping Atuin."
   fi

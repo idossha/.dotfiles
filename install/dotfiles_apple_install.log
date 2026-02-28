@@ -1,0 +1,16 @@
+========== macOS Installation started at Fri Feb 27 13:40:55 CST 2026 ==========
+OS: Darwin
+Log file: /Users/idohaber/.dotfiles/install/dotfiles_apple_install.log
+Install manifest: /Users/idohaber/.dotfiles/install/install_manifest_apple.txt
+Detected OS: Darwin
+========================================
+Starting dotfiles macOS installation for aabacad2-61b8-47a6-8722-96dec5b3cc85
+========================================
+Prerequisites check passed.
+This script will set up your macOS development environment. Continue? (y/n) 
+Installation cancelled by user.
+========== Cleanup triggered at Fri Feb 27 13:41:55 CST 2026 ==========
+Installation SUCCEEDED.
+A manifest of installed items has been saved to: /Users/idohaber/.dotfiles/install/install_manifest_apple.txt
+Use apple_uninstall.sh to safely remove what was installed.
+========== Installation finished at Fri Feb 27 13:41:55 CST 2026 ==========
