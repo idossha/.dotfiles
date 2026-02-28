@@ -16,14 +16,11 @@ fi
 # PATH Configuration
 # ============================
 export PATH="$HOME/bin:$PATH"
-export PATH="$PATH:/usr/local/go/bin"
-export PATH="$PATH:/Users/idohaber/.my_scripts/"
 export PATH="$HOME/.local/bin:$PATH"
 
 # ============================
 # Environment Variables
 # ============================
-export SKETCHY_DIR="$HOME/.config/sketchybar/"
 
 # matlab
 export DYLD_LIBRARY_PATH=/Applications/MATLAB/MATLAB_Runtime/R2024a/runtime/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/bin/maca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/sys/osmaca64:/Applications/MATLAB/MATLAB_Runtime/R2024a/extern/bin/maca64:$DYLD_LIBRARY_PATH
@@ -34,11 +31,6 @@ if command -v brew &> /dev/null; then
 fi
 export DOCKER_HOST_IP=host.docker.internal
 export DISPLAY=host.docker.internal:0
-
-# Whoop API credentials (get from https://developer.whoop.com)
-# Set these in your shell or add them here:
-# export WHOOP_CLIENT_ID="your_client_id"
-# export WHOOP_CLIENT_SECRET="your_client_secret"
 
 # ============================
 # Oh My Zsh Configuration
@@ -69,11 +61,9 @@ alias zshconfig="mate ~/.zshrc"
 alias vi='nvim'
 alias t=tmux
 alias mp="cd ~/Git-Projects/"
-alias ms="cd ~/Applications/SimNIBS-4.5/"
 alias md="cd ~/.dotfiles/"
 alias mn="cd ~/.dotfiles/nvim/.config/nvim/ && vi ."
 alias mo="cd ~/Silicon_Mind/"
-alias matme='/Applications/MATLAB_R2024a.app/bin/matlab  -nodisplay -nosplash'
 
 # ============================
 # Custom Functions
@@ -116,14 +106,15 @@ bindkey -v  # Enable VI mode
 # ============================
 # Custom Prompt (override oh-my-zsh theme)
 # ============================
+PROMPT='%n@%m|%1~$(git rev-parse --git-dir > /dev/null 2>&1 && echo " ($(git branch --show-current 2>/dev/null))") > '
+#
+#
 # This must be at the end to override oh-my-zsh's prompt
 setopt PROMPT_SUBST
-PROMPT='%n|%1~$(git rev-parse --git-dir > /dev/null 2>&1 && echo " ($(git branch --show-current 2>/dev/null))") > '
 
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/Users/idohaber/.lmstudio/bin"
 # End of LM Studio CLI section
-
 
 # opencode
 export PATH=/Users/idohaber/.opencode/bin:$PATH
