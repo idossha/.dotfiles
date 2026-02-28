@@ -8,9 +8,6 @@ export PATH="$HOME/bin:$PATH"
 export DOCKER_HOST_IP=localhost
 export DISPLAY=:0
 
-# shell prompt
-export PS1='\u|\W > '
-
 # Set personal aliases
 alias mp="cd ~/Git-Projects/"
 alias md="cd ~/.dotfiles/"
@@ -45,6 +42,4 @@ fi
 # VI mode for terminal
 set -o vi
 
-PROMPT='%n@%m|%1~$(git rev-parse --git-dir > /dev/null 2>&1 && echo " ($(git branch --show-current 2>/dev/null))") > '
-
-
+export PS1='\u@\h|\W$(git branch --show-current 2>/dev/null | sed "s/^/ (/;s/$/)/") > '
