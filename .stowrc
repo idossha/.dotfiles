@@ -5,3 +5,4 @@
 --ignore=topoff_install.sh
 --ignore=mac_settings.md
 --ignore=CONSIDER.md
+--ignore=deprecated
