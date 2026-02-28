@@ -1,36 +1,17 @@
 # bash configuration rc file.
 # Ido Haber // ihaber@wisc.edu
-# December 30, 2024
 
 # personal
 export PATH="$HOME/bin:$PATH"
-export PATH=$PATH:/usr/local/go/bin
-export PATH=$PATH:$HOME/.my_scripts/
-
-# neuro programs (Linux versions)
-# export FREESURFER_HOME=/usr/local/freesurfer
-# export SUBJECTS_DIR=$HOME/subjects
-# source $FREESURFER_HOME/SetUpFreeSurfer.sh >/dev/null 2>&1  # print output suppressed
-# export PATH="/usr/local/mrtrix3/bin:$PATH"
-
-# matlab (Linux version - adjust paths as needed)
-# export LD_LIBRARY_PATH=/usr/local/MATLAB/MATLAB_Runtime/R2024a/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/R2024a/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/R2024a/sys/os/glnxa64:$LD_LIBRARY_PATH
 
 # docker variables
 export DOCKER_HOST_IP=localhost
 export DISPLAY=:0
 
-# automatic prompt for new terminals
-# ~/terminal_info.sh
-
 # shell prompt
 export PS1='\u|\W > '
 
-# command auto-correction (bash doesn't have built-in correction like zsh)
-# shopt -s cdspell  # Enable minor spell corrections for cd
-
 # Set personal aliases
-
 alias mp="cd ~/Git-Projects/"
 alias md="cd ~/.dotfiles/"
 alias vi='nvim'
@@ -63,3 +44,7 @@ fi
 
 # VI mode for terminal
 set -o vi
+
+PROMPT='%n@%m|%1~$(git rev-parse --git-dir > /dev/null 2>&1 && echo " ($(git branch --show-current 2>/dev/null))") > '
+
+
