@@ -15,13 +15,13 @@ return {
 
     -- nvim-tree setup
     nvimtree.setup({
-      view = { adaptive_size = false, relativenumber = true },
+      view = { adaptive_size = True, relativenumber = true },
       renderer = {
         indent_markers = { enable = true },
         icons = { glyphs = { folder = { arrow_closed = "", arrow_open = "" } } },
       },
       actions = { open_file = { window_picker = { enable = false } } },
-      filters = { custom = { ".DS_Store" } },
+      filters = { custom = { ".DS_Store" , "__pycache__" , ".pyc"} },
       git = { ignore = false },
     })
 
