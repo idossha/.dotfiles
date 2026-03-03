@@ -75,7 +75,7 @@ cmd_status() {
     if command -v syncthing &>/dev/null; then
         echo ""
         echo "Device ID (share this with your Pi):"
-        syncthing --device-id 2>/dev/null || echo "  (start Syncthing first to generate device ID)"
+        syncthing device-id 2>/dev/null || echo "  (start Syncthing first to generate device ID)"
     fi
 }
 
