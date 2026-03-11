@@ -64,6 +64,7 @@ alias mp="cd ~/Git-Projects/"
 alias md="cd ~/.dotfiles/"
 alias mn="cd ~/.dotfiles/nvim/.config/nvim/ && vi ."
 alias mo="cd ~/Silicon_Mind/"
+alias asv="source ~/.venvs/scratch/bin/activate"
 
 # ============================
 # Custom Functions
