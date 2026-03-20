@@ -46,17 +46,17 @@ function M.config()
       python = { "isort", "black" },
     },
 
-    -- Optional: auto-format on save
-    -- Uncomment if you want it:
-    -- format_on_save = {
-    --   lsp_fallback = true,
-    --   async = false,
-    --   timeout_ms = 1000,
-    --   enable = function()
-    --     -- Only format if M.formatting_enabled is true
-    --     return M.formatting_enabled
-    --   end,
-    -- },
+    -- Auto-format on save (respects toggle via <leader>Ft)
+    format_on_save = function(bufnr)
+      if not M.formatting_enabled then
+        return
+      end
+      return {
+        lsp_fallback = true,
+        async = false,
+        timeout_ms = 1000,
+      }
+    end,
   })
 end
 
