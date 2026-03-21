@@ -21,7 +21,7 @@ return {
         icons = { glyphs = { folder = { arrow_closed = "", arrow_open = "" } } },
       },
       actions = { open_file = { window_picker = { enable = false } } },
-      filters = { custom = { ".DS_Store" , "__pycache__" , ".pyc"} },
+      filters = { custom = { "._." , ".DS_Store" , "__pycache__" , ".pyc"} },
       git = { ignore = false },
     })
 
