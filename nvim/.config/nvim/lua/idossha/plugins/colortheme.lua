@@ -5,7 +5,7 @@ return {
     {
         "EdenEast/nightfox.nvim",
         lazy = false,
-        priority = 2000,  -- highest priority
+        priority = 1000,  -- highest priority
         config = function()
             require("nightfox").setup({
                 options = {
@@ -33,7 +33,7 @@ return {
     -- Gruvbox
     {
         "ellisonleao/gruvbox.nvim",
-        priority = 900,
+        priority = 2000,
         config = function()
             require("gruvbox").setup({
                 bold = false,

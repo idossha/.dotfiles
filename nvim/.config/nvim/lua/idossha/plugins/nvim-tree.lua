@@ -4,7 +4,7 @@ return {
   config = function()
     local nvimtree = require("nvim-tree")
     local api = vim.api
-    local events = require("nvim-tree.events")
+    local tree_api = require("nvim-tree.api")
     local view = require("nvim-tree.view")
 
     vim.g.loaded_netrw = 1
@@ -15,13 +15,13 @@ return {
 
     -- nvim-tree setup
     nvimtree.setup({
-      view = { adaptive_size = True, relativenumber = true },
+      view = { adaptive_size = true, relativenumber = true },
       renderer = {
         indent_markers = { enable = true },
         icons = { glyphs = { folder = { arrow_closed = "", arrow_open = "" } } },
       },
       actions = { open_file = { window_picker = { enable = false } } },
-      filters = { custom = { "._." , ".DS_Store" , "__pycache__" , ".pyc"} },
+      filters = { custom = { ".DS_Store" , "__pycache__" , ".pyc"} },
       git = { ignore = false },
     })
 
@@ -58,7 +58,7 @@ return {
     end, { desc = "Activate nvim-tree resize mode" })
 
     -- remove buffer-local keys when tree closes
-    events.subscribe(events.Event.TreeClose, function()
+    tree_api.events.subscribe(tree_api.events.Event.TreeClose, function()
       local bufnr = view.get_bufnr()
       if bufnr then
         pcall(api.nvim_buf_del_keymap, bufnr, "n", "+")
