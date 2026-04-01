@@ -13,10 +13,6 @@ vim.opt.rtp:prepend(lazypath)
 
 -- bootstrap lazy if not installed.
 --
---
---
---
---
 
 require("lazy").setup({ { import = "idossha.plugins" } }, {
   install = {
