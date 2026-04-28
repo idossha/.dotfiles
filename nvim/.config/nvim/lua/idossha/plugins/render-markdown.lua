@@ -13,6 +13,11 @@ return {
         left_pad = 2,
         right_pad = 4,
       },
+      latex = {
+        enabled = true,
+        converter = 'utftex',
+        highlight = 'RenderMarkdownMath',
+      },
     })
   end,
 }

@@ -945,3 +945,4 @@ $env.config = {
     filesize: {
         metric: false # true => KB, MB, GB (ISO standard), false => KiB, MiB, GiB (Windows standard)
         format: "auto" # b, kb, kib, mb
+source $"($nu.home-path)/.cargo/env.nu"
