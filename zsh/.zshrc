@@ -17,6 +17,7 @@ fi
 # ============================
 export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+export OBSIDIAN_VAULT_PATH="/Users/idohaber/00_development/vault"
 
 # ============================
 # Environment Variables
@@ -74,6 +75,30 @@ stam () {
   mkdir -p "$HOME/sandbox/$name" &&
   cd "$HOME/sandbox/$name" &&
   vi .
+}
+
+ido () {
+  local dir="$(pwd)"
+
+  if [ -n "$TMUX" ]; then
+    tmux send-keys 'nvim .' Enter \; \
+      split-window -h -c "$dir" \; \
+      send-keys 'claude' Enter \; \
+      split-window -v -c "$dir" -p 20 \; \
+      select-pane -L
+  else
+    local name="$(basename "$dir")"
+    if tmux has-session -t "$name" 2>/dev/null; then
+      tmux attach -t "$name"
+      return
+    fi
+    tmux new-session -s "$name" -c "$dir" \; \
+      send-keys 'nvim .' Enter \; \
+      split-window -h -c "$dir" \; \
+      send-keys 'claude' Enter \; \
+      split-window -v -c "$dir" -p 20 \; \
+      select-pane -L
+  fi
 }
 
 # ============================
