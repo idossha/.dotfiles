@@ -1,11 +1,17 @@
-# theme = gruvbox-material
-# theme = Monokai Remastered
-theme = Carbonfox
-font-size = 14
-background-blur-radius = 20
-mouse-hide-while-typing = true
-window-decoration = false
-# keybind = global:cmd+/=toggle_quick_terminal
-macos-option-as-alt = true
-background-opacity = 0.75
-# background-blur-radius = 20 
+# theme = gruvbox-material 
+# theme = Monokai Remastered 
+theme = Carbonfox 
+
+font-size = 14 
+mouse-hide-while-typing = true 
+window-decoration = false 
+
+# keybind = global:cmd+/=toggle_quick_terminal 
+macos-option-as-alt = true 
+
+background-opacity = 0.75 
+background-blur-radius = 20 
+
+window-padding-x = 0 
+window-padding-y = 0
+window-padding-balance = true
