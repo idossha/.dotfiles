@@ -1,0 +1,68 @@
+{
+  "mcpServers": {
+    "arxiv": {
+      "args": [
+        "-y",
+        "@yc-w-cn/arxiv-mcp-server"
+      ],
+      "command": "npx"
+    },
+    "context7": {
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "command": "npx"
+    },
+    "filesystem": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/idohaber"
+      ],
+      "command": "npx"
+    },
+    "mermaid": {
+      "args": [
+        "-y",
+        "mermaid-mcp-server"
+      ],
+      "command": "npx"
+    },
+    "openalex": {
+      "args": [
+        "-y",
+        "openalex-research-mcp"
+      ],
+      "command": "npx"
+    },
+    "playwright": {
+      "args": [
+        "-y",
+        "@playwright/mcp"
+      ],
+      "command": "npx"
+    },
+    "sequential-thinking": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "command": "npx"
+    },
+    "supergateway": {
+      "args": [
+        "-y",
+        "supergateway"
+      ],
+      "command": "npx"
+    },
+    "svg": {
+      "args": [
+        "-y",
+        "mcp-svg"
+      ],
+      "command": "npx"
+    }
+  }
+}
