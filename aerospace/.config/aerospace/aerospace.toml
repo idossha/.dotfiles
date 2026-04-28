@@ -110,6 +110,8 @@ outer.top = [
 # end tell'
 # '''
 
+# alt-o = "workspace-overview"
+
 # increment between workspaces
 ctrl-alt-h = "workspace prev"
 ctrl-alt-l = "workspace next"
