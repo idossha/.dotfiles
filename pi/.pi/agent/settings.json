@@ -5,6 +5,7 @@
     "npm:@ahkohd/pi-yagami-search",
     "../../00_development/pi-obsidian-vault"
   ],
+  "obsidianVault": "/Users/idohaber/00_development/vault",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "medium"
