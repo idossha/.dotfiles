@@ -51,7 +51,7 @@ echo "Host: $(hostname) | Dotfiles: $DOTFILES_DIR"
 NEOVIM_VERSION="0.11.0"
 
 # Packages to stow (common to all Linux installs)
-COMMON_CONFS=(nvim tmux github htop ghostty nushell misc)
+COMMON_CONFS=(nvim tmux github htop ghostty nushell misc pi)
 LINUX_CONFS=(linux-bash)
 
 LINUX_APT_PACKAGES=(

@@ -1,0 +1,11 @@
+{
+  "lastChangelogVersion": "0.73.0",
+  "packages": [
+    "../../00_development/obsidian-mcp",
+    "npm:@ahkohd/pi-yagami-search",
+    "../../00_development/pi-obsidian-vault"
+  ],
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "medium"
+}

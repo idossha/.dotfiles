@@ -46,7 +46,7 @@ NEOVIM_VERSION="0.11.0"
 # It stows config/ → ~/.config/, giving us ~/.config/nvim correctly.
 # However, server_config/config/.tmux.conf maps to ~/.config/.tmux.conf
 # (not ~/.tmux.conf), so we create that symlink separately after stowing.
-WORK_CONFS=(server_config github htop misc)
+WORK_CONFS=(server_config github htop misc pi)
 LINUX_CONFS=(linux-bash)
 
 # ============================
