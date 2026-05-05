@@ -3,7 +3,13 @@
   "packages": [
     "../../00_development/obsidian-mcp",
     "npm:@ahkohd/pi-yagami-search",
-    "../../00_development/pi-obsidian-vault"
+    "../../00_development/pi-obsidian-vault",
+    "npm:pi-subagents",
+    "npm:pi-side-chat",
+    "npm:pi-intercom",
+    "npm:pi-boomerang",
+    "npm:pi-interactive-shell",
+    "npm:pi-arxiv"
   ],
   "obsidianVault": "/Users/idohaber/00_development/vault",
   "defaultProvider": "openai-codex",
