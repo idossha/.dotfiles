@@ -80,6 +80,10 @@ Reusable agentic-coding configuration lives under `agent/`:
 
 - `agent/skills/` — canonical skills shared across harnesses
 - `agent/mcps/mcp-servers.json` — canonical MCP server definitions
+- `agent/claude/` — durable Claude settings, statusline, and templates
+- `agent/codex/config.toml` — durable Codex config
+- `agent/codex/rules/default.rules` — durable Codex command approval rules
+- `agent/pi/` — durable Pi settings, agents, and extensions
 - `agent/memory/global.md` — global user-level agent memory
 - `agent/AGENTS.md` — portable agent instructions
 

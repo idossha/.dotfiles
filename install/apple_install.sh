@@ -265,7 +265,7 @@ OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 NEOVIM_VERSION="0.11.0"
 
 # Define packages to stow (all packages for macOS installation)
-STOW_PACKAGES=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner" "zsh" "aerospace" "syncthing" "claude")
+STOW_PACKAGES=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner" "zsh" "aerospace" "syncthing")
 
 # Define Homebrew Cask packages
 BREW_CASK_PACKAGES=(
@@ -491,7 +491,7 @@ stow_dotfiles() {
 link_pi_config() {
   print_message "Linking Pi config from dotfiles"
 
-  local pi_src="$DOTFILES_DIR/pi/.pi/agent"
+  local pi_src="$DOTFILES_DIR/agent/pi"
   local pi_dst="$HOME/.pi/agent"
   local items=(settings.json agents extensions skills prompts themes)
 

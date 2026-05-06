@@ -1,0 +1,48 @@
+[projects."/Users/idohaber/homelab/Projects/sleepTI"]
+trust_level = "trusted"
+
+[projects."/Users/idohaber"]
+trust_level = "trusted"
+
+[projects."/Users/idohaber/00_development"]
+trust_level = "trusted"
+
+[projects."/Users/idohaber/.dotfiles"]
+trust_level = "trusted"
+
+[projects."/Users/idohaber/00_development/docx-tools"]
+trust_level = "trusted"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+
+# BEGIN DOTFILES AGENT MCP
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/Users/idohaber"]
+
+[mcp_servers.mermaid]
+command = "npx"
+args = ["-y", "mermaid-mcp-server"]
+
+[mcp_servers.openalex]
+command = "npx"
+args = ["-y", "openalex-research-mcp"]
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp"]
+
+[mcp_servers.sequential-thinking]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+
+[mcp_servers.svg]
+command = "npx"
+args = ["-y", "mcp-svg"]
+
+# END DOTFILES AGENT MCP

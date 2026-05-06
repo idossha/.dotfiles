@@ -300,7 +300,7 @@ stow_dotfiles() {
 link_pi_config() {
   print_message "Linking Pi config from dotfiles"
 
-  local pi_src="$DOTFILES_DIR/pi/.pi/agent"
+  local pi_src="$DOTFILES_DIR/agent/pi"
   local pi_dst="$HOME/.pi/agent"
   local items=(settings.json agents extensions skills prompts themes)
 

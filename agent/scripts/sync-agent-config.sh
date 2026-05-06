@@ -9,6 +9,10 @@ DOTFILES_DIR="$(cd "$AGENT_DIR/.." && pwd)"
 SKILLS_SRC="$AGENT_DIR/skills"
 MEMORY_SRC="$AGENT_DIR/memory/global.md"
 MCP_SRC="$AGENT_DIR/mcps/mcp-servers.json"
+CODEX_CONFIG_SRC="$AGENT_DIR/codex/config.toml"
+CODEX_RULES_SRC="$AGENT_DIR/codex/rules"
+CLAUDE_SRC="$AGENT_DIR/claude"
+PI_SRC="$AGENT_DIR/pi"
 
 CODEX_BEGIN="# BEGIN DOTFILES AGENT MCP"
 CODEX_END="# END DOTFILES AGENT MCP"
@@ -21,6 +25,7 @@ Synchronizes canonical dotfiles agent config into harness-specific locations:
   skills: Claude, Pi, Codex
   memory: Claude user memory, Codex developer instructions
   MCPs: Claude .mcp.json, Codex config.toml
+  Codex config and command approval rules
 
 Runtime state is intentionally left local.
 EOF
@@ -143,6 +148,14 @@ check_files() {
 
   [ -f "$MEMORY_SRC" ] || { echo "Missing global memory: $MEMORY_SRC" >&2; failed=1; }
   [ -f "$MCP_SRC" ] || { echo "Missing MCP source: $MCP_SRC" >&2; failed=1; }
+  [ -f "$CODEX_CONFIG_SRC" ] || { echo "Missing Codex config source: $CODEX_CONFIG_SRC" >&2; failed=1; }
+  [ -f "$CODEX_RULES_SRC/default.rules" ] || { echo "Missing Codex rules source: $CODEX_RULES_SRC/default.rules" >&2; failed=1; }
+  [ -f "$CLAUDE_SRC/settings.json" ] || { echo "Missing Claude settings source: $CLAUDE_SRC/settings.json" >&2; failed=1; }
+  [ -f "$CLAUDE_SRC/statusline-command.sh" ] || { echo "Missing Claude statusline source: $CLAUDE_SRC/statusline-command.sh" >&2; failed=1; }
+  [ -d "$CLAUDE_SRC/templates" ] || { echo "Missing Claude templates source: $CLAUDE_SRC/templates" >&2; failed=1; }
+  [ -f "$PI_SRC/settings.json" ] || { echo "Missing Pi settings source: $PI_SRC/settings.json" >&2; failed=1; }
+  [ -d "$PI_SRC/agents" ] || { echo "Missing Pi agents source: $PI_SRC/agents" >&2; failed=1; }
+  [ -d "$PI_SRC/extensions" ] || { echo "Missing Pi extensions source: $PI_SRC/extensions" >&2; failed=1; }
 
   if [ -f "$MCP_SRC" ]; then
     python3 -m json.tool "$MCP_SRC" >/dev/null || failed=1
@@ -190,9 +203,19 @@ sync_memory() {
   link_path "Dotfiles AGENTS.md" "$AGENT_DIR/AGENTS.md" "$DOTFILES_DIR/AGENTS.md"
 }
 
-sync_claude_mcp() {
-  link_path "Claude project MCP" "$MCP_SRC" "$DOTFILES_DIR/claude/.mcp.json"
+sync_claude_config() {
+  link_path "Claude settings" "$CLAUDE_SRC/settings.json" "$HOME/.claude/settings.json"
+  link_path "Claude statusline" "$CLAUDE_SRC/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
+  link_path "Claude templates" "$CLAUDE_SRC/templates" "$HOME/.claude/templates"
+}
 
+sync_pi_config() {
+  link_path "Pi settings" "$PI_SRC/settings.json" "$HOME/.pi/agent/settings.json"
+  link_path "Pi agents" "$PI_SRC/agents" "$HOME/.pi/agent/agents"
+  link_path "Pi extensions" "$PI_SRC/extensions" "$HOME/.pi/agent/extensions"
+}
+
+sync_claude_mcp() {
   if [ -L "$HOME/.mcp.json" ] || [ ! -e "$HOME/.mcp.json" ]; then
     link_path "Claude user MCP" "$MCP_SRC" "$HOME/.mcp.json"
   else
@@ -233,7 +256,7 @@ PY
 }
 
 sync_codex_config() {
-  local config="$HOME/.codex/config.toml"
+  local config="$CODEX_CONFIG_SRC"
   local tmp
   mkdir -p "$(dirname "$config")"
   tmp="$(mktemp)"
@@ -256,6 +279,11 @@ sync_codex_config() {
   mv "$tmp.next" "$config"
   rm -f "$tmp"
   echo "  [ok] Codex config MCP block updated: $config"
+  link_path "Codex config" "$CODEX_CONFIG_SRC" "$HOME/.codex/config.toml"
+}
+
+sync_codex_rules() {
+  link_path "Codex rules" "$CODEX_RULES_SRC" "$HOME/.codex/rules"
 }
 
 main() {
@@ -279,8 +307,11 @@ main() {
   check_files
   sync_skills
   sync_memory
+  sync_claude_config
+  sync_pi_config
   sync_claude_mcp
   sync_codex_config
+  sync_codex_rules
 }
 
 main "$@"
