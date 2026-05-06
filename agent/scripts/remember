@@ -1,0 +1,269 @@
+#!/usr/bin/env python3
+"""Low-friction memory capture for agent work."""
+
+from __future__ import annotations
+
+import argparse
+from collections import Counter
+import datetime as dt
+import os
+from pathlib import Path
+import re
+import sqlite3
+import sys
+
+
+DEFAULT_VAULT = Path("/Users/idohaber/00_development/vault")
+DEFAULT_RAW_DB = Path.home() / ".local/share/agent-memory/raw.sqlite"
+STOPWORDS = {
+    "about", "after", "agent", "also", "and", "are", "because", "been",
+    "before", "being", "between", "but", "can", "could", "does", "for",
+    "from", "has", "have", "into", "its", "memory", "more", "not", "notes",
+    "raw", "should", "than", "that", "the", "their", "then", "there",
+    "this", "through", "topic", "vault", "when", "where", "with", "would",
+}
+
+
+SECRET_PATTERNS = [
+    re.compile(r"sk-[A-Za-z0-9_-]{20,}"),
+    re.compile(r"(?i)(api[_-]?key|token|secret|password)\s*[:=]\s*\S+"),
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
+]
+
+
+def die(message: str) -> None:
+    print(f"remember: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def reject_secrets(text: str) -> None:
+    for pattern in SECRET_PATTERNS:
+        if pattern.search(text):
+            die("refusing to store text that looks like a secret")
+
+
+def slugify(topic: str) -> str:
+    cleaned = re.sub(r"[^\w\s.-]", "", topic, flags=re.UNICODE).strip()
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned or "Agent Memory Inbox"
+
+
+def note_title(path: Path) -> str:
+    return path.stem
+
+
+def tokenize(text: str) -> set[str]:
+    words = re.findall(r"[A-Za-z][A-Za-z0-9_-]{2,}", text.lower())
+    return {word for word in words if word not in STOPWORDS}
+
+
+def note_tokens(path: Path) -> set[str]:
+    try:
+        text = path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return tokenize(note_title(path))
+    return tokenize(f"{note_title(path)}\n{text[:4000]}")
+
+
+def score_note(path: Path, query_tokens: set[str], topic: str) -> float:
+    title = note_title(path)
+    title_tokens = tokenize(title)
+    tokens = note_tokens(path)
+    score = 0.0
+
+    if title.lower() == topic.lower():
+        score += 100.0
+    if title.lower() in topic.lower() or topic.lower() in title.lower():
+        score += 25.0
+
+    score += 6.0 * len(query_tokens & title_tokens)
+    score += 1.0 * len(query_tokens & tokens)
+    return score
+
+
+def find_best_note(zettel_dir: Path, topic: str, message: str) -> tuple[Path | None, list[Path]]:
+    query_tokens = tokenize(f"{topic} {message}")
+    candidates = []
+    for path in zettel_dir.glob("*.md"):
+        score = score_note(path, query_tokens, topic)
+        if score > 0:
+            candidates.append((score, path))
+
+    candidates.sort(key=lambda item: (-item[0], item[1].name.lower()))
+    best = candidates[0][1] if candidates and candidates[0][0] >= 8 else None
+
+    related = []
+    for score, path in candidates:
+        if path == best:
+            continue
+        if score >= 1:
+            related.append(path)
+        if len(related) >= 5:
+            break
+
+    return best, related
+
+
+def wikilink(path: Path) -> str:
+    return f"[[{note_title(path)}]]"
+
+
+def ensure_links_field(path: Path, related: list[Path]) -> None:
+    if not related or not path.exists():
+        return
+
+    text = path.read_text(encoding="utf-8")
+    links = [wikilink(note) for note in related if note_title(note) != note_title(path)]
+    if not links:
+        return
+
+    existing = set(re.findall(r"\[\[([^\]]+)\]\]", text))
+    new_links = [link for link in links if link.strip("[]") not in existing]
+    if not new_links:
+        return
+
+    lines = text.splitlines()
+    for idx, line in enumerate(lines[:12]):
+        if line.startswith("Links:"):
+            suffix = line.removeprefix("Links:").strip()
+            sep = ", " if suffix else " "
+            lines[idx] = f"Links:{sep}{suffix}{', ' if suffix else ''}{', '.join(new_links)}"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            return
+
+    insertion = f"Links: {', '.join(new_links)}"
+    lines.insert(1, insertion)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def today() -> str:
+    return dt.date.today().isoformat()
+
+
+def append_section(
+    path: Path,
+    topic: str,
+    message: str,
+    source: str | None,
+    related: list[Path] | None = None,
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    related = related or []
+    if not path.exists():
+        link_text = ", ".join(wikilink(note) for note in related)
+        path.write_text(
+            f"Created: {today()}\n"
+            "Tags: #agent-memory\n"
+            f"Links: {link_text}\n\n"
+            "---\n"
+            f"# {topic}\n\n",
+            encoding="utf-8",
+        )
+    else:
+        ensure_links_field(path, related)
+
+    related_links = [wikilink(note) for note in related if note_title(note) != path.stem]
+    message_text = message.strip()
+    if related_links:
+        message_text = f"{message_text} Related: {', '.join(related_links)}"
+
+    lines = [f"\n## {today()}\n", f"- {message_text}\n"]
+    if source:
+        lines.append(f"  Source: {source}\n")
+    with path.open("a", encoding="utf-8") as handle:
+        handle.writelines(lines)
+
+
+def remember_crystal(args: argparse.Namespace) -> None:
+    reject_secrets(args.message)
+    vault = Path(args.vault).expanduser()
+    zettel_dir = vault / "Zettelkasten"
+    if not zettel_dir.exists():
+        die(f"Zettelkasten directory not found: {zettel_dir}")
+
+    topic = slugify(args.topic)
+    best, related = find_best_note(zettel_dir, topic, args.message)
+    path = best or (zettel_dir / f"{topic}.md")
+    append_section(path, topic, args.message, args.source, related)
+    print(path)
+
+
+def remember_project(args: argparse.Namespace) -> None:
+    reject_secrets(args.message)
+    root = Path(args.root).expanduser().resolve()
+    path = root / args.file
+    append_section(path, args.topic, args.message, args.source)
+    print(path)
+
+
+def remember_raw(args: argparse.Namespace) -> None:
+    reject_secrets(args.message)
+    db_path = Path(args.db).expanduser()
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(db_path)
+    try:
+        con.execute(
+            """
+            create table if not exists raw_memory (
+              id integer primary key,
+              created_at text not null,
+              cwd text not null,
+              topic text not null,
+              message text not null,
+              source text
+            )
+            """
+        )
+        con.execute(
+            "insert into raw_memory (created_at, cwd, topic, message, source) values (?, ?, ?, ?, ?)",
+            (
+                dt.datetime.now(dt.timezone.utc).isoformat(),
+                os.getcwd(),
+                args.topic,
+                args.message,
+                args.source,
+            ),
+        )
+        con.commit()
+    finally:
+        con.close()
+    print(db_path)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="kind", required=True)
+
+    crystal = sub.add_parser("crystal", help="write crystallized knowledge to Obsidian Zettelkasten")
+    crystal.add_argument("--topic", required=True)
+    crystal.add_argument("--message", required=True)
+    crystal.add_argument("--source")
+    crystal.add_argument("--vault", default=str(DEFAULT_VAULT))
+    crystal.set_defaults(func=remember_crystal)
+
+    project = sub.add_parser("project", help="write project-specific memory to Markdown in the current project")
+    project.add_argument("--topic", required=True)
+    project.add_argument("--message", required=True)
+    project.add_argument("--source")
+    project.add_argument("--root", default=os.getcwd())
+    project.add_argument("--file", default="memory/agent-memory.md")
+    project.set_defaults(func=remember_project)
+
+    raw = sub.add_parser("raw", help="write raw machine-readable memory to SQLite")
+    raw.add_argument("--topic", required=True)
+    raw.add_argument("--message", required=True)
+    raw.add_argument("--source")
+    raw.add_argument("--db", default=str(DEFAULT_RAW_DB))
+    raw.set_defaults(func=remember_raw)
+
+    return parser
+
+
+def main() -> None:
+    parser = build_parser()
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

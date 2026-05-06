@@ -2,14 +2,13 @@
   "lastChangelogVersion": "0.73.0",
   "packages": [
     "../../00_development/obsidian-mcp",
-    "npm:@ahkohd/pi-yagami-search",
     "../../00_development/pi-obsidian-vault",
     "npm:pi-subagents",
     "npm:pi-side-chat",
     "npm:pi-intercom",
     "npm:pi-boomerang",
     "npm:pi-interactive-shell",
-    "npm:pi-arxiv"
+    "npm:pi-web-access"
   ],
   "obsidianVault": "/Users/idohaber/00_development/vault",
   "defaultProvider": "openai-codex",

@@ -46,7 +46,7 @@ NEOVIM_VERSION="0.11.0"
 # It stows config/ → ~/.config/, giving us ~/.config/nvim correctly.
 # However, server_config/config/.tmux.conf maps to ~/.config/.tmux.conf
 # (not ~/.tmux.conf), so we create that symlink separately after stowing.
-WORK_CONFS=(server_config github htop misc pi)
+WORK_CONFS=(server_config github htop misc)
 LINUX_CONFS=(linux-bash)
 
 # ============================
@@ -267,6 +267,64 @@ stow_dotfiles_work() {
 }
 
 # ============================
+# Link Pi config
+# ============================
+link_pi_config_work() {
+  print_message "Linking Pi config from dotfiles"
+
+  local pi_src="$DOTFILES_DIR/pi/.pi/agent"
+  local pi_dst="$HOME/.pi/agent"
+  local items=(settings.json agents extensions skills prompts themes)
+
+  mkdir -p "$pi_dst" "$pi_src/prompts" "$pi_src/themes"
+
+  for item in "${items[@]}"; do
+    local src="$pi_src/$item"
+    local dst="$pi_dst/$item"
+
+    if [ ! -e "$src" ]; then
+      echo "  Warning: Pi config source missing, skipping: $src"
+      continue
+    fi
+
+    if [ -L "$dst" ]; then
+      local current; current=$(readlink "$dst")
+      if [ "$current" = "$src" ]; then
+        echo "  [ok] $dst → $src"
+        continue
+      fi
+      rm -f "$dst"
+    elif [ -e "$dst" ]; then
+      local ts; ts=$(date +%Y%m%d_%H%M%S)
+      mv "$dst" "${dst}.backup.${ts}"
+      track_backup "$dst"
+      record_action "BACKUP" "${dst}.backup.${ts}"
+      echo "  Backed up existing $dst"
+    fi
+
+    ln -s "$src" "$dst"
+    record_action "SYMLINK" "$dst → $src"
+    echo "  [ok] $dst → $src"
+  done
+
+  echo "Pi config is dotfiles-backed; runtime auth/sessions/jobs stay local in ~/.pi/agent."
+}
+
+# ============================
+# Sync shared agent skills
+# ============================
+sync_agent_skills_work() {
+  print_message "Syncing shared agent skills"
+
+  local sync_script="$DOTFILES_DIR/install/sync_agent_skills.sh"
+  if [ -x "$sync_script" ]; then
+    "$sync_script"
+  else
+    echo "Warning: skills sync script missing or not executable: $sync_script"
+  fi
+}
+
+# ============================
 # Hack Nerd Font (local, no sudo)
 # Needed if using a local terminal on a work desktop.
 # Safe to skip on headless servers.
@@ -433,6 +491,8 @@ main() {
   print_message "Phase 2: Dotfiles"
   backup_existing_configs
   stow_dotfiles_work
+  link_pi_config_work
+  sync_agent_skills_work
 
   # Phase 3: Tools
   print_message "Phase 3: Tools"

@@ -72,3 +72,19 @@ The Docker setup provides a clean Ubuntu environment to test:
 
 **Note:** The full test may take several minutes on ARM64 systems due to package compilation.
 
+---
+
+### Agent Configuration
+
+Reusable agentic-coding configuration lives under `agent/`:
+
+- `agent/skills/` — canonical skills shared across harnesses
+- `agent/mcps/mcp-servers.json` — canonical MCP server definitions
+- `agent/memory/global.md` — global user-level agent memory
+- `agent/AGENTS.md` — portable agent instructions
+
+Sync harness-specific links/config after changes:
+
+```bash
+./agent/scripts/sync-agent-config.sh
+```

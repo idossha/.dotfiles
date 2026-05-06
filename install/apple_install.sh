@@ -265,7 +265,7 @@ OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 NEOVIM_VERSION="0.11.0"
 
 # Define packages to stow (all packages for macOS installation)
-STOW_PACKAGES=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner" "zsh" "aerospace" "syncthing" "claude" "pi")
+STOW_PACKAGES=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner" "zsh" "aerospace" "syncthing" "claude")
 
 # Define Homebrew Cask packages
 BREW_CASK_PACKAGES=(
@@ -482,6 +482,65 @@ stow_dotfiles() {
   echo "Dotfiles have been symlinked successfully."
 
   cd "$original_dir"
+}
+
+# ============================
+# Link Pi config
+# ============================
+
+link_pi_config() {
+  print_message "Linking Pi config from dotfiles"
+
+  local pi_src="$DOTFILES_DIR/pi/.pi/agent"
+  local pi_dst="$HOME/.pi/agent"
+  local items=(settings.json agents extensions skills prompts themes)
+
+  mkdir -p "$pi_dst" "$pi_src/prompts" "$pi_src/themes"
+
+  for item in "${items[@]}"; do
+    local src="$pi_src/$item"
+    local dst="$pi_dst/$item"
+
+    if [ ! -e "$src" ]; then
+      echo "  Warning: Pi config source missing, skipping: $src"
+      continue
+    fi
+
+    if [ -L "$dst" ]; then
+      local current; current=$(readlink "$dst")
+      if [ "$current" = "$src" ]; then
+        echo "  [ok] $dst → $src"
+        continue
+      fi
+      rm -f "$dst"
+    elif [ -e "$dst" ]; then
+      local ts; ts=$(date +%Y%m%d_%H%M%S)
+      mv "$dst" "${dst}.backup.${ts}"
+      record_action "BACKUP_FILE" "${dst}.backup.${ts}"
+      echo "  Backed up existing $dst"
+    fi
+
+    ln -s "$src" "$dst"
+    record_action "SYMLINK" "$dst → $src"
+    echo "  [ok] $dst → $src"
+  done
+
+  echo "Pi config is dotfiles-backed; runtime auth/sessions/jobs stay local in ~/.pi/agent."
+}
+
+# ============================
+# Sync shared agent skills
+# ============================
+
+sync_agent_skills() {
+  print_message "Syncing shared agent skills"
+
+  local sync_script="$DOTFILES_DIR/install/sync_agent_skills.sh"
+  if [ -x "$sync_script" ]; then
+    "$sync_script"
+  else
+    echo "Warning: skills sync script missing or not executable: $sync_script"
+  fi
 }
 
 # ============================
@@ -956,6 +1015,8 @@ main() {
   install_stow
   backup_existing_configs
   stow_dotfiles
+  link_pi_config
+  sync_agent_skills
 
   # ============================
   # macOS-Specific Installation
