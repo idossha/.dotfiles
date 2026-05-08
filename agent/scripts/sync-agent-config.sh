@@ -150,6 +150,7 @@ check_files() {
   [ -f "$MCP_SRC" ] || { echo "Missing MCP source: $MCP_SRC" >&2; failed=1; }
   [ -f "$CODEX_CONFIG_SRC" ] || { echo "Missing Codex config source: $CODEX_CONFIG_SRC" >&2; failed=1; }
   [ -f "$CODEX_RULES_SRC/default.rules" ] || { echo "Missing Codex rules source: $CODEX_RULES_SRC/default.rules" >&2; failed=1; }
+  [ -x "$SCRIPT_DIR/codex-obsidian-memory-hook" ] || { echo "Missing executable Codex memory hook: $SCRIPT_DIR/codex-obsidian-memory-hook" >&2; failed=1; }
   [ -f "$CLAUDE_SRC/settings.json" ] || { echo "Missing Claude settings source: $CLAUDE_SRC/settings.json" >&2; failed=1; }
   [ -f "$CLAUDE_SRC/statusline-command.sh" ] || { echo "Missing Claude statusline source: $CLAUDE_SRC/statusline-command.sh" >&2; failed=1; }
   [ -d "$CLAUDE_SRC/templates" ] || { echo "Missing Claude templates source: $CLAUDE_SRC/templates" >&2; failed=1; }

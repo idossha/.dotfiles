@@ -29,6 +29,25 @@ status_line = ["model-with-reasoning", "current-dir", "model", "project-name", "
 [tui.model_availability_nux]
 "gpt-5.5" = 4
 
+[hooks]
+Stop = [
+  { hooks = [
+    { type = "command", command = "/Users/idohaber/.dotfiles/agent/scripts/codex-obsidian-memory-hook", timeout = 180 },
+  ] },
+]
+
+[mcp_servers.openalex.tools.batch_resolve_references]
+approval_mode = "approve"
+
+[mcp_servers.playwright.tools.browser_navigate]
+approval_mode = "approve"
+
+[features]
+memories = true
+terminal_resize_reflow = true
+external_migration = true
+prevent_idle_sleep = true
+
 # BEGIN DOTFILES AGENT MCP
 [mcp_servers.context7]
 command = "npx"
@@ -46,15 +65,9 @@ args = ["-y", "mermaid-mcp-server"]
 command = "npx"
 args = ["-y", "openalex-research-mcp"]
 
-[mcp_servers.openalex.tools.batch_resolve_references]
-approval_mode = "approve"
-
 [mcp_servers.playwright]
 command = "npx"
 args = ["-y", "@playwright/mcp"]
-
-[mcp_servers.playwright.tools.browser_navigate]
-approval_mode = "approve"
 
 [mcp_servers.sequential-thinking]
 command = "npx"
@@ -63,11 +76,5 @@ args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
 [mcp_servers.svg]
 command = "npx"
 args = ["-y", "mcp-svg"]
-
-[features]
-memories = true
-terminal_resize_reflow = true
-external_migration = true
-prevent_idle_sleep = true
 
 # END DOTFILES AGENT MCP

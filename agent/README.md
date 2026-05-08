@@ -26,6 +26,8 @@ agent/
     <skill-name>/SKILL.md   # Reusable skills
   scripts/
     sync-agent-config.sh    # Links/generates harness-specific config
+    codex-obsidian-memory-hook
+                              # Codex Stop hook for curated Obsidian memory
 ```
 
 ## Sync Model
@@ -51,3 +53,18 @@ The sync script:
 
 Runtime state stays local: auth files, caches, logs, sessions, todos, managed
 jobs, and project-specific memory are not committed to dotfiles.
+
+## Memory Hooks
+
+Codex runs `agent/scripts/codex-obsidian-memory-hook` from a `Stop` hook in
+`agent/codex/config.toml`. The hook asks a nested Codex classifier, with hooks
+disabled, whether the completed turn contains durable crystallized knowledge.
+Only positive classifications are written with:
+
+```bash
+~/.dotfiles/agent/scripts/remember crystal
+```
+
+Claude has the same policy in `agent/claude/settings.json` through a `Stop`
+agent hook. Both paths use the shared `remember` CLI so Obsidian note reuse,
+related wikilinks, and secret rejection stay centralized.

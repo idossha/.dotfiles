@@ -34,6 +34,19 @@
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
   },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "You are the Obsidian agent-memory hook. Review the completed turn from the hook input and transcript. If the session produced durable, crystallized knowledge that belongs in the user's Obsidian Zettelkasten, write one concise memory using: ~/.dotfiles/agent/scripts/remember crystal --topic \"...\" --message \"...\" --source \"claude-stop-hook\". Prefer reusable decisions, recurring project facts, and cross-session patterns. Do not write secrets, credentials, raw logs, high-volume events, ambiguous/private personal data, or merely chronological summaries. Do not write project-specific implementation state unless it is clearly reusable outside the current repo. If a relevant note exists, the remember CLI will append to it and link related notes. If there is nothing durable to save, do nothing. Always finish by returning {\"ok\": true}. Hook input: $ARGUMENTS",
+            "timeout": 180
+          }
+        ]
+      }
+    ]
+  },
   "enabledPlugins": {
     "rust-analyzer-lsp@claude-plugins-official": true
   },
