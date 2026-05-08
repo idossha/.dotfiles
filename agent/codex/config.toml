@@ -19,6 +19,9 @@ trust_level = "trusted"
 [projects."/Users/idohaber/01_production/TI-toolbox"]
 trust_level = "trusted"
 
+[projects."/Users/idohaber/01_production/simnibs"]
+trust_level = "trusted"
+
 [tui]
 status_line = ["model-with-reasoning", "current-dir", "model", "project-name", "git-branch", "context-used"]
 
@@ -49,6 +52,9 @@ approval_mode = "approve"
 command = "npx"
 args = ["-y", "@playwright/mcp"]
 
+[mcp_servers.playwright.tools.browser_navigate]
+approval_mode = "approve"
+
 [mcp_servers.sequential-thinking]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
@@ -59,5 +65,8 @@ args = ["-y", "mcp-svg"]
 
 [features]
 memories = true
+terminal_resize_reflow = true
+external_migration = true
+prevent_idle_sleep = true
 
 # END DOTFILES AGENT MCP
