@@ -29,13 +29,6 @@ status_line = ["model-with-reasoning", "current-dir", "model", "project-name", "
 [tui.model_availability_nux]
 "gpt-5.5" = 4
 
-[hooks]
-Stop = [
-  { hooks = [
-    { type = "command", command = "/Users/idohaber/.dotfiles/agent/scripts/codex-obsidian-memory-hook", timeout = 180 },
-  ] },
-]
-
 [mcp_servers.openalex.tools.batch_resolve_references]
 approval_mode = "approve"
 
@@ -43,7 +36,6 @@ approval_mode = "approve"
 approval_mode = "approve"
 
 [features]
-memories = true
 terminal_resize_reflow = true
 external_migration = true
 prevent_idle_sleep = true

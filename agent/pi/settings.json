@@ -1,8 +1,6 @@
 {
   "lastChangelogVersion": "0.73.0",
   "packages": [
-    "../../00_development/obsidian-mcp",
-    "../../00_development/pi-obsidian-vault",
     "npm:pi-subagents",
     "npm:pi-side-chat",
     "npm:pi-intercom",
@@ -10,7 +8,6 @@
     "npm:pi-interactive-shell",
     "npm:pi-web-access"
   ],
-  "obsidianVault": "/Users/idohaber/00_development/vault",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "xhigh"
