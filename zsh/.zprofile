@@ -4,3 +4,5 @@
 ## Added by SimNIBS
 SIMNIBS_BIN="/Users/idohaber/Applications/SimNIBS-4.6/bin"
 export PATH=${PATH}:${SIMNIBS_BIN}
+# Added by Obsidian
+export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
