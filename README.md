@@ -1,10 +1,5 @@
 ## Created: 20240223 0101
 
-Ido Haber
-Last update: January 22, 2026
-
----
-
 ### Quick Start
 
 1. Clone repo: `git clone https://github.com/idossha/.dotfiles`
@@ -23,22 +18,25 @@ Last update: January 22, 2026
 
 ---
 
-   **macOS:**
-   ```bash
-   ./install/apple_install.sh
-   ```
+**macOS:**
 
-   **Linux Desktop/Server (with sudo access):**
-   ```bash
-   ./install/linux_install.sh desktop    # Full installation with GUI apps
-   ./install/linux_install.sh server     # Server installation without GUI apps
-   # or just ./install/linux_install.sh (defaults to desktop)
-   ```
+```bash
+./install/apple_install.sh
+```
 
-   **Linux Work Server (no sudo access):**
-   ```bash
-   ./install/linux_work_install.sh       # Personal config only, uses server-optimized configs
-   ```
+**Linux Desktop/Server (with sudo access):**
+
+```bash
+./install/linux_install.sh desktop    # Full installation with GUI apps
+./install/linux_install.sh server     # Server installation without GUI apps
+# or just ./install/linux_install.sh (defaults to desktop)
+```
+
+**Linux Work Server (no sudo access):**
+
+```bash
+./install/linux_work_install.sh       # Personal config only, uses server-optimized configs
+```
 
 ---
 
@@ -60,11 +58,13 @@ Test the Linux server installation in a Docker container:
 ```
 
 **Quick validation (fast, ~2 seconds):**
+
 ```bash
 ./testing/quick_test.sh
 ```
 
 The Docker setup provides a clean Ubuntu environment to test:
+
 - Linux server installation (no GUI apps)
 - Installation/uninstallation process
 - Package dependencies
