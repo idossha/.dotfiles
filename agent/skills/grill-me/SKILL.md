@@ -1,7 +1,7 @@
 ---
 name: grill-me
 description: Interview the user relentlessly about a plan or design until reaching shared understanding, collecting decisions without performing implementation. Use when user wants to stress-test a plan, get grilled on their design, or mentions "grill me".
-disable-model-invocation: true
+disable-model-invocation: false
 argument-hint: [topic or plan description]
 ---
 
