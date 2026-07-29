@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: Production code quality standards and review checklist. Use when writing or reviewing code.
+description: Production code quality standards for security, error handling, complexity, naming, imports, documentation, and tests. Use when writing or reviewing code.
 user-invocable: false
 ---
 
@@ -69,14 +69,3 @@ user-invocable: false
 - **One assertion per logical concept**: a test can have multiple `assert` statements if they verify one behavior.
 - **Test names describe the scenario**: `test_parse_config_raises_on_missing_field` not `test_parse_config_3`.
 - **Don't test framework code**: don't test that Python's `dict` works or that `dataclass` generates `__init__`.
-
-## Code Review Checklist
-
-- [ ] No secrets, keys, or credentials in code
-- [ ] User input validated and sanitized at entry points
-- [ ] Error cases handled, not silenced
-- [ ] No unnecessary complexity added
-- [ ] Names are descriptive and consistent with codebase
-- [ ] Public APIs have type hints
-- [ ] Tests cover the changed behavior
-- [ ] No unrelated changes bundled in

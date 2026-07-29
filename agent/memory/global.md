@@ -1,6 +1,6 @@
 # Global Agent Memory
 
-This file is shared user-level memory for agentic coding harnesses.
+User-level memory for Claude Code, linked to `~/.claude/CLAUDE.md`.
 
 ## Preferences
 
@@ -8,6 +8,8 @@ This file is shared user-level memory for agentic coding harnesses.
 - Prefer existing repo conventions over new abstractions.
 - Protect user work and avoid destructive git operations unless explicitly
   requested.
+- When setting up or configuring a git remote, always use SSH
+  (`git@github.com:owner/repo.git`), never HTTPS with an embedded token.
 - Use `rg`/`rg --files` for repository search when available.
 - Put reusable agent instructions, MCP definitions, and skills under
   `~/.dotfiles/agent/`.

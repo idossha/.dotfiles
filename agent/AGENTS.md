@@ -1,13 +1,15 @@
 # Agent Instructions
 
-Use this as the portable instruction entry point for coding agents.
+Use this as the instruction entry point for coding agents. Claude Code is the
+harness in use; this file is linked to `~/AGENTS.md` and the repo-root
+`AGENTS.md`.
 
 ## Source of Truth
 
 Reusable agent configuration lives in `~/.dotfiles/agent/`:
 
 - skills: `~/.dotfiles/agent/skills`
-- shared memory: `~/.dotfiles/agent/memory/global.md`
+- global memory: `~/.dotfiles/agent/memory/global.md`
 - MCP definitions: `~/.dotfiles/agent/mcps/mcp-servers.json`
 
 After editing those files, run:
@@ -24,8 +26,8 @@ After editing those files, run:
 - Do not commit runtime state, auth files, caches, logs, sessions, or local
   project memories.
 - Prefer official docs and configured MCP servers for API or tool questions.
-- Keep harness adapters thin. Canonical content belongs in `agent/`, not under
-  `.claude`, `.pi`, or `.codex` directly.
+- Keep the Claude adapter thin. Canonical content belongs in `agent/`, not
+  under `.claude` directly.
 
 ## Memory Routing
 

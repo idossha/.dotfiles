@@ -1,41 +1,38 @@
 ---
 name: orchestrator
 description: >-
-  Parent-agent orchestration rules for Pi subagents: when to scout,
-  research, plan, delegate, review, or ask the user. Use for complex
-  tasks, multi-file changes, ambiguous requirements, or parallel
-  research/implementation.
+  When to delegate work to Claude Code subagents and, more often, when not to.
+  Use for multi-file changes, broad codebase reconnaissance, or several
+  independent questions that can be answered in parallel.
 ---
 
 # Orchestrator
 
-Use this skill in the parent Pi session for non-trivial tasks. Keep the parent context clean; delegate exploration and independent work.
+Delegation is a context-budget tool, not a quality tool. Doing the work yourself is the default; spawn a subagent only when handling it inline would flood the parent context.
 
-## Default loop
+Subagents are launched with the Agent tool.
 
-1. **Clarify** — ask the user if requirements are ambiguous or a decision changes the implementation.
-2. **Scout** — use `subagent` with `scout` for codebase reconnaissance before reading many files yourself.
-3. **Research** — use `researcher` or `academic-researcher` for external docs/literature.
-4. **Plan** — synthesize evidence into a short implementation/research plan.
-5. **Worker** — delegate well-specified edits to `worker` when safe.
-6. **Review** — run `reviewer` or `oracle` for correctness, simplicity, and missed assumptions.
+## Subagent types
 
-## Subagent rules
+- `Explore` — read-only reconnaissance: locate files, map call sites, answer "where/how does X work".
+- `Plan` — turn gathered evidence into an implementation plan you will execute yourself.
+- `general-purpose` — a self-contained unit of work that needs both reading and editing.
 
-- Subagents do not inherit all conversation context. Include exact task, constraints, paths, expected output, and relevant prior findings.
-- Prefer parallel subagents for independent questions.
-- Do not delegate decisions that require user preference; ask the user.
-- Use `pi-intercom`/supervisor contact if a child is blocked and needs a decision.
-- For risky work, ask `oracle` for critique before editing.
+## Do not spawn a subagent
 
-## When not to delegate
+- For work that finishes in a handful of tool calls, or when you already know the file and line.
+- To verify, double-check, or re-review work you already did.
+- For anything that needs live back-and-forth with the user.
+- To settle a decision that depends on user preference — ask the user instead.
 
-- Single-file targeted edits where you already know the location.
-- Simple commands or one-line lookups.
-- Tasks requiring live back-and-forth with the user.
+## When you do delegate
+
+- Send all independent agents in **one message** so they run concurrently. Spawning them one per message serializes work that had no dependency.
+- Subagents inherit none of the conversation. Give each the exact task, constraints, absolute paths, relevant prior findings, and the output shape you expect back.
+- One agent, one question. Do not chain dependent steps through a single agent.
+- Cap the fan-out at what you can actually merge; a wide fan-out you then skim is worse than three agents you read.
 
 ## Parent context hygiene
 
-- Do not read large files just to explore. Send `scout`.
-- Read directly only to verify exact lines before editing or to inspect final diffs.
-- Keep final answers grounded in evidence: file paths, command output, URLs, paper IDs, and validation results.
+- Delegate broad exploration. Read files directly when you need the exact lines you are about to edit, or the diff you are about to report.
+- Keep the final answer grounded in evidence: file paths, command output, URLs, validation results.

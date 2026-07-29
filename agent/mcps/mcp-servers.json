@@ -7,21 +7,6 @@
       ],
       "command": "npx"
     },
-    "filesystem": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/Users/idohaber"
-      ],
-      "command": "npx"
-    },
-    "mermaid": {
-      "args": [
-        "-y",
-        "mermaid-mcp-server"
-      ],
-      "command": "npx"
-    },
     "openalex": {
       "args": [
         "-y",
@@ -33,20 +18,6 @@
       "args": [
         "-y",
         "@playwright/mcp"
-      ],
-      "command": "npx"
-    },
-    "sequential-thinking": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
-      "command": "npx"
-    },
-    "svg": {
-      "args": [
-        "-y",
-        "mcp-svg"
       ],
       "command": "npx"
     }

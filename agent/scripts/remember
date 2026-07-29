@@ -81,6 +81,27 @@ def score_note(path: Path, query_tokens: set[str], topic: str) -> float:
     return score
 
 
+def note_is_strong_match(path: Path, score: float, query_tokens: set[str], topic: str) -> bool:
+    title = note_title(path).lower()
+    normalized_topic = topic.lower()
+    title_tokens = tokenize(title)
+
+    if title == normalized_topic:
+        return True
+    if title in normalized_topic or normalized_topic in title:
+        return True
+    if len(query_tokens & title_tokens) >= 2:
+        return score >= 8
+    return score >= 20
+
+
+def note_is_related(path: Path, score: float, query_tokens: set[str]) -> bool:
+    title_tokens = tokenize(note_title(path))
+    if not title_tokens:
+        return False
+    return score >= 8 and bool(query_tokens & title_tokens)
+
+
 def find_best_note(zettel_dir: Path, topic: str, message: str) -> tuple[Path | None, list[Path]]:
     query_tokens = tokenize(f"{topic} {message}")
     candidates = []
@@ -90,13 +111,17 @@ def find_best_note(zettel_dir: Path, topic: str, message: str) -> tuple[Path | N
             candidates.append((score, path))
 
     candidates.sort(key=lambda item: (-item[0], item[1].name.lower()))
-    best = candidates[0][1] if candidates and candidates[0][0] >= 8 else None
+    best = None
+    if candidates:
+        best_score, best_path = candidates[0]
+        if note_is_strong_match(best_path, best_score, query_tokens, topic):
+            best = best_path
 
     related = []
     for score, path in candidates:
         if path == best:
             continue
-        if score >= 1:
+        if note_is_related(path, score, query_tokens):
             related.append(path)
         if len(related) >= 5:
             break
@@ -108,12 +133,24 @@ def wikilink(path: Path) -> str:
     return f"[[{note_title(path)}]]"
 
 
+def wikilink_list(paths: list[Path]) -> list[str]:
+    seen: set[str] = set()
+    links: list[str] = []
+    for path in paths:
+        title = note_title(path)
+        if title in seen:
+            continue
+        seen.add(title)
+        links.append(wikilink(path))
+    return links
+
+
 def ensure_links_field(path: Path, related: list[Path]) -> None:
     if not related or not path.exists():
         return
 
     text = path.read_text(encoding="utf-8")
-    links = [wikilink(note) for note in related if note_title(note) != note_title(path)]
+    links = wikilink_list([note for note in related if note_title(note) != note_title(path)])
     if not links:
         return
 
@@ -125,9 +162,12 @@ def ensure_links_field(path: Path, related: list[Path]) -> None:
     lines = text.splitlines()
     for idx, line in enumerate(lines[:12]):
         if line.startswith("Links:"):
-            suffix = line.removeprefix("Links:").strip()
-            sep = ", " if suffix else " "
-            lines[idx] = f"Links:{sep}{suffix}{', ' if suffix else ''}{', '.join(new_links)}"
+            existing_links = re.findall(r"\[\[[^\]]+\]\]", line)
+            all_links = []
+            for link in existing_links + new_links:
+                if link not in all_links:
+                    all_links.append(link)
+            lines[idx] = f"Links: {', '.join(all_links)}" if all_links else "Links:"
             path.write_text("\n".join(lines) + "\n", encoding="utf-8")
             return
 
@@ -140,6 +180,33 @@ def today() -> str:
     return dt.date.today().isoformat()
 
 
+def metadata_created_at() -> str:
+    return dt.datetime.now().strftime("%Y%m%d %H%M")
+
+
+def ensure_agent_memory_section(path: Path) -> None:
+    text = path.read_text(encoding="utf-8")
+    if "\n## Agent Memory\n" in text or text.startswith("## Agent Memory\n"):
+        return
+    separator = "" if text.endswith("\n\n") else "\n\n"
+    path.write_text(f"{text}{separator}## Agent Memory\n", encoding="utf-8")
+
+
+def format_memory_entry(
+    message: str,
+    source: str | None,
+    related: list[Path],
+    current_title: str,
+) -> str:
+    lines = [f"\n### {today()}\n", f"- **Memory:** {message.strip()}\n"]
+    related_links = wikilink_list([note for note in related if note_title(note) != current_title])
+    if related_links:
+        lines.append(f"  - **Related:** {', '.join(related_links)}\n")
+    if source:
+        lines.append(f"  - **Source:** `{source}`\n")
+    return "".join(lines)
+
+
 def append_section(
     path: Path,
     topic: str,
@@ -150,28 +217,23 @@ def append_section(
     path.parent.mkdir(parents=True, exist_ok=True)
     related = related or []
     if not path.exists():
-        link_text = ", ".join(wikilink(note) for note in related)
+        links = wikilink_list(related)
+        links_line = f"Links: {', '.join(links)}" if links else "Links:"
         path.write_text(
-            f"Created: {today()}\n"
+            f"Created: {metadata_created_at()}\n"
             "Tags: #agent-memory\n"
-            f"Links: {link_text}\n\n"
+            f"{links_line}\n\n"
             "---\n"
-            f"# {topic}\n\n",
+            f"# {topic}\n\n"
+            "## Agent Memory\n",
             encoding="utf-8",
         )
     else:
         ensure_links_field(path, related)
+        ensure_agent_memory_section(path)
 
-    related_links = [wikilink(note) for note in related if note_title(note) != path.stem]
-    message_text = message.strip()
-    if related_links:
-        message_text = f"{message_text} Related: {', '.join(related_links)}"
-
-    lines = [f"\n## {today()}\n", f"- {message_text}\n"]
-    if source:
-        lines.append(f"  Source: {source}\n")
     with path.open("a", encoding="utf-8") as handle:
-        handle.writelines(lines)
+        handle.write(format_memory_entry(message, source, related, path.stem))
 
 
 def remember_crystal(args: argparse.Namespace) -> None:

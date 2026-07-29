@@ -301,6 +301,7 @@ BREW_PACKAGES=(
   lazydocker
   neofetch
   node
+  uv
   jq
   pandoc
   ffmpeg
@@ -482,50 +483,6 @@ stow_dotfiles() {
   echo "Dotfiles have been symlinked successfully."
 
   cd "$original_dir"
-}
-
-# ============================
-# Link Pi config
-# ============================
-
-link_pi_config() {
-  print_message "Linking Pi config from dotfiles"
-
-  local pi_src="$DOTFILES_DIR/agent/pi"
-  local pi_dst="$HOME/.pi/agent"
-  local items=(settings.json agents extensions skills prompts themes)
-
-  mkdir -p "$pi_dst" "$pi_src/prompts" "$pi_src/themes"
-
-  for item in "${items[@]}"; do
-    local src="$pi_src/$item"
-    local dst="$pi_dst/$item"
-
-    if [ ! -e "$src" ]; then
-      echo "  Warning: Pi config source missing, skipping: $src"
-      continue
-    fi
-
-    if [ -L "$dst" ]; then
-      local current; current=$(readlink "$dst")
-      if [ "$current" = "$src" ]; then
-        echo "  [ok] $dst → $src"
-        continue
-      fi
-      rm -f "$dst"
-    elif [ -e "$dst" ]; then
-      local ts; ts=$(date +%Y%m%d_%H%M%S)
-      mv "$dst" "${dst}.backup.${ts}"
-      record_action "BACKUP_FILE" "${dst}.backup.${ts}"
-      echo "  Backed up existing $dst"
-    fi
-
-    ln -s "$src" "$dst"
-    record_action "SYMLINK" "$dst → $src"
-    echo "  [ok] $dst → $src"
-  done
-
-  echo "Pi config is dotfiles-backed; runtime auth/sessions/jobs stay local in ~/.pi/agent."
 }
 
 # ============================
@@ -1015,7 +972,6 @@ main() {
   install_stow
   backup_existing_configs
   stow_dotfiles
-  link_pi_config
   sync_agent_skills
 
   # ============================

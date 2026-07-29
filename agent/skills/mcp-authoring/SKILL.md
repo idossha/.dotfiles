@@ -1,6 +1,6 @@
 ---
 name: mcp-authoring
-description: Create, configure, or review Model Context Protocol servers and client MCP configuration. Use for MCP tool design, mcpServers JSON, Codex TOML generation, auth boundaries, smoke tests, and agent tool safety.
+description: Create, configure, or review Model Context Protocol servers and client MCP configuration. Use for MCP tool design, mcpServers JSON, auth boundaries, smoke tests, and agent tool safety.
 ---
 
 # MCP Authoring
@@ -21,7 +21,7 @@ After editing, run:
 ~/.dotfiles/agent/scripts/sync-agent-config.sh
 ```
 
-Claude consumes the JSON shape directly. Codex receives generated `[mcp_servers.<name>]` TOML blocks in `~/.codex/config.toml`.
+Claude consumes the JSON shape directly.
 
 ## Design Rules
 
@@ -47,5 +47,4 @@ Claude consumes the JSON shape directly. Codex receives generated `[mcp_servers.
 - Can a prompt-injected document cause unexpected file reads or writes?
 - Can the tool exfiltrate secrets through logs, errors, or returned text?
 - Are write operations idempotent or clearly destructive?
-- Does the client config work for both Claude JSON and Codex TOML after sync?
 - Is there a simple health check path?

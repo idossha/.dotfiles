@@ -295,49 +295,6 @@ stow_dotfiles() {
 }
 
 # ============================
-# Link Pi config
-# ============================
-link_pi_config() {
-  print_message "Linking Pi config from dotfiles"
-
-  local pi_src="$DOTFILES_DIR/agent/pi"
-  local pi_dst="$HOME/.pi/agent"
-  local items=(settings.json agents extensions skills prompts themes)
-
-  mkdir -p "$pi_dst" "$pi_src/prompts" "$pi_src/themes"
-
-  for item in "${items[@]}"; do
-    local src="$pi_src/$item"
-    local dst="$pi_dst/$item"
-
-    if [ ! -e "$src" ]; then
-      echo "  Warning: Pi config source missing, skipping: $src"
-      continue
-    fi
-
-    if [ -L "$dst" ]; then
-      local current; current=$(readlink "$dst")
-      if [ "$current" = "$src" ]; then
-        echo "  [ok] $dst → $src"
-        continue
-      fi
-      rm -f "$dst"
-    elif [ -e "$dst" ]; then
-      local ts; ts=$(date +%Y%m%d_%H%M%S)
-      mv "$dst" "${dst}.backup.${ts}"
-      record_action "BACKUP" "${dst}.backup.${ts}"
-      echo "  Backed up existing $dst"
-    fi
-
-    ln -s "$src" "$dst"
-    record_action "SYMLINK" "$dst → $src"
-    echo "  [ok] $dst → $src"
-  done
-
-  echo "Pi config is dotfiles-backed; runtime auth/sessions/jobs stay local in ~/.pi/agent."
-}
-
-# ============================
 # Sync shared agent skills
 # ============================
 sync_agent_skills() {
@@ -657,7 +614,6 @@ main() {
   print_message "Phase 2: Dotfiles"
   backup_existing_configs
   stow_dotfiles
-  link_pi_config
   sync_agent_skills
 
   # Phase 3: Additional tools

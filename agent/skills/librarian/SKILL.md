@@ -36,7 +36,7 @@ Determine the action from `$action` (or infer from context):
 2. Search using multiple strategies in parallel:
    - WebSearch for "[query] site:pubmed.ncbi.nlm.nih.gov" and "[query] site:scholar.google.com"
    - Use `mcp__openalex__search_works` with the query
-   - Use `mcp__arxiv__search_arxiv` if the topic involves preprints or computational methods
+   - Use `mcp__openalex__find_open_access_version` when the topic involves preprints, and WebSearch for arXiv/bioRxiv/medRxiv listings
 3. For each candidate paper, report:
    - Full citation (authors, year, title, journal)
    - DOI or URL

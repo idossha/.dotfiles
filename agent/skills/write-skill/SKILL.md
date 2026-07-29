@@ -12,16 +12,14 @@ You are writing or improving a reusable agent skill. Follow this guide precisely
 
 ## File location
 
-All user-authored skills live in one canonical dotfiles directory and are linked into each harness:
+All user-authored skills live in one canonical dotfiles directory and are linked into Claude Code:
 
 ```
 Source:  ~/.dotfiles/agent/skills/<skill-name>/SKILL.md
 Claude:  ~/.claude/skills -> ~/.dotfiles/agent/skills
-Pi:      ~/.pi/agent/skills -> ~/.dotfiles/agent/skills
-Codex:   ~/.codex/skills/<skill-name> -> ~/.dotfiles/agent/skills/<skill-name>
 ```
 
-Never create skills directly in a harness-specific directory. Always write to `~/.dotfiles/agent/skills/<skill-name>/SKILL.md`, then run `~/.dotfiles/agent/scripts/sync-agent-config.sh` to refresh harness links.
+Never create skills directly in `~/.claude/skills`. Always write to `~/.dotfiles/agent/skills/<skill-name>/SKILL.md`, then run `~/.dotfiles/agent/scripts/sync-agent-config.sh` to refresh the link.
 
 If the skill needs supporting files (templates, examples, scripts), place them alongside SKILL.md in the same directory:
 
@@ -33,7 +31,7 @@ If the skill needs supporting files (templates, examples, scripts), place them a
   scripts/           # Optional: helper scripts
 ```
 
-Reference supporting files from `SKILL.md` so harnesses know they exist. Prefer relative links such as `references/API.md`; use harness-specific variables only when the skill truly cannot be portable.
+Reference supporting files from `SKILL.md` so Claude knows they exist. Prefer relative links such as `references/API.md`, or `${CLAUDE_SKILL_DIR}/scripts/foo.py` when the path must resolve regardless of the working directory.
 
 ## Step 1: Determine intent
 
@@ -50,7 +48,7 @@ Ask the user only when the answers cannot be inferred safely. Skip questions alr
 
 ## Step 2: Write the frontmatter
 
-The YAML frontmatter block controls routing. Use the smallest portable header that works across harnesses:
+The YAML frontmatter block controls routing. Start from the smallest header that works:
 
 ```yaml
 ---
@@ -59,7 +57,7 @@ description: Specific task plus trigger conditions.
 ---
 ```
 
-Use extra fields only when a specific harness supports them and the skill needs them. Unknown fields may be ignored by other harnesses.
+Add extra fields only when the skill actually needs them.
 
 Common extended fields:
 
@@ -93,7 +91,6 @@ shell: bash                           # Shell for inline commands. bash (default
 - **`user-invocable: false`**: Use for domain knowledge that Claude should auto-load when relevant. The user never needs to type `/skill-name` for these.
 - **`allowed-tools`**: Pre-approve tools to avoid repeated permission prompts during the skill. Only grant what the skill actually needs. Use glob patterns for Bash: `Bash(git *)`, `Bash(npm *)`.
 - **Never combine** `disable-model-invocation: true` with `user-invocable: false` -- they are mutually exclusive intents.
-- **Portable baseline**: Pi requires `name` and `description`; Claude and Codex also route best with explicit, specific descriptions.
 
 ### Invocation control summary
 
@@ -115,9 +112,7 @@ The markdown body after the frontmatter is what the harness follows when the ski
 4. **Be imperative**: "Run X", "Check Y", "Ask the user Z". Not "You could run X" or "Consider checking Y".
 5. **Specify exit conditions**: What does "done" look like? What should Claude output when finished?
 
-### Harness-specific features
-
-Claude supports variables and dynamic context injection. Treat these as harness-specific, not portable defaults.
+### Variables
 
 Use these in the markdown body:
 
@@ -158,35 +153,10 @@ Output replaces the placeholder before Claude sees the skill.
 - Most recently invoked skills get priority.
 - **Implication**: Put the most critical instructions in the first 5,000 tokens. Put reference tables and examples later -- they may be trimmed.
 
-## Step 4: Quality checklist
-
-Before saving, verify:
-
-- [ ] **Description is specific and front-loaded** -- Claude can decide relevance from the first sentence
-- [ ] **Name matches directory** -- required for Pi and clearer everywhere
-- [ ] **Invocation mode matches intent** -- side effects require `disable-model-invocation: true`; background knowledge requires `user-invocable: false`
-- [ ] **No overlap with CLAUDE.md** -- skills are for procedures and reference; CLAUDE.md is for facts and conventions
-- [ ] **Under 500 lines** -- long reference material moved to supporting files
-- [ ] **Critical content in first 5,000 tokens** -- survives compaction
-- [ ] **Imperative voice throughout** -- "Do X", not "You might want to X"
-- [ ] **Steps have clear exit conditions** -- Claude knows when it is done
-- [ ] **`allowed-tools` is minimal** -- only tools the skill actually needs
-- [ ] **No generic or vague description** -- bad: "Helps with code"; good: "Generate Python dataclass from JSON schema, with frozen=True and type hints"
-- [ ] **Arguments documented** if the skill accepts them -- `argument-hint` set, variables used in body
-- [ ] **Supporting files referenced** from SKILL.md if they exist
-- [ ] **File is in dotfiles** at `~/.dotfiles/agent/skills/<name>/SKILL.md`, not directly in a harness directory
-
-## Step 5: Save and verify
+## Step 4: Save
 
 1. Write the SKILL.md to `~/.dotfiles/agent/skills/<skill-name>/SKILL.md`.
-2. Refresh harness links: `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
-3. Verify the skill is live:
-   ```bash
-   ls -la ~/.claude/skills/<skill-name>/SKILL.md
-   ls -la ~/.pi/agent/skills/<skill-name>/SKILL.md
-   ls -la ~/.codex/skills/<skill-name>/SKILL.md
-   ```
-4. Show the user the final file and confirm it is linked.
+2. Refresh the harness link: `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 
 ## Common anti-patterns to avoid
 
