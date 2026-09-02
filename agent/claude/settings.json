@@ -37,21 +37,119 @@
     "deny": [
       "TaskCreate(*)"
     ],
-    "defaultMode": "dontAsk"
+    "defaultMode": "auto"
   },
   "model": "claude-fable-5[1m]",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/idohaber/.local/bin/idosleep",
+            "args": [
+              "hook",
+              "SessionStart"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/idohaber/.local/bin/idosleep",
+            "args": [
+              "hook",
+              "UserPromptSubmit"
+            ],
+            "timeout": 25
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/idohaber/.local/bin/idosleep",
+            "args": [
+              "hook",
+              "Stop"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/idohaber/.local/bin/idosleep",
+            "args": [
+              "hook",
+              "PreCompact"
+            ],
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/idohaber/.local/bin/idosleep",
+            "args": [
+              "hook",
+              "SessionEnd"
+            ],
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true
+    "frontend-design@claude-plugins-official": true,
+    "ti-toolbox@ti-toolbox": true,
+    "agentic-rules@agentic-rules": true
+  },
+  "extraKnownMarketplaces": {
+    "ti-toolbox": {
+      "source": {
+        "source": "github",
+        "repo": "idossha/TI-Toolbox"
+      },
+      "autoUpdate": true
+    },
+    "agentic-rules": {
+      "source": {
+        "source": "git",
+        "url": "git@github.com:idossha/agentic-rules.git"
+      },
+      "autoUpdate": true
+    }
   },
   "effortLevel": "high",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
   "editorMode": "vim",
+  "verbose": false,
   "agentPushNotifEnabled": true
 }

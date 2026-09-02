@@ -19,7 +19,9 @@ Source:  ~/.dotfiles/agent/skills/<skill-name>/SKILL.md
 Claude:  ~/.claude/skills -> ~/.dotfiles/agent/skills
 ```
 
-Never create skills directly in `~/.claude/skills`. Always write to `~/.dotfiles/agent/skills/<skill-name>/SKILL.md`, then run `~/.dotfiles/agent/scripts/sync-agent-config.sh` to refresh the link.
+Cross-project engineering conventions (docs roster, testing, releases, CI, AGENTS.md) belong in the
+`agentic-rules` plugin repository at `/Users/idohaber/00_development/agentic-rules/skills/`, not here;
+this directory holds personal and domain skills. Never create skills directly in `~/.claude/skills`. Always write to `~/.dotfiles/agent/skills/<skill-name>/SKILL.md`, then run `~/.dotfiles/agent/scripts/sync-agent-config.sh` to refresh the link.
 
 If the skill needs supporting files (templates, examples, scripts), place them alongside SKILL.md in the same directory:
 

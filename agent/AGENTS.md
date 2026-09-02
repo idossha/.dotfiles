@@ -29,6 +29,28 @@ After editing those files, run:
 - Keep the Claude adapter thin. Canonical content belongs in `agent/`, not
   under `.claude` directly.
 
+## Cross-project Playbook
+
+Engineering conventions shared across projects live in the `agentic-rules` plugin
+(canonical repo `git@github.com:idossha/agentic-rules.git`; local clone
+`/Users/idohaber/00_development/agentic-rules`). Read its `docs/PRINCIPLES.md` before
+setting up, documenting, testing or releasing a project; its skills load as
+`agentic-rules:<skill>` and are meant to be used unprompted:
+
+- `project-docs` — the markdown roster (README, CONTRIBUTING, SECURITY, CITATION, docs/).
+- `agent-instructions` — AGENTS.md as a map, CLAUDE.md as `@AGENTS.md`, path-scoped rules.
+- `architecture-contract` — intent documents with gate tests, the contract, the decision log.
+- `testing-backend` / `testing-frontend-offscreen` — fixtures from an independent reader;
+  GUI tests hidden by default and proved quiet.
+- `docs-website` — a VitePress site generated from `docs/`.
+- `changelog-release` — Keep a Changelog entries, commit messages, a release that stops at the tag.
+- `ci-guards` — CI split by cost, guards with their own red tests.
+
+Dotfiles carry only the marketplace registration and the enable flag in
+`agent/claude/settings.json`, never a copy of those skills: a second copy loads the same
+skill twice. Edit the plugin in its own repository; after a push, run
+`claude plugin update agentic-rules@agentic-rules` (the installed plugin is a snapshot).
+
 ## Memory Routing
 
 - Crystallized, reusable knowledge goes to the Obsidian Zettelkasten:

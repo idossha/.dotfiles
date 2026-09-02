@@ -71,12 +71,27 @@ Workflows and playbooks:
 | `orchestrator` | When to delegate to subagents, and when not to. |
 | `remember` | Route durable knowledge to the Zettelkasten, project docs, or SQLite. |
 | `reviewer-response-docx` | Compose response-to-reviewers Word documents. |
+| `suna` | Work on a SUNA manuscript project (figures, references, review comments, compliance). |
 | `telemetry-triage` | Telemetry triage workflow for the TI-toolbox projects. |
 | `web-neuroimaging` | Web research for neuroimaging docs and methods. |
 | `write-skill` | Author or refactor a skill in this directory. |
 
 Document-format skills (`pdf`, `pptx`, `xlsx`) are **not** kept here. Claude Code
 ships bundled equivalents; local copies would shadow them.
+
+## Plugin skills (not stored here)
+
+Skills that ship inside a plugin are registered in `agent/claude/settings.json`
+(`extraKnownMarketplaces` + `enabledPlugins`) and are never copied into this directory —
+a copy would load the same skill twice under two names. They load as `<plugin>:<skill>`.
+
+| Plugin | Skills | Source |
+|---|---|---|
+| `agentic-rules` | `project-docs`, `agent-instructions`, `architecture-contract`, `testing-backend`, `testing-frontend-offscreen`, `docs-website`, `changelog-release`, `ci-guards` | `git@github.com:idossha/agentic-rules.git` (clone at `~/00_development/agentic-rules`) |
+| `ti-toolbox` | `ti-toolbox`, `ti-scripting`, `ti-domain`, `ti-codebase`, `troubleshoot-project` | `github.com/idossha/TI-Toolbox` |
+
+After editing a plugin's repository and pushing, run `claude plugin update <plugin>@<marketplace>`;
+the installed copy is a snapshot.
 
 ## Validation
 

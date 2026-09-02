@@ -166,6 +166,9 @@ Useful prefixes:
 
 Write for users, not only maintainers.
 
+The house changelog format, commit-title grammar and release procedure are the
+`agentic-rules:changelog-release` skill; when it is loaded, it wins over the generic guidance below.
+
 - Group by `Added`, `Changed`, `Fixed`, `Deprecated`, `Removed`, `Security` when possible.
 - Mention migration steps and breaking changes clearly.
 - Credit contributors according to repo policy.

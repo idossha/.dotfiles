@@ -19,6 +19,21 @@ User-level memory for Claude Code, linked to `~/.claude/CLAUDE.md`.
 - Raw logs and high-volume event memory belong in SQLite.
 - Use `~/.dotfiles/agent/scripts/remember` for low-friction memory capture.
 
+## Cross-project Playbook
+
+- House engineering conventions are the `agentic-rules` plugin (local clone
+  `/Users/idohaber/00_development/agentic-rules`, `docs/PRINCIPLES.md` is the spine). Its
+  skills load as `agentic-rules:<skill>`; use them without being asked: `project-docs` when
+  starting or auditing a repo's markdown, `agent-instructions` for AGENTS.md/CLAUDE.md,
+  `architecture-contract` when requirements, a contract or a decision are involved,
+  `testing-backend` and `testing-frontend-offscreen` when adding tests, `docs-website` for a
+  docs site, `changelog-release` for changelog entries, commits and releases, `ci-guards` for
+  workflows and guards.
+- Always-on rules from it: every rule states the failure it prevents; an agent judges
+  numbers, not pictures; GUI and e2e tests run against a hidden app and never take the
+  screen; AGENTS.md is canonical and CLAUDE.md imports it; commits carry no AI co-author
+  trailers; a release script stops at the local tag and never pushes.
+
 ## Boundaries
 
 - Do not store secrets, API keys, tokens, or auth material here.

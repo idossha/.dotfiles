@@ -45,6 +45,9 @@ Do not write:
 - Anything the user has not confirmed, if the fact is ambiguous or sensitive. Ask first.
 - Secrets, tokens, or credentials. The script rejects obvious cases, but that is a
   backstop, not a substitute for judgment.
+- A project design decision and its reasoning. That belongs in the project's
+  `docs/DECISIONS.md` (append-only, dated — see `agentic-rules:architecture-contract`),
+  where the code that made it can be reviewed beside it.
 
 One fact per invocation. A note that tries to hold three unrelated things will not
 be found later by any of the three.
