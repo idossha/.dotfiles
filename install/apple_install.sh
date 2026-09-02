@@ -2,7 +2,7 @@
 
 ########################################
 # dotfiles macOS installation script of Ido Haber
-# Last update: January 12, 2026
+# Last update: September 2, 2026
 ########################################
 
 # Exit on error with better error handling
@@ -265,12 +265,12 @@ OH_MY_ZSH_DIR="$HOME/oh-my-zsh"
 NEOVIM_VERSION="0.11.0"
 
 # Define packages to stow (all packages for macOS installation)
-STOW_PACKAGES=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner" "zsh" "aerospace" "syncthing")
+STOW_PACKAGES=("nvim" "tmux" "vscode" "github" "neofetch" "htop" "ghostty" "nushell" "misc" "karabiner" "zsh" "aerospace" "sketchybar" "syncthing" "vicinae")
 
 # Define Homebrew Cask packages
 BREW_CASK_PACKAGES=(
   keyboardcleantool
-  raycast
+  vicinae            # launcher (replaces Raycast); alt+space
   cursor
   karabiner-elements
   docker
@@ -312,6 +312,7 @@ BREW_PACKAGES=(
   navi
   gromgit/brewtils/taproom # have not tested this yet
   nikitabobko/tap/aerospace
+  FelixKratz/formulae/sketchybar
   stats
   ruby@3.3
   sqlite3
@@ -321,6 +322,18 @@ BREW_PACKAGES=(
 )
 
 echo "Detected OS: $OS" >> "$LOG_FILE"
+
+# ============================
+# macOS defaults (menu bar hidden for SketchyBar, Mission Control for AeroSpace)
+# ============================
+apply_macos_defaults() {
+  print_message "Applying macOS defaults and starting SketchyBar..."
+  if bash "$SCRIPT_DIR/macos_defaults.sh"; then
+    record_action "macos_defaults" "applied"
+  else
+    print_error "Failed to apply macOS defaults (non-fatal)"
+  fi
+}
 
 # ============================
 # Package Manager Installation
@@ -984,6 +997,7 @@ main() {
   install_oh_my_zsh
   install_zsh_plugins
   set_zsh_as_default
+  apply_macos_defaults
 
   # ============================
   # Common Tools
