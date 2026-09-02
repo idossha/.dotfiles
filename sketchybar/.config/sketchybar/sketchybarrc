@@ -1,0 +1,78 @@
+#!/bin/bash
+# SketchyBar config — ~/.config/sketchybar (stowed from ~/.dotfiles/sketchybar)
+#
+# Layout:   [  1 2 3 4 5 6 7 8 9 ]  ............  [ cpu mem bat | zzz | vpn | docker | wifi | clock ]
+# Requires: sketchybar, aerospace, Hack Nerd Font, jq (optional)
+
+source "$CONFIG_DIR/colors.sh"
+source "$CONFIG_DIR/icons.sh"
+
+ITEM_DIR="$CONFIG_DIR/items"
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+export PLUGIN_DIR
+
+FONT="Hack Nerd Font"
+export FONT
+
+# ---------------------------------------------------------------------------
+# Bar
+# ---------------------------------------------------------------------------
+sketchybar --bar \
+  height=32 \
+  position=top \
+  sticky=on \
+  topmost=window \
+  color=$BAR_COLOR \
+  border_width=0 \
+  shadow=off \
+  padding_left=6 \
+  padding_right=6 \
+  margin=0 \
+  y_offset=0 \
+  blur_radius=20 \
+  notch_width=200
+
+# ---------------------------------------------------------------------------
+# Defaults for every item
+# ---------------------------------------------------------------------------
+sketchybar --default \
+  updates=when_shown \
+  icon.font="$FONT:Bold:14.0" \
+  icon.color=$TEXT \
+  icon.padding_left=6 \
+  icon.padding_right=4 \
+  label.font="$FONT:Regular:12.5" \
+  label.color=$TEXT \
+  label.padding_left=2 \
+  label.padding_right=6 \
+  padding_left=2 \
+  padding_right=2 \
+  background.height=24 \
+  background.corner_radius=6 \
+  background.drawing=off \
+  popup.background.color=$POPUP_BG \
+  popup.background.corner_radius=8 \
+  popup.background.border_width=1 \
+  popup.background.border_color=$POPUP_BORDER \
+  popup.blur_radius=20 \
+  popup.background.shadow.drawing=on
+
+# ---------------------------------------------------------------------------
+# Left
+# ---------------------------------------------------------------------------
+source "$ITEM_DIR/apple.sh"
+source "$ITEM_DIR/spaces.sh"
+
+# ---------------------------------------------------------------------------
+# Right (items are added right-to-left: first added = rightmost)
+# ---------------------------------------------------------------------------
+source "$ITEM_DIR/clock.sh"
+source "$ITEM_DIR/wifi.sh"
+source "$ITEM_DIR/docker.sh"
+source "$ITEM_DIR/vpn.sh"
+source "$ITEM_DIR/amphetamine.sh"
+source "$ITEM_DIR/stats.sh"
+
+# ---------------------------------------------------------------------------
+sketchybar --hotload on
+sketchybar --update

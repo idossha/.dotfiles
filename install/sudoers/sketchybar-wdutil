@@ -1,0 +1,10 @@
+# Let admins read the current Wi-Fi name without a password (used by
+# ~/.config/sketchybar/plugins/wifi_lib.sh).
+#
+# macOS 14+ redacts the SSID from every CLI tool (ipconfig, networksetup,
+# system_profiler, scutil, ioreg) and even from `sudo wdutil info` unless
+# Location Services -> System Services -> "Networking & wireless" is enabled.
+# The known-networks plist is root-only but unredacted, and records when each
+# network was last joined, so it is the fallback that always works.
+%admin ALL=(root) NOPASSWD: /usr/bin/wdutil info, /usr/bin/wdutil scan
+%admin ALL=(root) NOPASSWD: /usr/bin/plutil -convert xml1 -o - /Library/Preferences/com.apple.wifi.known-networks.plist
