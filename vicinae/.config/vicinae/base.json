@@ -30,7 +30,7 @@
   // Custom themes live in ~/.local/share/vicinae/themes (stowed from dotfiles).
   "theme": {
     "light": { "name": "vicinae-light", "icon_theme": "auto" },
-    "dark":  { "name": "tokyo-sketchy", "icon_theme": "auto" }
+    "dark": { "name": "tokyo-sketchy", "icon_theme": "auto" }
   },
 
   "launcher_window": {
@@ -44,7 +44,7 @@
 
   "global_shortcuts": {
     // Same muscle memory as Raycast: ⌥ Space
-    "toggle": "alt+space",
+    "toggle": "command+space",
     "inhibit_apps": []
   },
 
@@ -55,14 +55,7 @@
     "open-search-filter": "control+P"
   },
 
-  "favorites": [
-    "clipboard:history",
-    "files:search",
-    "calculator:history"
-  ],
+  "favorites": ["clipboard:history", "files:search", "calculator:history"],
 
-  "fallbacks": [
-    "files:search",
-    "calculator:history"
-  ]
+  "fallbacks": ["files:search", "calculator:history"]
 }
