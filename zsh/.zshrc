@@ -144,3 +144,6 @@ export PATH="$PATH:/Users/idohaber/.lmstudio/bin"
 
 # opencode
 export PATH=/Users/idohaber/.opencode/bin:$PATH
+
+# idosleep reads its Anthropic key from the macOS Keychain (idosleep key status),
+# so nothing needs to be exported here — and cron/hooks work without a profile.
