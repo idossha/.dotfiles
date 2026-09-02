@@ -74,6 +74,33 @@ The Docker setup provides a clean Ubuntu environment to test:
 
 ---
 
+### Status Bar (SketchyBar + AeroSpace)
+
+`sketchybar/` is stowed to `~/.config/sketchybar`. Left: Apple menu + AeroSpace
+workspaces (focused highlighted, empty dimmed). Right: cpu/mem/battery (click opens
+Stats), Amphetamine (click toggles), GlobalProtect, Docker, Wi-Fi, clock.
+
+- Runs as a launchd service: `brew services start sketchybar`
+- `install/macos_defaults.sh` hides the native menu bar and sets the Mission Control
+  options AeroSpace needs (run by `apple_install.sh`, safe to re-run)
+- Edit `~/.config/sketchybar/colors.sh` / `icons.sh` for theming; `sketchybar --reload`
+
+---
+
+### Launcher (Vicinae)
+
+[Vicinae](https://github.com/vicinaehq/vicinae) replaces Raycast (`brew install --cask vicinae`,
+Apple Silicon only). `vicinae/` is stowed to `~/.config/vicinae` and
+`~/.local/share/vicinae/themes`.
+
+- Toggle with `alt+space`; vim keybinding scheme; ⌘K action panel, ⌘, settings
+- `settings.json` is what the GUI writes to; curated config lives in `base.json` (imported)
+- Theme `tokyo-sketchy` matches the SketchyBar palette; `vicinae theme set <id>` to switch
+- Grant Accessibility + Input Monitoring in System Settings for paste-to-window / snippets
+- `vicinae server` restarts the daemon, `vicinae logs` shows what it loaded
+
+---
+
 ### Agent Configuration
 
 Reusable agentic-coding configuration lives under `agent/`:
