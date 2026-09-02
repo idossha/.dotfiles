@@ -13,7 +13,8 @@ after-login-command = []
 # You can use it to add commands that run after AeroSpace startup.
 # 'after-startup-command' is run after 'after-login-command'
 # Available commands : https://nikitabobko.github.io/AeroSpace/commands
-after-startup-command = ['exec-and-forget sketchybar']
+# SketchyBar is started by launchd (brew services start sketchybar); just make sure it redraws.
+after-startup-command = ['exec-and-forget sketchybar --reload']
 
 # Notify Sketchybar about workspace change
 exec-on-workspace-change = ['/bin/bash', '-c',
@@ -72,12 +73,12 @@ outer.left =       10
 outer.bottom =     10
 outer.right =      10
 
+# Leave room for SketchyBar (height 32). The native menu bar is hidden via install/macos_defaults.sh.
+# macOS already excludes the notch strip (37pt) from the usable area on the built-in display, so it
+# only needs a small gap; external monitors need the full bar height + gap.
 outer.top = [
-  { monitor."CB272 E" = 10 },  #home
-  { monitor."CB282K" =  10 },  #home
-  { monitor."Build-in Retina Display" =  30 }, #office  
-  { monitor."DELL 2314H" =  30 },             #office
-                        10 # Default outer top gap
+  { monitor."Built-in Retina Display" = 8 },
+  40
 ]
 
 # 'main' binding mode declaration
@@ -236,4 +237,8 @@ run = 'layout floating'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.Preview'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.systempreferences'
 run = 'layout floating'
