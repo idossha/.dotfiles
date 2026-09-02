@@ -1,0 +1,81 @@
+# Vicinae theme matching the SketchyBar / AeroSpace palette in ~/.dotfiles
+# (sketchybar/.config/sketchybar/colors.sh). Catppuccin-Macchiato-ish accents on a Tokyo Night base.
+
+[meta]
+name = "Tokyo Sketchy"
+description = "Dark theme matching the dotfiles SketchyBar palette"
+variant = "dark"
+inherits = "vicinae-dark"
+
+[colors.core]
+accent = "#8aadf4"
+accent_foreground = "#1a1b26"
+background = "#1a1b26"
+foreground = "#e1e3e4"
+secondary_background = "#24273a"
+border = "#2a2b3d"
+
+[colors.main_window]
+border = "#2a2b3d"
+footer = { background = "colors.core.secondary_background" }
+
+[colors.settings_window]
+border = "#2a2b3d"
+
+[colors.accents]
+blue = "#8aadf4"
+green = "#a6da95"
+magenta = "#f5bde6"
+orange = "#f5a97f"
+red = "#ed8796"
+yellow = "#eed49f"
+cyan = "#8bd5ca"
+purple = "#c6a0f6"
+
+[colors.shortcut]
+border = "#494d64"
+
+[colors.text]
+default = "colors.core.foreground"
+muted = "#7a7f9a"
+danger = "#ed8796"
+success = "#a6da95"
+placeholder = "#494d64"
+selection = { background = "#8aadf4", foreground = "#1a1b26" }
+
+[colors.text.links]
+default = "#8aadf4"
+visited = "#c6a0f6"
+
+[colors.input]
+border = "#2a2b3d"
+border_focus = "#8aadf4"
+border_error = "#ed8796"
+
+[colors.button.primary]
+background = "#24273a"
+foreground = "#e1e3e4"
+hover = { background = "#363a4f" }
+focus = { outline = "colors.core.accent" }
+
+[colors.list.item.hover]
+foreground = "#e1e3e4"
+secondary_foreground = "#e1e3e4"
+
+[colors.list.item.selection]
+background = "#24273a"
+foreground = "#e1e3e4"
+secondary_background = "#24273a"
+secondary_foreground = "#e1e3e4"
+
+[colors.grid.item]
+background = "#24273a"
+hover = { outline = "#8aadf4" }
+selection = { outline = "#8aadf4" }
+
+[colors.scrollbars]
+background = "#494d64"
+
+[colors.loading]
+bar = "#8aadf4"
+spinner = "#e1e3e4"

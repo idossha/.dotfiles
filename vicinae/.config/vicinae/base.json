@@ -1,0 +1,68 @@
+// Curated Vicinae config. Merged on top of `vicinae config default`; only overrides live here.
+// Docs: https://docs.vicinae.com/config
+{
+  "$schema": "https://vicinae.com/schemas/config.json",
+
+  "telemetry": { "system_info": false },
+
+  // Needed for "paste to active window" and snippet expansion
+  // (macOS: grant Vicinae Accessibility + Input Monitoring).
+  "input_server": { "enabled": true },
+
+  // Keep root search snappy; use the dedicated File Search command instead.
+  "search_files_in_root": false,
+
+  // Escape walks back; Cmd+W / click-away still closes.
+  "escape_key_behavior": "navigate_back",
+  "pop_on_backspace": true,
+  "close_on_focus_loss": true,
+  "pop_to_root_on_close": true,
+
+  "favicon_service": "google",
+
+  // Vim-style list navigation (ctrl-j/k etc.)
+  "keybinding": "vim",
+
+  "font": {
+    "normal": { "family": "Hack Nerd Font", "size": 13 }
+  },
+
+  // Custom themes live in ~/.local/share/vicinae/themes (stowed from dotfiles).
+  "theme": {
+    "light": { "name": "vicinae-light", "icon_theme": "auto" },
+    "dark":  { "name": "tokyo-sketchy", "icon_theme": "auto" }
+  },
+
+  "launcher_window": {
+    "opacity": 0.92,
+    "material": "auto",
+    "rounding": 12,
+    "clock": { "enabled": true, "format": "ddd HH:mm", "interval": 30 },
+    "compact_mode": { "enabled": false },
+    "size": { "width": 800, "height": 500 }
+  },
+
+  "global_shortcuts": {
+    // Same muscle memory as Raycast: ⌥ Space
+    "toggle": "alt+space",
+    "inhibit_apps": []
+  },
+
+  // "control" maps to ⌘ on macOS.
+  "keybinds": {
+    "open-settings": "control+,",
+    "toggle-action-panel": "control+K",
+    "open-search-filter": "control+P"
+  },
+
+  "favorites": [
+    "clipboard:history",
+    "files:search",
+    "calculator:history"
+  ],
+
+  "fallbacks": [
+    "files:search",
+    "calculator:history"
+  ]
+}
