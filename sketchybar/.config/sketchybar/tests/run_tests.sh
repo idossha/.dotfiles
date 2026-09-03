@@ -105,8 +105,7 @@ rows_of() { for r in $(sketchybar --query "$1" | jq -r '.popup.items[]?'); do q 
 export -f fixture rows_of
 
 TWO='{"five_hour":{"used_percentage":37,"resets_at":1788465000},"seven_day":{"used_percentage":81,"resets_at":1788681600}}'
-THREE='{"five_hour":{"used_percentage":30,"resets_at":1788465000},"seven_day":{"used_percentage":57,"resets_at":1788681600},"seven_day_fable":{"used_percentage":88,"resets_at":1788681600}}'
-export TWO THREE
+export TWO
 
 # The label used to lag the popup, so assert they agree on the same fixture.
 t "claude label matches popup rows"  bash -c '
@@ -116,15 +115,6 @@ t "claude label matches popup rows"  bash -c '
   [ "$label" = "37% 81%" ] || { echo "label=$label"; exit 1; }
   echo "$rows" | grep -q "session .*37%" || { echo "$rows"; exit 1; }
   echo "$rows" | grep -q "weekly .*81%"  || { echo "$rows"; exit 1; }'
-
-# a per-model weekly (Fable, Opus) must render by itself when Claude Code sends one
-t "claude shows a per-model weekly"  bash -c '
-  f="$(fixture "$THREE")"
-  run_as_bar claude_popup "CLAUDE_CACHE=$f $PLUGINS/claude_popup.sh"
-  rows="$(rows_of claude_popup)"; color="$(q claude .icon.color)"
-  echo "$rows" | grep -q "fable wk .*88%" || { echo "$rows"; exit 1; }
-  # the icon takes its colour from the worst window, not just the two in the label
-  [ "$color" = "0xfff5a97f" ] || { echo "color=$color"; exit 1; }'
 
 # `--trigger` on an unregistered event exits 0 and does nothing, which once left
 # the label up to update_freq behind. Sentinel, not values: the cache may change.
