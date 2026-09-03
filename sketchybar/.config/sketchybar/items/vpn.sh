@@ -6,5 +6,4 @@ sketchybar --add item vpn right \
     label="GP" \
     update_freq=10 \
     script="$PLUGIN_DIR/vpn.sh" \
-    click_script="open -a GlobalProtect" \
   --subscribe vpn system_woke

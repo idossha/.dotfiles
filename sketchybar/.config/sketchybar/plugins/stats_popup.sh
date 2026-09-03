@@ -30,8 +30,5 @@ TEMP="$(sudo -n powermetrics --samplers smc -n1 -i1 2>/dev/null | awk -F': ' '/C
   echo "$BATT"
   [ -n "$CYCLES" ] && echo "cycles    $CYCLES"
   echo "#"
-  echo "#up $UP · click to open Stats"
+  echo "#up $UP"
 } | "$CONFIG_DIR/plugins/popup_rows.sh" stats stats.row "Hack Nerd Font Mono:Regular:12.0"
-
-LAST="$(sketchybar --query stats | jq -r '.popup.items | length')"
-sketchybar --set "stats.row.$LAST" click_script="open -a Stats; sketchybar --set stats popup.drawing=off"

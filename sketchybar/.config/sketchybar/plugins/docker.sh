@@ -1,11 +1,6 @@
 #!/bin/bash
-# Docker Desktop: running container count. Click opens/starts Docker Desktop.
+# Docker Desktop: running container count.
 source "$CONFIG_DIR/colors.sh"
-
-if [ "$1" = "click" ]; then
-  open -a Docker
-  exit 0
-fi
 
 DOCKER_BIN="$(command -v docker || echo /usr/local/bin/docker)"
 

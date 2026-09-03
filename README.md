@@ -77,13 +77,21 @@ The Docker setup provides a clean Ubuntu environment to test:
 ### Status Bar (SketchyBar + AeroSpace)
 
 `sketchybar/` is stowed to `~/.config/sketchybar`. Left: Apple menu + AeroSpace
-workspaces (focused highlighted, empty dimmed). Right: cpu/mem/battery (click opens
-Stats), Amphetamine (click toggles), GlobalProtect, Docker, Wi-Fi, clock.
+workspaces (focused highlighted, empty dimmed). Right: Claude Code plan usage,
+cpu/mem/battery, Amphetamine, GlobalProtect, Docker, Wi-Fi, clock.
+
+The right-hand side is read-only. Nothing there takes an action: clicking an item
+only opens or closes its details popup, and the popup rows are plain text.
 
 - Runs as a launchd service: `brew services start sketchybar`
 - `install/macos_defaults.sh` hides the native menu bar and sets the Mission Control
   options AeroSpace needs (run by `apple_install.sh`, safe to re-run)
 - Edit `~/.config/sketchybar/colors.sh` / `icons.sh` for theming; `sketchybar --reload`
+- The Claude Code item reads `~/.cache/sketchybar/claude_usage.json`, which
+  `agent/claude/statusline-command.sh` writes on every statusline render — the plan
+  limits are only exposed there, so with no session open the numbers go stale (the
+  item dims after 6h)
+- `~/.config/sketchybar/tests/run_tests.sh` smoke-tests every item against the live bar
 
 ---
 

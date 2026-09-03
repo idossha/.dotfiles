@@ -20,4 +20,3 @@ cal -h | sed -e '/^[[:space:]]*$/d' | while IFS= read -r line; do
     break
   fi
 done
-sketchybar --set "cal.row.$(( $(cal -h | sed -e '/^[[:space:]]*$/d' | wc -l) + 1 ))" click_script="open -a Calendar; sketchybar --set clock_popup popup.drawing=off" 2>/dev/null

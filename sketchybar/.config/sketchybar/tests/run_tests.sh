@@ -42,7 +42,7 @@ done
 sleep 2
 echo "== bar =="
 t "bar is at top"                 [ "$(q bar .position)" = "top" ]
-t "all items exist"               bash -c 'for i in apple clock wifi docker vpn amphetamine cpu memory battery stats clock_popup wifi_popup; do sketchybar --query $i >/dev/null || exit 1; done'
+t "all items exist"               bash -c 'for i in apple clock wifi docker vpn amphetamine cpu memory battery stats claude claude_popup clock_popup wifi_popup; do sketchybar --query $i >/dev/null || exit 1; done'
 t "workspace items exist"         bash -c 'for s in $(aerospace list-workspaces --all); do sketchybar --query space.$s >/dev/null || exit 1; done'
 
 echo "== plugins (periodic scripts) =="
@@ -54,6 +54,8 @@ t "wifi label non-empty"          bash -c 'run_as_bar wifi "$PLUGINS/wifi.sh"; [
 t "docker plugin runs"            run_as_bar docker "$PLUGINS/docker.sh"
 t "vpn plugin runs"               run_as_bar vpn "$PLUGINS/vpn.sh"
 t "amphetamine plugin runs"       run_as_bar amphetamine "$PLUGINS/amphetamine.sh"
+t "claude label is two percents" bash -c 'run_as_bar claude "$PLUGINS/claude_usage.sh"; [[ "$(q claude .label.value)" =~ ^([0-9]+%\ [0-9]+%|—)$ ]]'
+t "claude usage cache is valid json" bash -c '[ ! -e "$HOME/.cache/sketchybar/claude_usage.json" ] || jq -e .five_hour.used_percentage "$HOME/.cache/sketchybar/claude_usage.json"'
 t "focused workspace highlighted" bash -c 'f=$(aerospace list-workspaces --focused); run_as_bar space.$f "$PLUGINS/spaces.sh $f"; [ "$(q space.$f .geometry.background.drawing)" = "on" ]'
 
 echo "== wifi ssid =="
@@ -73,12 +75,19 @@ t "indented rows get label padding"  bash -c 'click wifi; p=$(q wifi.row.6 .labe
 t "calendar popup closes on 2nd click" bash -c 'click clock; [ "$(q clock_popup .popup.drawing)" = off ]'
 t "wifi popup opens fast (<1s)"      bash -c 's=$(date +%s); click wifi; e=$(date +%s); [ $((e-s)) -le 1 ] && [ "$(q wifi_popup .popup.drawing)" = on ]'
 t "wifi popup lists saved networks"  bash -c 'first=$(wifi_saved "$(wifi_dev)" | head -1); sketchybar --query wifi_popup | jq -r ".popup.items[]" | while read r; do q $r .label.value; done | grep -q "$first"'
-t "wifi rows have join click_script" bash -c 'sketchybar --query wifi_popup | jq -r ".popup.items[]" | while read r; do q $r .scripting.click_script; done | grep -q wifi_join'
-t "wifi header toggles power"        bash -c 'q wifi.row.1 .scripting.click_script | grep -q setairportpower'
-t "wifi rows have hover script"      bash -c 'q wifi.row.1 .scripting.script | grep -q row_hover'
+# sketchybar reports an unset script as the string "(null)".
+unset_p() { [ -z "$1" ] || [ "$1" = "(null)" ]; }
+export -f unset_p
+t "popup rows are display-only"      bash -c 'for o in wifi_popup clock_popup stats claude_popup; do for r in $(sketchybar --query $o | jq -r ".popup.items[]?"); do unset_p "$(q $r .scripting.click_script)" || exit 1; unset_p "$(q $r .scripting.script)" || exit 1; done; done'
+t "right-side items have no actions"  bash -c 'for i in wifi docker vpn amphetamine cpu memory battery claude clock; do c=$(q $i .scripting.click_script); unset_p "$c" && continue; case "$c" in *"popup.sh toggle"*) ;; *) exit 1 ;; esac; done'
 t "wifi popup closes on 2nd click"   bash -c 'click wifi; [ "$(q wifi_popup .popup.drawing)" = off ]'
 t "stats popup opens with rows"      bash -c 'click cpu; [ "$(q stats .popup.drawing)" = on ] && [ "$(q stats ".popup.items|length")" -ge 10 ]'
 t "stats popup closes on 2nd click"  bash -c 'click memory; [ "$(q stats .popup.drawing)" = off ]'
+t "claude popup opens with rows"     bash -c 'click claude; [ "$(q claude_popup .popup.drawing)" = on ] && [ "$(q claude_popup ".popup.items|length")" -ge 2 ]'
+t "claude popup closes on 2nd click" bash -c 'click claude; [ "$(q claude_popup .popup.drawing)" = off ]'
+t "claude popup survives a refresh"  bash -c 'click claude; run_as_bar claude "$PLUGINS/claude_usage.sh"; SENDER=claude_usage run_as_bar claude "$PLUGINS/claude_usage.sh"; s=$(q claude_popup .popup.drawing); click claude; [ "$s" = on ]'
+t "claude item owns no popup"        bash -c '[ "$(q claude ".popup.items|length")" -eq 0 ]'
+t "claude exit event hides popup"    bash -c 'sketchybar --set claude_popup popup.drawing=on; SENDER=mouse.exited.global run_as_bar claude_popup "$PLUGINS/popup.sh"; [ "$(q claude_popup .popup.drawing)" = off ]'
 t "apple popup has menu rows"        bash -c '[ "$(q apple ".popup.items|length")" -ge 8 ]'
 t "mouse.exited.global hides popup"  bash -c 'sketchybar --set stats popup.drawing=on; SENDER=mouse.exited.global run_as_bar stats "$PLUGINS/popup.sh"; [ "$(q stats .popup.drawing)" = off ]'
 

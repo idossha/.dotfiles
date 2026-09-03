@@ -1,6 +1,7 @@
 #!/bin/bash
 # popup_rows.sh <owner-item> <prefix> <font> <<< "line\nline..."
 # Replaces the rows of a popup with the lines read on stdin (one sketchybar call).
+# Rows are display-only: no click_script, no hover highlight.
 OWNER="$1"; PREFIX="$2"; FONT_SPEC="$3"
 source "$CONFIG_DIR/colors.sh"
 args=()
@@ -24,8 +25,6 @@ while IFS= read -r line; do
     --set "$PREFIX.$i" icon.drawing=off \
       label="$line" label.font="$FONT_SPEC" label.color=$color \
       label.padding_left=$pad label.padding_right=10 \
-      padding_left=0 padding_right=0 background.drawing=off \
-      background.corner_radius=4 script="$CONFIG_DIR/plugins/row_hover.sh" \
-    --subscribe "$PREFIX.$i" mouse.entered mouse.exited)
+      padding_left=0 padding_right=0 background.drawing=off)
 done
 [ ${#args[@]} -gt 0 ] && sketchybar "${args[@]}" 2>/dev/null
