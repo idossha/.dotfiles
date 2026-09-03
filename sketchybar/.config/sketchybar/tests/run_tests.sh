@@ -79,7 +79,9 @@ t "wifi popup lists saved networks"  bash -c 'first=$(wifi_saved "$(wifi_dev)" |
 unset_p() { [ -z "$1" ] || [ "$1" = "(null)" ]; }
 export -f unset_p
 t "popup rows are display-only"      bash -c 'for o in wifi_popup clock_popup stats claude_popup; do for r in $(sketchybar --query $o | jq -r ".popup.items[]?"); do unset_p "$(q $r .scripting.click_script)" || exit 1; unset_p "$(q $r .scripting.script)" || exit 1; done; done'
-t "right-side items have no actions"  bash -c 'for i in wifi docker vpn amphetamine cpu memory battery claude clock; do c=$(q $i .scripting.click_script); unset_p "$c" && continue; case "$c" in *"popup.sh toggle"*) ;; *) exit 1 ;; esac; done'
+t "only popup toggles on view items" bash -c 'for i in wifi docker cpu memory battery claude clock; do c=$(q $i .scripting.click_script); unset_p "$c" && continue; case "$c" in *"popup.sh toggle"*) ;; *) exit 1 ;; esac; done'
+t "amphetamine click toggles"        bash -c 'q amphetamine .scripting.click_script | grep -q "amphetamine.sh toggle"'
+t "globalprotect click opens app"    bash -c 'q vpn .scripting.click_script | grep -q "open -a GlobalProtect"'
 t "wifi popup closes on 2nd click"   bash -c 'click wifi; [ "$(q wifi_popup .popup.drawing)" = off ]'
 t "stats popup opens with rows"      bash -c 'click cpu; [ "$(q stats .popup.drawing)" = on ] && [ "$(q stats ".popup.items|length")" -ge 10 ]'
 t "stats popup closes on 2nd click"  bash -c 'click memory; [ "$(q stats .popup.drawing)" = off ]'
