@@ -94,30 +94,49 @@ t "docker popup is fast (<6s)"       bash -c 's=$(date +%s); run_as_bar docker_p
 t "docker popup closes on 2nd click" bash -c 'click docker; [ "$(q docker_popup .popup.drawing)" = off ]'
 t "stats popup opens with rows"      bash -c 'click cpu; [ "$(q stats .popup.drawing)" = on ] && [ "$(q stats ".popup.items|length")" -ge 10 ]'
 t "stats popup closes on 2nd click"  bash -c 'click memory; [ "$(q stats .popup.drawing)" = off ]'
-# The label used to lag the popup by up to update_freq seconds: write a new cache,
-# open the popup, and the two must report the same numbers.
+# These drive the plugins against a fixture cache instead of the live one: this
+# session's own statusline rewrites ~/.cache/sketchybar/claude_usage.json on every
+# render, which raced the assertions and made them flaky.
+fixture() { # fixture <json> -> path
+  local f="${TMPDIR:-/tmp}/claude_usage_fixture.json"
+  printf '%s' "$1" > "$f"; echo "$f"
+}
+rows_of() { for r in $(sketchybar --query "$1" | jq -r '.popup.items[]?'); do q "$r" .label.value; done; }
+export -f fixture rows_of
+
+TWO='{"five_hour":{"used_percentage":37,"resets_at":1788465000},"seven_day":{"used_percentage":81,"resets_at":1788681600}}'
+THREE='{"five_hour":{"used_percentage":30,"resets_at":1788465000},"seven_day":{"used_percentage":57,"resets_at":1788681600},"seven_day_fable":{"used_percentage":88,"resets_at":1788681600}}'
+export TWO THREE
+
+# The label used to lag the popup, so assert they agree on the same fixture.
 t "claude label matches popup rows"  bash -c '
-  c="$HOME/.cache/sketchybar/claude_usage.json"; b="$c.testbak"
-  [ -e "$c" ] && cp "$c" "$b"
-  printf "%s" "{\"five_hour\":{\"used_percentage\":37,\"resets_at\":1788465000},\"seven_day\":{\"used_percentage\":81,\"resets_at\":1788681600}}" > "$c"
-  click claude
-  label="$(q claude .label.value)"
-  rows="$(for r in $(sketchybar --query claude_popup | jq -r ".popup.items[]?"); do q $r .label.value; done)"
-  click claude
-  [ -e "$b" ] && mv "$b" "$c"
-  run_as_bar claude "$PLUGINS/claude_usage.sh"
+  f="$(fixture "$TWO")"
+  CLAUDE_CACHE="$f" run_as_bar claude_popup "CLAUDE_CACHE=$f $PLUGINS/claude_popup.sh"
+  label="$(q claude .label.value)"; rows="$(rows_of claude_popup)"
   [ "$label" = "37% 81%" ] || { echo "label=$label"; exit 1; }
   echo "$rows" | grep -q "session .*37%" || { echo "$rows"; exit 1; }
-  echo "$rows" | grep -q "weekly .*81%" || { echo "$rows"; exit 1; }'
+  echo "$rows" | grep -q "weekly .*81%"  || { echo "$rows"; exit 1; }'
+
+# a per-model weekly (Fable, Opus) must render by itself when Claude Code sends one
+t "claude shows a per-model weekly"  bash -c '
+  f="$(fixture "$THREE")"
+  run_as_bar claude_popup "CLAUDE_CACHE=$f $PLUGINS/claude_popup.sh"
+  rows="$(rows_of claude_popup)"; color="$(q claude .icon.color)"
+  echo "$rows" | grep -q "fable wk .*88%" || { echo "$rows"; exit 1; }
+  # the icon takes its colour from the worst window, not just the two in the label
+  [ "$color" = "0xfff5a97f" ] || { echo "color=$color"; exit 1; }'
+
+# `--trigger` on an unregistered event exits 0 and does nothing, which once left
+# the label up to update_freq behind. Sentinel, not values: the cache may change.
 t "claude event is registered"       bash -c '
-  c="$HOME/.cache/sketchybar/claude_usage.json"; b="$c.testbak"
-  [ -e "$c" ] && cp "$c" "$b"
-  printf "%s" "{\"five_hour\":{\"used_percentage\":11,\"resets_at\":1788465000},\"seven_day\":{\"used_percentage\":22,\"resets_at\":1788681600}}" > "$c"
-  sketchybar --trigger claude_usage; sleep 1
-  label="$(q claude .label.value)"
-  [ -e "$b" ] && mv "$b" "$c"
-  run_as_bar claude "$PLUGINS/claude_usage.sh"
-  [ "$label" = "11% 22%" ] || { echo "label=$label"; exit 1; }'
+  sketchybar --set claude label=SENTINEL
+  sketchybar --trigger claude_usage
+  for _ in $(seq 30); do
+    [ "$(q claude .label.value)" = SENTINEL ] || exit 0
+    perl -e "select undef,undef,undef,0.1"
+  done
+  exit 1'
+
 t "claude popup opens with rows"     bash -c 'click claude; [ "$(q claude_popup .popup.drawing)" = on ] && [ "$(q claude_popup ".popup.items|length")" -ge 2 ]'
 t "claude popup closes on 2nd click" bash -c 'click claude; [ "$(q claude_popup .popup.drawing)" = off ]'
 t "claude popup survives a refresh"  bash -c 'click claude; run_as_bar claude "$PLUGINS/claude_usage.sh"; SENDER=claude_usage run_as_bar claude "$PLUGINS/claude_usage.sh"; s=$(q claude_popup .popup.drawing); click claude; [ "$s" = on ]'
