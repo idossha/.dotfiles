@@ -85,6 +85,30 @@ t "globalprotect click opens app"    bash -c 'q vpn .scripting.click_script | gr
 t "wifi popup closes on 2nd click"   bash -c 'click wifi; [ "$(q wifi_popup .popup.drawing)" = off ]'
 t "stats popup opens with rows"      bash -c 'click cpu; [ "$(q stats .popup.drawing)" = on ] && [ "$(q stats ".popup.items|length")" -ge 10 ]'
 t "stats popup closes on 2nd click"  bash -c 'click memory; [ "$(q stats .popup.drawing)" = off ]'
+# The label used to lag the popup by up to update_freq seconds: write a new cache,
+# open the popup, and the two must report the same numbers.
+t "claude label matches popup rows"  bash -c '
+  c="$HOME/.cache/sketchybar/claude_usage.json"; b="$c.testbak"
+  [ -e "$c" ] && cp "$c" "$b"
+  printf "%s" "{\"five_hour\":{\"used_percentage\":37,\"resets_at\":1788465000},\"seven_day\":{\"used_percentage\":81,\"resets_at\":1788681600}}" > "$c"
+  click claude
+  label="$(q claude .label.value)"
+  rows="$(for r in $(sketchybar --query claude_popup | jq -r ".popup.items[]?"); do q $r .label.value; done)"
+  click claude
+  [ -e "$b" ] && mv "$b" "$c"
+  run_as_bar claude "$PLUGINS/claude_usage.sh"
+  [ "$label" = "37% 81%" ] || { echo "label=$label"; exit 1; }
+  echo "$rows" | grep -q "session .*37%" || { echo "$rows"; exit 1; }
+  echo "$rows" | grep -q "weekly .*81%" || { echo "$rows"; exit 1; }'
+t "claude event is registered"       bash -c '
+  c="$HOME/.cache/sketchybar/claude_usage.json"; b="$c.testbak"
+  [ -e "$c" ] && cp "$c" "$b"
+  printf "%s" "{\"five_hour\":{\"used_percentage\":11,\"resets_at\":1788465000},\"seven_day\":{\"used_percentage\":22,\"resets_at\":1788681600}}" > "$c"
+  sketchybar --trigger claude_usage; sleep 1
+  label="$(q claude .label.value)"
+  [ -e "$b" ] && mv "$b" "$c"
+  run_as_bar claude "$PLUGINS/claude_usage.sh"
+  [ "$label" = "11% 22%" ] || { echo "label=$label"; exit 1; }'
 t "claude popup opens with rows"     bash -c 'click claude; [ "$(q claude_popup .popup.drawing)" = on ] && [ "$(q claude_popup ".popup.items|length")" -ge 2 ]'
 t "claude popup closes on 2nd click" bash -c 'click claude; [ "$(q claude_popup .popup.drawing)" = off ]'
 t "claude popup survives a refresh"  bash -c 'click claude; run_as_bar claude "$PLUGINS/claude_usage.sh"; SENDER=claude_usage run_as_bar claude "$PLUGINS/claude_usage.sh"; s=$(q claude_popup .popup.drawing); click claude; [ "$s" = on ]'

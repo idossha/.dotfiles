@@ -1,37 +1,10 @@
 #!/bin/bash
-# Popup rows for the `claude` item: each window's usage and when it resets.
-CACHE="$HOME/.cache/sketchybar/claude_usage.json"
+# Popup rows for the Claude Code usage item: each window's usage and reset time.
+source "$CONFIG_DIR/plugins/claude_lib.sh"
 
-rows() {
-  if [ ! -r "$CACHE" ]; then
-    echo "#no usage data yet"
-    echo "#start a Claude Code session"
-    return
-  fi
-
-  echo "*Claude Code usage"
-
-  emit() {  # emit <label> <jq-key>
-    local pct reset
-    pct="$(jq -r ".${2}.used_percentage // empty | round" "$CACHE" 2>/dev/null)"
-    [ -z "$pct" ] && return
-    reset="$(jq -r ".${2}.resets_at // empty" "$CACHE" 2>/dev/null)"
-    printf '  %-10s %3s%%  %s\n' "$1" "$pct" "$(bar "$pct")"
-    [ -n "$reset" ] && printf '#  %-10s resets %s\n' "" "$(date -r "$reset" '+%a %H:%M')"
-  }
-
-  emit "session" five_hour
-  emit "weekly"  seven_day
-
-  local age
-  age=$(( ($(date +%s) - $(stat -f %m "$CACHE")) / 60 ))
-  echo "#"
-  if [ "$age" -lt 60 ]; then
-    echo "#updated ${age}m ago"
-  else
-    echo "#updated $((age / 60))h ago"
-  fi
-}
+# Refresh the label from the same read that fills the popup, so the two can't
+# show different numbers when the cache changed since the item's last tick.
+claude_set_label
 
 bar() {  # 10-cell meter
   local filled=$(( ($1 + 5) / 10 )) i out=""
@@ -40,6 +13,28 @@ bar() {  # 10-cell meter
     if [ "$i" -le "$filled" ]; then out="$out#"; else out="$out."; fi
   done
   printf '%s' "$out"
+}
+
+rows() {
+  local five seven age
+  if ! read -r five seven age < <(claude_read); then
+    echo "#no usage data yet"
+    echo "#start a Claude Code session"
+    return
+  fi
+
+  echo "*Claude Code usage"
+  printf '  %-10s %3s%%  %s\n' "session" "$five"  "$(bar "$five")"
+  printf '#  %-10s resets %s\n' "" "$(date -r "$(jq -r '.five_hour.resets_at' "$CLAUDE_CACHE")" '+%a %H:%M')"
+  printf '  %-10s %3s%%  %s\n' "weekly"  "$seven" "$(bar "$seven")"
+  printf '#  %-10s resets %s\n' "" "$(date -r "$(jq -r '.seven_day.resets_at' "$CLAUDE_CACHE")" '+%a %H:%M')"
+
+  echo "#"
+  if [ "$age" -lt 3600 ]; then
+    echo "#updated $((age / 60))m ago"
+  else
+    echo "#updated $((age / 3600))h ago"
+  fi
 }
 
 rows | "$CONFIG_DIR/plugins/popup_rows.sh" claude_popup claude.row "Hack Nerd Font Mono:Regular:12.0"

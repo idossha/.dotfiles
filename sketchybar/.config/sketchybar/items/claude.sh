@@ -4,6 +4,11 @@
 # The popup hangs off a bracket rather than the item itself: an item that owns its
 # own popup races its click handler against its own hover events, so the popup
 # sometimes fails to open. Every other popup here is owned by a separate item.
+# The custom event must be registered before anything can subscribe to it;
+# `--trigger` on an unregistered event exits 0 and does nothing, which left the
+# label up to update_freq seconds behind the popup.
+sketchybar --add event claude_usage
+
 sketchybar --add item claude right \
   --set claude \
     icon="$ICON_CLAUDE" \
