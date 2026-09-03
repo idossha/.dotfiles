@@ -80,8 +80,10 @@ The Docker setup provides a clean Ubuntu environment to test:
 workspaces (focused highlighted, empty dimmed). Right: Claude Code plan usage,
 cpu/mem/battery, Amphetamine, GlobalProtect, Docker, Wi-Fi, clock.
 
-Popups are read-only: their rows are plain text, with no click targets and no
-hover highlight. Clicking an item opens or closes its popup, except Amphetamine
+Clock, Wi-Fi, Docker, cpu/mem/battery and the Claude Code item each open a
+details popup. Popups are read-only: their rows are plain text, with no click
+targets and no hover highlight. Clicking an item opens or closes its popup,
+except Amphetamine
 (click toggles a keep-awake session) and GlobalProtect (click opens the app).
 
 - Runs as a launchd service: `brew services start sketchybar`

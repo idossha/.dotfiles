@@ -12,10 +12,13 @@ i=0
 while IFS= read -r line; do
   i=$((i+1))
   color=$TEXT
-  # lines prefixed with "#" render dimmed (headers/notes); "*" = accent
+  # lines prefixed with "#" render dimmed (headers/notes); "*" = accent,
+  # "+" = green (healthy), "!" = yellow (needs attention)
   case "$line" in
     "#"*) color=$TEXT_DIM; line="${line#\#}" ;;
     "*"*) color=$ACCENT;   line="${line#\*}" ;;
+    "+"*) color=$GREEN;    line="${line#+}"   ;;
+    "!"*) color=$YELLOW;   line="${line#!}"   ;;
   esac
   # sketchybar mis-measures labels with leading whitespace (they get clipped), so
   # turn indentation into label padding instead: ~7px per space at 12pt mono.

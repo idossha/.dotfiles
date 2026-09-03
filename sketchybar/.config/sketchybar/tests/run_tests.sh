@@ -42,7 +42,7 @@ done
 sleep 2
 echo "== bar =="
 t "bar is at top"                 [ "$(q bar .position)" = "top" ]
-t "all items exist"               bash -c 'for i in apple clock wifi docker vpn amphetamine cpu memory battery stats claude claude_popup clock_popup wifi_popup; do sketchybar --query $i >/dev/null || exit 1; done'
+t "all items exist"               bash -c 'for i in apple clock wifi docker vpn amphetamine cpu memory battery stats claude claude_popup docker_popup clock_popup wifi_popup; do sketchybar --query $i >/dev/null || exit 1; done'
 t "workspace items exist"         bash -c 'for s in $(aerospace list-workspaces --all); do sketchybar --query space.$s >/dev/null || exit 1; done'
 
 echo "== plugins (periodic scripts) =="
@@ -68,6 +68,11 @@ else
 fi
 
 echo "== popups (click scripts) =="
+# every toggle test below assumes its popup starts closed; a popup left open by
+# hand (or by an earlier failed run) would otherwise invert the whole section
+for _p in clock_popup wifi_popup stats claude_popup docker_popup; do
+  sketchybar --set "$_p" popup.drawing=off
+done
 t "calendar popup opens with rows"   bash -c 'click clock; [ "$(q clock_popup .popup.drawing)" = on ] && [ "$(q clock_popup ".popup.items|length")" -ge 6 ]'
 t "calendar first week not clipped"  bash -c 'q cal.row.3 .label.value | grep -q "1"'
 t "calendar rows have no leading ws" bash -c '! q cal.row.3 .label.value | grep -q "^[[:space:]]"'
@@ -78,11 +83,15 @@ t "wifi popup lists saved networks"  bash -c 'first=$(wifi_saved "$(wifi_dev)" |
 # sketchybar reports an unset script as the string "(null)".
 unset_p() { [ -z "$1" ] || [ "$1" = "(null)" ]; }
 export -f unset_p
-t "popup rows are display-only"      bash -c 'for o in wifi_popup clock_popup stats claude_popup; do for r in $(sketchybar --query $o | jq -r ".popup.items[]?"); do unset_p "$(q $r .scripting.click_script)" || exit 1; unset_p "$(q $r .scripting.script)" || exit 1; done; done'
+t "popup rows are display-only"      bash -c 'for o in wifi_popup clock_popup stats claude_popup docker_popup; do for r in $(sketchybar --query $o | jq -r ".popup.items[]?"); do unset_p "$(q $r .scripting.click_script)" || exit 1; unset_p "$(q $r .scripting.script)" || exit 1; done; done'
 t "only popup toggles on view items" bash -c 'for i in wifi docker cpu memory battery claude clock; do c=$(q $i .scripting.click_script); unset_p "$c" && continue; case "$c" in *"popup.sh toggle"*) ;; *) exit 1 ;; esac; done'
 t "amphetamine click toggles"        bash -c 'q amphetamine .scripting.click_script | grep -q "amphetamine.sh toggle"'
 t "globalprotect click opens app"    bash -c 'q vpn .scripting.click_script | grep -q "open -a GlobalProtect"'
 t "wifi popup closes on 2nd click"   bash -c 'click wifi; [ "$(q wifi_popup .popup.drawing)" = off ]'
+t "docker popup opens with rows"     bash -c 'click docker; [ "$(q docker_popup .popup.drawing)" = on ] && [ "$(q docker_popup ".popup.items|length")" -ge 2 ]'
+t "docker popup header is honest"    bash -c 'n=$(q docker .label.value); h=$(q docker.row.1 .label.value); case "$h" in "Docker · $n running") ;; "Docker") [ "$n" = 0 ] || [ -z "$n" ] ;; *) exit 1 ;; esac'
+t "docker popup is fast (<6s)"       bash -c 's=$(date +%s); run_as_bar docker_popup "$PLUGINS/docker_popup.sh"; e=$(date +%s); [ $((e-s)) -le 6 ]'
+t "docker popup closes on 2nd click" bash -c 'click docker; [ "$(q docker_popup .popup.drawing)" = off ]'
 t "stats popup opens with rows"      bash -c 'click cpu; [ "$(q stats .popup.drawing)" = on ] && [ "$(q stats ".popup.items|length")" -ge 10 ]'
 t "stats popup closes on 2nd click"  bash -c 'click memory; [ "$(q stats .popup.drawing)" = off ]'
 # The label used to lag the popup by up to update_freq seconds: write a new cache,
