@@ -2,7 +2,7 @@
 
 ########################################
 # dotfiles macOS installation script of Ido Haber
-# Last update: September 2, 2026
+# Last update: September 3, 2026
 ########################################
 
 # Exit on error with better error handling
@@ -282,6 +282,7 @@ BREW_CASK_PACKAGES=(
   tailscale-app
   cyberduck
   zotero
+  opensuperwhisper  # local whisper dictation (replaces superwhisper); hold right-option to record
 )
 
 # Define Homebrew packages (all packages for macOS installation)

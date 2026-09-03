@@ -112,6 +112,22 @@ Apple Silicon only). `vicinae/` is stowed to `~/.config/vicinae` and
 
 ---
 
+### Dictation (OpenSuperWhisper)
+
+[OpenSuperWhisper](https://github.com/starmel/OpenSuperWhisper) replaces the commercial
+superwhisper (`brew install --cask opensuperwhisper`, Apple Silicon, macOS 14+). It runs
+whisper.cpp entirely on-device — no account, no network.
+
+- Hold **right option** to record, release to transcribe and paste at the cursor
+- Settings live in the `ru.starmel.OpenSuperWhisper` defaults domain, so there is no stow
+  package; the app's own Settings pane is the source of truth
+- Models download from the onboarding screen into
+  `~/Library/Application Support/ru.starmel.OpenSuperWhisper/whisper-models`
+- Grant Microphone + Accessibility in System Settings, or the paste step silently no-ops
+- `install/macos_defaults.sh` registers it as a hidden login item
+
+---
+
 ### Agent Configuration
 
 Reusable agentic-coding configuration lives under `agent/`:

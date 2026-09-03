@@ -46,3 +46,15 @@ echo "macOS defaults applied. Log out/in if the menu bar is still visible."
 if [ -d /Applications/Vicinae.app ] && ! pgrep -xq Vicinae; then
   open -a Vicinae >/dev/null 2>&1 || true
 fi
+
+# --- OpenSuperWhisper dictation ------------------------------------------
+# Local whisper transcription (replaces the commercial superwhisper).
+# Settings live in the ru.starmel.OpenSuperWhisper defaults domain, not in a
+# stowed dotfile; the model is downloaded from the app's onboarding screen.
+# Hold right-option to record, release to transcribe and paste.
+if [ -d /Applications/OpenSuperWhisper.app ]; then
+  if ! osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null | grep -q OpenSuperWhisper; then
+    osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/OpenSuperWhisper.app", hidden:true}' >/dev/null 2>&1 || true
+  fi
+  pgrep -xq OpenSuperWhisper || open -a OpenSuperWhisper >/dev/null 2>&1 || true
+fi
