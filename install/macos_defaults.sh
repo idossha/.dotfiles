@@ -48,11 +48,32 @@ if [ -d /Applications/Vicinae.app ] && ! pgrep -xq Vicinae; then
 fi
 
 # --- OpenSuperWhisper dictation ------------------------------------------
-# Local whisper transcription (replaces the commercial superwhisper).
-# Settings live in the ru.starmel.OpenSuperWhisper defaults domain, not in a
-# stowed dotfile; the model is downloaded from the app's onboarding screen.
-# Hold right-option to record, release to transcribe and paste.
+# Local whisper/parakeet transcription (replaces the commercial superwhisper).
+# There is no stowed dotfile: the app keeps everything in the
+# ru.starmel.OpenSuperWhisper defaults domain, so seed that domain here.
+#
+# Each key is written only when it is missing, because the app rewrites the
+# whole domain when it quits — clobbering a setting you changed in its GUI
+# would be worse than leaving a fresh machine slightly unconfigured. Seeding
+# also has to happen before the app launches for the same reason.
+osw_default() {
+  defaults read ru.starmel.OpenSuperWhisper "$1" >/dev/null 2>&1 ||
+    defaults write ru.starmel.OpenSuperWhisper "$1" -string "$2"
+}
+
 if [ -d /Applications/OpenSuperWhisper.app ]; then
+  if ! pgrep -xq OpenSuperWhisper; then
+    # Toggle recording with option+space. carbonKeyCode 49 is space, 2048 is
+    # the option modifier. Distinct from Vicinae's command+space toggle.
+    osw_default KeyboardShortcuts_toggleRecord '{"carbonKeyCode":49,"carbonModifiers":2048}'
+    # Hold-a-modifier-to-record is off; the toggle above is the only trigger.
+    osw_default modifierOnlyHotkey none
+    osw_default selectedEngine fluidaudio      # parakeet-tdt-0.6b, not whisper.cpp
+    osw_default fluidAudioModelVersion v3
+    osw_default whisperLanguage en
+    osw_default playSoundOnRecordStart 1
+  fi
+
   if ! osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null | grep -q OpenSuperWhisper; then
     osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/OpenSuperWhisper.app", hidden:true}' >/dev/null 2>&1 || true
   fi

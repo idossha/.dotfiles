@@ -118,13 +118,18 @@ Apple Silicon only). `vicinae/` is stowed to `~/.config/vicinae` and
 superwhisper (`brew install --cask opensuperwhisper`, Apple Silicon, macOS 14+). It runs
 whisper.cpp entirely on-device — no account, no network.
 
-- Hold **right option** to record, release to transcribe and paste at the cursor
-- Settings live in the `ru.starmel.OpenSuperWhisper` defaults domain, so there is no stow
-  package; the app's own Settings pane is the source of truth
-- Models download from the onboarding screen into
-  `~/Library/Application Support/ru.starmel.OpenSuperWhisper/whisper-models`
-- Grant Microphone + Accessibility in System Settings, or the paste step silently no-ops
-- `install/macos_defaults.sh` registers it as a hidden login item
+- Press **option+space** to start recording, again to transcribe and paste at the cursor
+- Settings live in the `ru.starmel.OpenSuperWhisper` defaults domain rather than a text
+  config, so there is no stow package. `install/macos_defaults.sh` seeds that domain with
+  `defaults write` instead, one key at a time and only when the key is missing — the app
+  rewrites the whole domain on quit, so it must be seeded before launch and must never
+  stomp a setting changed in the GUI
+- The engine is FluidAudio (`parakeet-tdt-0.6b-v3`), not whisper.cpp; the model downloads
+  from the onboarding screen into `~/Library/Application Support/FluidAudio/Models`, so
+  `whisper-models/` staying empty is expected
+- Grant Microphone (prompted on the first recording) and Accessibility in System Settings,
+  or the paste step silently no-ops
+- `install/macos_defaults.sh` also registers it as a hidden login item
 
 ---
 
