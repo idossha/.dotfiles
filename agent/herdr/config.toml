@@ -1,0 +1,47 @@
+# herdr configuration — canonical source, linked to ~/.config/herdr/config.toml.
+# Generated from `herdr --default-config` (herdr 0.8.2) with only the deliberate
+# choices left uncommented. Everything omitted keeps herdr's own default.
+# After editing: `herdr server reload-config` (or prefix+shift+r in the UI).
+
+[theme]
+# Built-in themes: catppuccin, terminal, tokyo-night, dracula, nord, gruvbox,
+# one-dark, solarized, kanagawa, rose-pine, vesper.
+# Ghostty runs Carbonfox, which has no herdr equivalent. Kanagawa is the closest
+# of the built-ins: a near-black, tonally neutral background with low-saturation
+# ink-wash accents, the same restrained look. Nord was the runner-up but washes
+# the whole UI blue, which clashes visibly against Carbonfox's neutral grey.
+name = "kanagawa"
+
+[terminal]
+# New panes, tabs and workspaces inherit the cwd of whatever they were opened
+# from, so splitting inside a repo keeps you in that repo.
+new_cwd = "follow"
+
+[update]
+# Background version checks and `herdr update` track the stable channel.
+channel = "stable"
+
+[keys]
+# Mirror the maintainer's tmux prefix so muscle memory carries over. herdr's own
+# default is ctrl+b; ctrl+a matches tmux and avoids a double-prefix reflex when
+# both are on screen.
+prefix = "ctrl+a"
+
+# Vim-direction pane focus. These four are already herdr's defaults — stated
+# explicitly so a future default change cannot silently move them.
+focus_pane_left = "prefix+h"
+focus_pane_down = "prefix+j"
+focus_pane_up = "prefix+k"
+focus_pane_right = "prefix+l"
+
+# Splits stay on herdr's defaults. prefix+minus already matches the tmux `-`
+# binding; there is no `pipe` in herdr's accepted named-punctuation list
+# (minus, comma, ampersand, plus, backtick), so prefix+v stands in for tmux `|`
+# rather than inventing a key name herdr would reject.
+split_vertical = "prefix+v"
+split_horizontal = "prefix+minus"
+
+[ui]
+# Group the agent sidebar by space/workspace rather than by attention queue, so
+# rows stay where they were put instead of reordering as agents change state.
+agent_panel_sort = "spaces"

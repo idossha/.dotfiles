@@ -39,7 +39,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "claude-fable-5[1m]",
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -52,6 +52,16 @@
               "hook",
               "SessionStart"
             ],
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/Users/idohaber/.claude/hooks/herdr-agent-state.sh' session",
             "timeout": 10
           }
         ]
@@ -145,11 +155,19 @@
       "autoUpdate": true
     }
   },
-  "effortLevel": "high",
+  "effortLevel": "low",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
   "editorMode": "vim",
   "verbose": false,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "modelSettings": {
+    "claude-fable-5": {
+      "effortLevel": "low"
+    },
+    "claude-opus-5": {
+      "effortLevel": "low"
+    }
+  }
 }

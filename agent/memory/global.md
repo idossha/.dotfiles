@@ -1,6 +1,7 @@
 # Global Agent Memory
 
-User-level memory for Claude Code, linked to `~/.claude/CLAUDE.md`.
+User-level memory for every coding harness: linked to `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`
+and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 
 ## Preferences
 
@@ -21,9 +22,10 @@ User-level memory for Claude Code, linked to `~/.claude/CLAUDE.md`.
 
 ## Cross-project Playbook
 
-- House engineering conventions are the `agentic-rules` plugin (local clone
-  `/Users/idohaber/00_development/agentic-rules`, `docs/PRINCIPLES.md` is the spine). Its
-  skills load as `agentic-rules:<skill>`; use them without being asked: `project-docs` when
+- House engineering conventions are the `agentic-rules` playbook (local clone
+  `/Users/idohaber/00_development/agentic-rules`, `docs/PRINCIPLES.md` is the spine). Its skills
+  load in Claude Code as the plugin `agentic-rules:<skill>`, and in Pi and Codex from
+  `~/.agents/skills`; use them without being asked: `project-docs` when
   starting or auditing a repo's markdown, `agent-instructions` for AGENTS.md/CLAUDE.md,
   `architecture-contract` when requirements, a contract or a decision are involved,
   `testing-backend` and `testing-frontend-offscreen` when adding tests, `docs-website` for a
@@ -33,6 +35,9 @@ User-level memory for Claude Code, linked to `~/.claude/CLAUDE.md`.
   numbers, not pictures; GUI and e2e tests run against a hidden app and never take the
   screen; AGENTS.md is canonical and CLAUDE.md imports it; commits carry no AI co-author
   trailers; a release script stops at the local tag and never pushes.
+- Sessions run under herdr (one workspace per repository, agents visible in the sidebar);
+  parallel work gets its own `herdr worktree`; inside a herdr pane (`HERDR_ENV=1`) the `herdr`
+  skill controls panes and other agents. Unattended loops carry a cost or iteration cap.
 
 ## Boundaries
 

@@ -1,0 +1,16 @@
+{
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "xhigh",
+  "quietStartup": true,
+  "collapseChangelog": true,
+  "packages": [
+    "npm:pi-subagents@0.64.0",
+    "npm:pi-intercom@0.13.0",
+    "npm:pi-interactive-shell@0.15.1",
+    "npm:pi-web-access@0.27.0",
+    "npm:pi-side-chat@0.2.0",
+    "npm:pi-boomerang@0.7.0",
+    "npm:pi-mcp-adapter@2.32.1"
+  ]
+}
