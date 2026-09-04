@@ -14,6 +14,9 @@ Notable changes to the dotfiles are recorded here using the
 - **The agent platform is available from every zsh directory.** The canonical shell path exposes
   `agentctl`; `agentctl start` opens Herdr directly, while FirstMate/Pi remains the explicit
   `agentctl fleet --harness pi` operation.
+- **Codex plan usage is visible in SketchyBar.** The new Codex item reads authenticated usage through
+  `quota-axi`, caches it locally, and exposes session and weekly windows in its popup. Existing
+  SketchyBar items remain unchanged; without usage data the item shows an unavailable marker.
 
 ### Changed
 
