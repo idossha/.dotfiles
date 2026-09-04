@@ -3,21 +3,21 @@
     "context7": {
       "args": [
         "-y",
-        "@upstash/context7-mcp@latest"
+        "@upstash/context7-mcp@4.0.5"
       ],
       "command": "npx"
     },
     "openalex": {
       "args": [
         "-y",
-        "openalex-research-mcp"
+        "openalex-research-mcp@0.5.0"
       ],
       "command": "npx"
     },
     "playwright": {
       "args": [
         "-y",
-        "@playwright/mcp"
+        "@playwright/mcp@0.0.80"
       ],
       "command": "npx"
     }

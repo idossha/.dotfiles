@@ -106,3 +106,31 @@ playbook, malformed live state, memory routes and upstream command/argv boundari
 The guard and workflow are frozen interfaces too (§7); changing enforcement requires its rationale
 in the same commit. CI resolves the merge base for a PR whose target advanced. Doctor treats absent
 optional runners as unavailable features and failed installed version probes as failures.
+
+
+## 2026-09-04 — Pi discovery uses native RPC (§§6–8)
+
+The installed Pi 0.85.0 public SDK and its resource-loader module both fail to import because they
+transitively require the absent experimental @earendil-works/pi-server package. The native bundled CLI
+works. The diagnostic now uses get_commands over offline RPC with no session, prompt, tools or TUI,
+instead of relying on SDK implementation imports or installing an unrelated server dependency.
+
+The probe has a 30-second timeout and validates the correlated response, nonempty skills, unique names
+and source paths. It explicitly does not prove context-file loading or every extension diagnostic.
+Authored fake CLI responses exercise empty success, upstream failure and a valid skill identity.
+The real Pi CLI returned 38 skills, including all 33 shared skills and five package-owned skills.
+
+
+The shared MCP declaration now pins the packages already installed in the local npx cache:
+@upstash/context7-mcp 4.0.5, openalex-research-mcp 0.5.0 and @playwright/mcp 0.0.80.
+This prevents @latest or omitted versions changing the next session's server implementation.
+The source JSON remains the sole pin owner and all adapters consume it. These are top-level version
+pins, not a fully locked transitive dependency graph or evidence of remote service health.
+
+
+Native Pi discovery also exposed three automatically loaded guides from pi-subagents and
+pi-interactive-shell. The former prescribes a supervisor posture for substantial tasks; the latter
+recommends its native worktree flag. Shared orchestrator/Treehouse policy owns those decisions.
+The documented Pi package object filter disables those packages' skill resources while retaining
+their extensions. Provider mechanics remain available from installed help/source on demand.
+The two remaining package skills (intercom and MCP scripting) describe transport/tool mechanics.

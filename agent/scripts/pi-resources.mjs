@@ -1,73 +1,66 @@
 #!/usr/bin/env node
-// Lists what Pi's DefaultResourceLoader discovers for a directory — extensions,
-// skills, context files — without starting a session or calling a model.
-// Usage: node agent/scripts/pi-resources.mjs [cwd]     (add --json for the raw list)
-// Requires a global Pi install (@earendil-works/pi-coding-agent). Exit 0 when nothing
-// failed to load, 1 when an extension errored or a skill has a diagnostic, 2 when Pi
-// cannot be found.
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+// Probe Pi's native RPC command discovery without sending a prompt or opening its TUI.
+// Usage: node agent/scripts/pi-resources.mjs [cwd] [--json]
+// Exit 0: nonempty, unique skills/commands returned; 1: rejected/malformed probe;
+// 2: missing Pi, timeout or unavailable discovery. This does not expose every extension diagnostic.
+import { spawnSync } from "node:child_process";
+import { realpathSync } from "node:fs";
 import { homedir } from "node:os";
-import { pathToFileURL } from "node:url";
 
-function findPi() {
-  let root;
-  try {
-    root = execFileSync("npm", ["root", "-g"], { encoding: "utf8" }).trim();
-  } catch {
-    return null;
-  }
-  const dir = join(root, "@earendil-works", "pi-coding-agent");
-  const pkgJson = join(dir, "package.json");
-  if (!existsSync(pkgJson)) return null;
-  const pkg = JSON.parse(readFileSync(pkgJson, "utf8"));
-  let entry = pkg.exports?.["."] ?? pkg.main ?? "dist/index.js";
-  while (entry && typeof entry === "object") entry = entry.import ?? entry.default ?? entry.node;
-  return join(dir, typeof entry === "string" ? entry : "dist/index.js");
-}
-
-const entry = findPi();
-if (!entry) {
-  console.error("pi-resources: @earendil-works/pi-coding-agent not found in the global npm root");
+const args = process.argv.slice(2);
+const unknown = args.find((arg) => arg.startsWith("--") && arg !== "--json");
+const paths = args.filter((arg) => !arg.startsWith("--"));
+if (unknown || paths.length > 1) {
+  console.error("Usage: pi-resources.mjs [cwd] [--json]");
   process.exit(2);
 }
-const { DefaultResourceLoader } = await import(pathToFileURL(entry).href);
-const args = process.argv.slice(2);
-const json = args.includes("--json");
-const cwd = args.find((a) => !a.startsWith("--")) || process.cwd();
-const agentDir = process.env.PI_CODING_AGENT_DIR || join(homedir(), ".pi", "agent");
-const loader = new DefaultResourceLoader({ cwd, agentDir });
-await loader.reload();
-
-const home = homedir();
-const short = (p) => String(p).replace(home, "~");
-const ext = loader.getExtensions();
-const skills = loader.getSkills();
-const agents = loader.getAgentsFiles();
-const report = {
-  cwd: short(cwd),
-  agentDir: short(agentDir),
-  extensions: ext.extensions.map((e) => short(e.path)),
-  extensionErrors: ext.errors.map((e) => `${short(e.path)}: ${e.error}`),
-  skills: skills.skills.map((s) => ({ name: s.name, path: short(s.filePath ?? s.path ?? "") })),
-  skillDiagnostics: skills.diagnostics.map((d) => `${d.type ?? ""} ${short(d.path ?? "")}: ${d.message ?? ""}`.trim()),
-  contextFiles: agents.agentsFiles.map((f) => short(f.path)),
-};
-const names = report.skills.map((s) => s.name);
-const duplicates = [...new Set(names.filter((n, i) => names.indexOf(n) !== i))];
-const bad = report.extensionErrors.length > 0 || report.skillDiagnostics.length > 0 || duplicates.length > 0;
-
-if (json) {
-  console.log(JSON.stringify({ ...report, duplicates }, null, 2));
-} else {
-  console.log(`cwd ${report.cwd}   agentDir ${report.agentDir}`);
-  console.log(`extensions (${report.extensions.length})`);
-  for (const e of report.extensions) console.log(`  ${e}`);
-  for (const e of report.extensionErrors) console.log(`  ERROR ${e}`);
-  console.log(`skills (${report.skills.length}): ${names.sort().join(", ")}`);
-  for (const d of report.skillDiagnostics) console.log(`  DIAG ${d}`);
-  if (duplicates.length) console.log(`  DUPLICATE ${duplicates.join(", ")}`);
-  console.log(`context files: ${report.contextFiles.join(", ") || "(none)"}`);
+const cwd = paths[0] || process.cwd();
+const id = "agent-platform-resource-probe";
+const result = spawnSync("pi", ["--mode", "rpc", "--no-session", "--offline", "--no-approve", "--no-tools"], {
+  cwd, encoding: "utf8", input: JSON.stringify({ id, type: "get_commands" }) + "\n",
+  timeout: 30000, maxBuffer: 8 * 1024 * 1024,
+});
+if (result.error || result.signal || result.status === null) {
+  console.error("pi-resources: Pi discovery unavailable (missing CLI, invalid cwd or 30-second timeout)");
+  process.exit(2);
 }
-process.exit(bad ? 1 : 0);
+if (result.status !== 0) {
+  console.error("pi-resources: native Pi exited " + result.status + "; no discovery established");
+  process.exit(1);
+}
+const responses = result.stdout.split("\n").filter(Boolean).flatMap((line) => {
+  try { return [JSON.parse(line)]; } catch { return []; }
+});
+const response = responses.find((item) => item.id === id && item.command === "get_commands");
+const commands = response?.data?.commands;
+if (!response?.success || !Array.isArray(commands) || commands.length === 0 ||
+    commands.some((item) => !item || typeof item.name !== "string" || !item.name)) {
+  console.error("pi-resources: missing, empty or malformed get_commands response");
+  process.exit(1);
+}
+const skills = commands.filter((item) => item.source === "skill").map((item) => ({
+  name: item.name.replace(/^skill:/, ""), path: item.sourceInfo?.path || "",
+}));
+const names = skills.map((skill) => skill.name);
+const duplicates = [...new Set(names.filter((name, index) => names.indexOf(name) !== index))];
+let unresolved = false;
+for (const skill of skills) {
+  try { skill.resolvedPath = realpathSync(skill.path); }
+  catch { unresolved = true; }
+}
+const scope = "Native command/skill discovery only; no model prompt. Project-local resources ignored. " +
+  "Extension diagnostics, context loading and model activation are not established.";
+const report = { cwd, scope, commandCount: commands.length, skills, duplicates, unresolved };
+if (args.includes("--json")) {
+  console.log(JSON.stringify(report, null, 2));
+} else {
+  console.log(scope);
+  console.log("skills (" + skills.length + "): " + names.sort().join(", "));
+  console.log("commands: " + commands.length);
+  for (const skill of skills) {
+    console.log("  " + skill.name + " -> " + (skill.resolvedPath || skill.path).replace(homedir(), "~"));
+  }
+  if (duplicates.length) console.error("duplicate skills: " + duplicates.join(", "));
+  if (unresolved) console.error("one or more skill source paths do not resolve");
+}
+process.exit(skills.length === 0 || duplicates.length || unresolved ? 1 : 0);

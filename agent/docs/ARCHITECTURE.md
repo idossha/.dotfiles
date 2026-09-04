@@ -60,7 +60,8 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    Previously managed entries are retired through a local ownership manifest; unrelated entries survive.
 6. **Skill discovery has one route per skill per harness.** Retire legacy managed Codex/Pi links;
    preserve provider-bundled skills. All three local harnesses link to the same personal and playbook
-   skill directories. Disable the duplicate Claude engineering plugin; its cached snapshot otherwise
+   skill directories. Pi package guides that prescribe a competing supervisor/worktree policy are
+   excluded through package resource filters; their extensions remain available. Disable the duplicate Claude engineering plugin; its cached snapshot otherwise
    can prescribe different procedures. Other plugins remain adapter-specific capabilities.
 
 ## 4. Shared development doctrine
@@ -122,6 +123,7 @@ Changing these requires this contract and `agent/docs/DECISIONS.md` in the same 
 7. `agent/tools.env` — shared adopted-tool pins.
 8. `agent/scripts/check_coherence.py` — source and commit guard semantics.
 9. `.github/workflows/agent-platform.yml` — platform verification triggers and jobs.
+10. `agent/scripts/pi-resources.mjs` — native resource-discovery probe and evidence scope.
 
 Additive fields are optional; when absent, they reproduce the previous behavior.
 
@@ -147,10 +149,12 @@ an essential constraint is stated.
 | Dependency | Source of version truth | Why |
 |---|---|---|
 | Python | 3.11 minimum | Standard-library TOML reader; interpreter preflight prevents false validation on macOS's older Python |
+| Node.js | 20+ for Pi discovery and its fixture checks | Native RPC adapter uses built-in modules only |
 | PyYAML and tomli-w | `agent/requirements.txt` | Real YAML parsing and TOML serialization; handwritten parsers and skipped checks rejected |
 | Treehouse, GNHF, no-mistakes, FirstMate | `agent/tools.env` | One pin source for installation and doctor prevents two independent upgrade lists |
 | Pi packages | `agent/pi/settings.json` | Adapter-specific exact package references |
-| Harness binaries, Claude plugins, unpinned MCP packages | Doctor's explicit floating inventory | Provider-managed updates remain visible; future compatibility is verified, never promised |
+| Canonical MCP packages | `agent/mcps/mcp-servers.json` | Exact versions of the locally exercised servers |
+| Harness binaries, Claude plugins, any future unpinned MCP packages | Doctor's explicit floating inventory | Provider-managed updates remain visible; future compatibility is verified, never promised |
 
 The operator manual for §3 and upgrades is [CONFIGURATION.md](CONFIGURATION.md).
 After a provider upgrade, inspect its installed help/schema and discovery, run the platform gate and

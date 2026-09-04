@@ -49,7 +49,8 @@ on 2026-09-04. Codex discovery and schema references are in [../codex/README.md]
    or schema. Do not simultaneously rewrite portable doctrine to match a provider's product vocabulary.
 2. Run source checks and the fixture suite. Unsupported MCP shapes require a tested adapter.
 3. Sync from the landed canonical checkout, then run doctor and each changed harness's discovery
-   check. For Pi: `node agent/scripts/pi-resources.mjs`.
+   check. For Pi (Node 20+): `node agent/scripts/pi-resources.mjs` uses offline native RPC without a model prompt.
+   It reports command/skill discovery, not every extension diagnostic or project-context activation.
 4. Verify Claude, Pi and Codex still resolve each engineering skill to the same local source.
    Claude's duplicate agentic-rules plugin must remain disabled. Review other plugin upgrades for
    overlapping skills, MCP definitions and hooks; version equality alone does not prove content parity.

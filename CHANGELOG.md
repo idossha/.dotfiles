@@ -7,6 +7,10 @@ Notable changes to the dotfiles are recorded here using the
 
 ### Fixed
 
+- **MCP server versions remain stable between sessions** — all three shared servers use exact versions
+  of the locally installed packages.
+- **Pi discovery survives an SDK packaging failure** — the offline probe now uses native RPC, with
+  explicit limits on what command/skill discovery proves.
 - **The engineering playbook is identical across local harnesses** — Claude now links to the same
   skill sources as Codex and Pi; its duplicate cached agentic-rules plugin is disabled.
 - **Shared review skills no longer impose another project's results** — manuscript review derives

@@ -53,3 +53,16 @@ agent/tests/run.sh
 
 `pi -p` reads stdin until EOF. Redirect scripted print-mode runs from `/dev/null` unless piped content is
 intentional, or an open stdin can make the process hang.
+
+
+## Package guidance and native discovery
+
+The shared orchestrator skill owns delegation policy and Treehouse owns worktrees. The
+pi-subagents and pi-interactive-shell packages load their extensions but exclude bundled skills
+through Pi's documented package filters, because those guides introduce alternate supervision and
+worktree defaults. Read installed package help for mechanics when the chosen task needs them.
+
+`node agent/scripts/pi-resources.mjs` probes the local CLI through offline RPC without a model
+prompt or TUI. It reports available commands/skills and their source paths, not complete extension
+diagnostics or project-context loading. This avoids the Pi 0.85.0 SDK's missing experimental server
+dependency. Other versions must still satisfy the observed RPC response contract.

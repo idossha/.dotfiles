@@ -5,6 +5,7 @@ so space/quote preservation is checked as argv values, not reconstructed shell t
 """
 import json
 import os
+import shlex
 from pathlib import Path
 import subprocess
 import sys
@@ -99,6 +100,42 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("retired", result.stderr)
         self.assertFalse(marker.exists())
+
+    def test_pi_probe_rejects_empty_success_and_native_failure(self):
+        probe = ROOT / "agent/scripts/pi-resources.mjs"
+        payload = {"id": "agent-platform-resource-probe", "command": "get_commands",
+                   "success": True, "data": {"commands": []}}
+        self.executable("pi", "printf '%s\\n' " + shlex.quote(json.dumps(payload)) + "\n")
+        result = subprocess.run(["node", str(probe)], env=self.env, cwd=self.root,
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("empty", result.stderr)
+        self.executable("pi", "exit 23\n")
+        result = subprocess.run(["node", str(probe)], env=self.env, cwd=self.root,
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("exited 23", result.stderr)
+
+    def test_pi_probe_reads_native_skill_identity_without_a_model_prompt(self):
+        skill = self.root / "SKILL.md"
+        skill.write_text("synthetic skill")
+        payload = {"id": "agent-platform-resource-probe", "command": "get_commands",
+                   "success": True, "data": {"commands": [{
+                       "name": "skill:fixture", "source": "skill", "sourceInfo": {"path": str(skill)}
+                   }]}}
+        path = self.bin / "pi"
+        path.write_text("#!" + sys.executable + "\nimport json,sys\n"
+                        "request=json.loads(sys.stdin.readline())\n"
+                        "assert request['type']=='get_commands'\n"
+                        "assert '--no-tools' in sys.argv and '--offline' in sys.argv\n"
+                        "print(" + repr(json.dumps(payload)) + ")\n")
+        path.chmod(0o755)
+        result = subprocess.run(["node", str(ROOT / "agent/scripts/pi-resources.mjs"), "--json"],
+                                env=self.env, cwd=self.root, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        value = json.loads(result.stdout)
+        self.assertEqual(value["skills"], [{"name": "fixture", "path": str(skill),
+                                          "resolvedPath": str(skill.resolve())}])
 
     def test_docker_failure_cannot_print_a_successful_smoke_result(self):
         self.executable("docker", "exit 23\n")
