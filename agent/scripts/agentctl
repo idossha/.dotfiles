@@ -147,7 +147,7 @@ tool_version() {
   local tool="$1" output
   shift
   if command -v "$tool" >/dev/null 2>&1; then
-    if ! output="$("$tool" "$@" 2>&1)"; then
+    if ! output="$("$tool" "$@" 2>&1)" || [ -z "$output" ]; then
       printf '  [fail] %-14s version probe failed\n' "$tool"
       return 1
     fi
@@ -227,21 +227,20 @@ doctor() {
     actual="$(gnhf --version 2>&1)" || { printf "  [fail] gnhf version probe failed\n"; return 1; }
     case "$actual" in "$GNHF_VERSION") printf '  [ok]   gnhf           %s\n' "$actual" ;; *) printf '  [fail] gnhf           expected %s; found %s\n' "$GNHF_VERSION" "$actual"; failed=1 ;; esac
   else
-    printf '  [fail] gnhf           not found (expected %s)\n' "$GNHF_VERSION"
-    failed=1
+    printf '  [optional] gnhf       not installed (reviewed %s)\n' "$GNHF_VERSION"
   fi
   if command -v no-mistakes >/dev/null 2>&1; then
     if actual="$(no-mistakes version 2>/dev/null)"; then
       actual="$(printf '%s\n' "$actual" | head -1)"
     else
-      actual="$(no-mistakes --version 2>&1 | head -1)"
+      actual="$(no-mistakes --version 2>&1)" || { printf '  [fail] no-mistakes version probe failed\n'; return 1; }
+      actual="$(printf '%s\n' "$actual" | head -1)"
     fi
     case "$actual" in *"$NO_MISTAKES_VERSION"*) printf '  [ok]   no-mistakes    %s\n' "$actual" ;; *) printf '  [fail] no-mistakes    expected %s; found %s\n' "$NO_MISTAKES_VERSION" "$actual"; failed=1 ;; esac
   else
-    printf '  [fail] no-mistakes    not found (expected %s)\n' "$NO_MISTAKES_VERSION"
-    failed=1
+    printf '  [optional] no-mistakes not installed (reviewed %s)\n' "$NO_MISTAKES_VERSION"
   fi
-  if [ -d "$FIRSTMATE_DIR/.git" ]; then
+  if [ -e "$FIRSTMATE_DIR/.git" ]; then
     actual="$(git -C "$FIRSTMATE_DIR" rev-parse HEAD 2>/dev/null || true)"
     if [ "$actual" = "$FIRSTMATE_COMMIT" ] && [ "$(tr -d '[:space:]' < "$FIRSTMATE_DIR/config/backend" 2>/dev/null || true)" = herdr ]; then
       printf '  [ok]   firstmate      %s (Herdr backend)\n' "$actual"
@@ -250,8 +249,7 @@ doctor() {
       failed=1
     fi
   else
-    printf '  [fail] firstmate      checkout missing: %s\n' "$FIRSTMATE_DIR"
-    failed=1
+    printf '  [optional] firstmate  checkout absent: %s\n' "$FIRSTMATE_DIR"
   fi
 
   if [ "$failed" -ne 0 ]; then

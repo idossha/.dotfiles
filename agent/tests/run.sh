@@ -267,7 +267,14 @@ expect_contains "treehouse-v2.3.0-" "tool installer selects the exact Treehouse 
 expect_contains "kunchenguid/treehouse/releases/download/v2.3.0/checksums.txt" \
   "tool installer verifies Treehouse against the published checksum list"
 
-run_capture "$AGENT_PYTHON" -m unittest discover -s "$test_dir" -p 'test_*.py'
+run_capture "$AGENT_PYTHON" -c '
+import sys, unittest
+suite = unittest.defaultTestLoader.discover(sys.argv[1], pattern="test_*.py")
+if suite.countTestCases() == 0:
+    raise SystemExit("no unit/regression tests collected")
+result = unittest.TextTestRunner(verbosity=1).run(suite)
+raise SystemExit(0 if result.wasSuccessful() else 1)
+' "$test_dir"
 expect_status 0 "configuration, memory and architecture regressions pass"
 
 total=$((pass_count + fail_count))

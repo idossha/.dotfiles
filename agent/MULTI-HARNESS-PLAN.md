@@ -8,8 +8,7 @@
 in `~/.dotfiles/agent`, with herdr as the session layer and the `agentic-rules` playbook as the
 shared engineering doctrine, and the decision on which of Kun Chen's tools to adopt versus build.
 Written 2026-09-03 from the facts in `agent/*/README.md`, Pi's bundled docs for 0.73, Codex
-0.136's source, herdr 0.8.2's CLI and the tool repositories. It is the roadmap for `agent/`;
-`AGENTS.md` here is the working manual.
+0.136's source, herdr 0.8.2's CLI and the tool repositories. This was the proposal before the current architecture contract; it is not the active roadmap.
 
 ## 1. Goals
 

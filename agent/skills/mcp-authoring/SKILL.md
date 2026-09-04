@@ -9,19 +9,13 @@ Use this skill for MCP server implementation or configuration.
 
 ## Canonical Config
 
-In these dotfiles, MCP definitions live at:
+In the assigned dotfiles checkout, edit `agent/mcps/mcp-servers.json` and the relevant
+harness adapter. Use checkout-relative paths so a leased task cannot edit the primary checkout.
 
-```text
-~/.dotfiles/agent/mcps/mcp-servers.json
-```
-
-After editing, run:
-
-```bash
-~/.dotfiles/agent/scripts/sync-agent-config.sh
-```
-
-Claude consumes the JSON shape directly.
+Run `agent/scripts/sync-agent-config.sh --check` and the project platform gate before landing.
+After landing, activate from the primary checkout with `agent/scripts/agentctl sync`.
+The configuration manual owns installation scopes and supported field mappings; Claude user MCP
+state is generated into `~/.claude.json`, and Codex/Pi receive their documented adapters.
 
 ## Design Rules
 

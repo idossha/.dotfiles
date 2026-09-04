@@ -373,9 +373,3 @@ resource "grafana_folder" "monitoring" {
 - Preserve datasource UIDs, panel IDs, and variable names unless changing them is intentional.
 - Call out Grafana-version-specific schema assumptions.
 - When reviewing a dashboard, report audience, missing signals, clutter, and concrete panel/query fixes.
-- `references/dashboard-design.md` - Dashboard design guide
-
-## Related Skills
-
-- `prometheus-configuration` - For metric collection
-- `slo-implementation` - For SLO dashboards

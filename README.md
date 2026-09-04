@@ -2,7 +2,7 @@
 
 ### Quick Start
 
-1. Clone repo: `git clone https://github.com/idossha/.dotfiles`
+1. Clone repo: `git clone git@github.com:idossha/.dotfiles.git`
 2. cd .dotfiles
 3. Run the appropriate installation script for your OS:
 
@@ -40,37 +40,27 @@
 
 ---
 
-### Docker Testing (for Linux Server Testing)
+### Verification
 
-Test the Linux server installation in a Docker container:
+The agent platform has one local/CI test entrypoint:
 
 ```bash
-# Quick test - build and run automated test
+./agent/tests/run.sh
+./agent/scripts/agentctl doctor
+```
+
+For a separate Linux container environment and installer syntax smoke check:
+
+```bash
 ./testing/test_docker.sh test
-
-# Or build and run interactively
-./testing/test_docker.sh build
-./testing/test_docker.sh run
-
-# Inside container, test manually:
-# ./install/linux_install.sh server
-# ./install/linux_uninstall.sh
 ```
 
-**Quick validation (fast, ~2 seconds):**
-
-```bash
-./testing/quick_test.sh
-```
-
-The Docker setup provides a clean Ubuntu environment to test:
-
-- Linux server installation (no GUI apps)
-- Installation/uninstallation process
-- Package dependencies
-- Configuration management
-
-**Note:** The full test may take several minutes on ARM64 systems due to package compilation.
+This requires Docker Compose, builds an Ubuntu image and checks tools and shell syntax.
+It does not install or uninstall dotfiles. `testing/quick_test.sh` invokes that same check;
+the old `work-test` mode is retired because it swallowed failures. For a manual installer
+trial, use `build` and `run`, copy the read-only `/workspace` source into a writable directory
+inside the disposable container, then follow the installer instructions there. No host Docker
+socket is mounted.
 
 ---
 
@@ -144,11 +134,13 @@ Reusable agentic-coding configuration lives under `agent/`:
 - `agent/memory/global.md` — global user-level agent memory
 - `agent/AGENTS.md` — portable agent instructions
 
-Claude Code is the only harness in use; retired Codex and Pi config lives under
-`deprecated/` and is not synced.
+Claude Code, Codex and Pi use shared policy and procedures with generated harness adapters.
+See [the agent contract](agent/docs/ARCHITECTURE.md) and
+[configuration operations](agent/docs/CONFIGURATION.md) for ownership, bootstrap and upgrade checks.
 
-Sync `~/.claude` links/config after changes:
+After changes land in the primary checkout:
 
 ```bash
-./agent/scripts/sync-agent-config.sh
+./agent/scripts/agentctl sync
+./agent/scripts/agentctl doctor
 ```

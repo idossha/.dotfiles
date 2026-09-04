@@ -1,26 +1,10 @@
-# GitHub Repository Setup
+# GitHub repository setup
 
-## Quick Start
-```bash
-./install_gh.sh     # Install GitHub CLI locally
-gh auth login       # Authenticate
-./init_github_repo.sh "repo-name" "description"
-```
+Repository creation and remote coordination use the shared
+[git-collaboration skill](../agent/skills/git-collaboration/SKILL.md). The external agentic-rules
+playbook owns commit/release conventions; each project owns its test and delivery commands.
 
-## Troubleshooting
-
-### "GitHub CLI not installed"
-```bash
-./install_gh.sh
-```
-
-### "exec format error"
-Wrong architecture downloaded. Script detects macOS/Linux automatically.
-
-### "Authentication failed"
-```bash
-gh auth login
-```
-
-### Repository exists
-Script handles existing git repos and pushes to new remote.
+The legacy `init_github_repo.sh` publisher is retired and exits 2 without side effects. It combined
+broad staging, implicit public visibility and pushing with shell evaluation of a description.
+There is no replacement publishing pipeline in this directory. Use `gh-axi` for authorized GitHub
+operations and SSH Git remotes; inspect its help for the installed command surface.

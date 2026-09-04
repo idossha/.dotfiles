@@ -50,10 +50,16 @@ on 2026-09-04. Codex discovery and schema references are in [../codex/README.md]
 2. Run source checks and the fixture suite. Unsupported MCP shapes require a tested adapter.
 3. Sync from the landed canonical checkout, then run doctor and each changed harness's discovery
    check. For Pi: `node agent/scripts/pi-resources.mjs`.
-4. Compare the installed Claude agentic-rules snapshot with the local playbook. If it differs, update
-   the plugin through its native CLI and compare again; a package version alone does not prove parity.
+4. Verify Claude, Pi and Codex still resolve each engineering skill to the same local source.
+   Claude's duplicate agentic-rules plugin must remain disabled. Review other plugin upgrades for
+   overlapping skills, MCP definitions and hooks; version equality alone does not prove content parity.
 5. Run a bounded live trial for changed execution behavior. Record its outcome and untested
    capabilities explicitly. GNHF's stop status and reviewed commits matter more than its launch output.
 
 MCP network health, account authentication, provider model availability, skill activation quality,
 and end-to-end FirstMate/no-mistakes delivery are separate from offline configuration checks.
+
+Claude's [official skill discovery reference](https://code.claude.com/docs/en/skills#where-skills-live)
+documents per-skill symlinks and separate plugin namespaces (checked 2026-09-04). This local setup uses
+real discovery directories with per-skill links. Remote/cloud sessions do not inherit local user paths;
+they need a separately verified provisioning adapter before being treated as part of this platform.

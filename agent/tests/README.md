@@ -20,7 +20,11 @@ selects FirstMate and its harness.
 
 `test_config.py` uses authored policy/runtime fixtures and independent JSON/TOML readers to prove
 state preservation, precedence, idempotence, discovery cleanup, and rejected malformed shapes.
-`test_memory.py` checks project-root containment and secret rejection without touching a real store.
+`test_memory.py` checks root containment, all three capture routes and secret screening of all fields.
+`test_cli.py` reads executed argv with JSON, checks each command's failure mapping, and verifies
+retired publishing/Docker test surfaces cannot claim success after upstream failure.
+`test_coherence.py` plants frozen-interface and instruction-scope violations to prove the guard fails.
+The source checks target known regressions; semantic skill conflicts still require review.
 Run these directly with the selected Python's `-m unittest discover -s agent/tests -p 'test_*.py'`.
 Missing fixtures, missing dependencies and zero collected checks cannot be presented as successful
 validation. Model behavior and live provider compatibility remain separate gates.

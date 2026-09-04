@@ -59,8 +59,9 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    receives generated TOML. Unsupported portable fields fail validation instead of disappearing.
    Previously managed entries are retired through a local ownership manifest; unrelated entries survive.
 6. **Skill discovery has one route per skill per harness.** Retire legacy managed Codex/Pi links;
-   preserve provider-bundled skills. Claude plugin snapshots are packaging artifacts whose content
-   must be compared with the playbook used by the other harnesses after upgrades.
+   preserve provider-bundled skills. All three local harnesses link to the same personal and playbook
+   skill directories. Disable the duplicate Claude engineering plugin; its cached snapshot otherwise
+   can prescribe different procedures. Other plugins remain adapter-specific capabilities.
 
 ## 4. Shared development doctrine
 
@@ -69,7 +70,12 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 2. **The agentic-rules testing split remains authoritative.** Backend tests derive expected values
    independently; rendering tests make analytic assertions and run hidden; goldens are regression-only.
 3. **Project facts remain with the project.** The global project registry may map names to paths, but datasets, secrets and deployment posture
-   stay project-local because every other project would otherwise inherit them.
+   stay project-local because every other project would otherwise inherit them. Domain review skills
+   derive sample sizes, outcomes and defaults from the target's records; they do not prescribe one
+   study's results. Task templates route decisions and validation to project-owned documents/scripts.
+4. **Each Git mutation has one explicit owner.** Pi session forks do not apply stash patches. The old
+   shell repository publisher is retired; collaboration routes to the shared playbook and project
+   gates. Provider extensions must not introduce a second implicit checkpoint or publishing lifecycle.
 
 ## 5. Operator surface
 
@@ -94,7 +100,7 @@ The platform gate is command-based:
 
 - `agent/scripts/sync-agent-config.sh --check` validates canonical inputs without modifying them.
 - `agent/scripts/agentctl doctor` reports harness versions, integrations, tools, links, and floating dependencies.
-- Shell scripts pass `bash -n`; JSON and TOML parse; project aliases resolve to existing directories.
+- Each shell script passes its own `bash -n <file>` invocation; JSON and TOML parse; project aliases resolve to existing directories.
 - A dry-run test proves GNHF acquires Treehouse isolation without its own worktree flag, receives a finite
   cap, and leaves no push enabled; no-mistakes remains opt-in.
 - `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
@@ -114,6 +120,8 @@ Changing these requires this contract and `agent/docs/DECISIONS.md` in the same 
 5. `agent/scripts/agent_config.py` — configuration validation, rendering and discovery semantics.
 6. `agent/gnhf/config.yml` — unattended execution defaults.
 7. `agent/tools.env` — shared adopted-tool pins.
+8. `agent/scripts/check_coherence.py` — source and commit guard semantics.
+9. `.github/workflows/agent-platform.yml` — platform verification triggers and jobs.
 
 Additive fields are optional; when absent, they reproduce the previous behavior.
 
@@ -148,3 +156,18 @@ The operator manual for §3 and upgrades is [CONFIGURATION.md](CONFIGURATION.md)
 After a provider upgrade, inspect its installed help/schema and discovery, run the platform gate and
 doctor, then exercise any changed adapter. Green fixtures do not prove model activation, remote
 service health, or a live fleet/delivery workflow.
+
+## 9. Continuous integration
+
+`.github/workflows/agent-platform.yml` runs source guards independently of the parser/test matrix.
+`agent/scripts/check_coherence.py` reads the frozen list from §7 and checks each introduced commit
+for both contract and decision updates; missing comparison inputs are reported as uncheckable, not green.
+Its source checks catch the paid instruction-scope, duplicate-pin and procedural conflicts.
+Docker's optional environment/syntax smoke is separately labeled and propagates failures; it does not
+claim installer execution. Its quick wrapper invokes the same smoke command.
+CI invokes `agent/tests/run.sh` on the Python floor and development interpreter, plus the same
+source validation used locally. No duplicate GitHub test or delivery implementation lives in a skill.
+
+Both jobs use read-only repository permissions, bounded timeouts and pinned actions. No deploy,
+release, automatic merge or remote mutation is part of this workflow. Branch protections remain
+repository administration; a successful workflow is evidence, not proof that bypass is impossible.

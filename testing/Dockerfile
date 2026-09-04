@@ -27,12 +27,6 @@ ENV LC_ALL=en_US.UTF-8
 RUN mkdir -p /workspace
 WORKDIR /workspace
 
-# Copy dotfiles into the container
-COPY . /workspace/
-
-# Make installation scripts executable
-RUN chmod +x /workspace/*.sh
-
 # Set the default shell to bash (though the scripts will install zsh)
 SHELL ["/bin/bash", "-c"]
 

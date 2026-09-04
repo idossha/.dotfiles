@@ -190,7 +190,6 @@ class Layout:
     def links(self, inventory: dict[str, Path]) -> dict[Path, Path]:
         a, d = self.agent, self.destination
         links = {
-            d / ".claude/skills": a / "skills",
             d / ".claude/AGENTS.md": a / "memory/global.md",
             d / ".claude/CLAUDE.md": a / "claude/CLAUDE.md",
             d / ".claude/statusline-command.sh": a / "claude/statusline-command.sh",
@@ -204,6 +203,7 @@ class Layout:
             links[d / ".pi/agent" / name] = a / "pi" / name
         for name, source in inventory.items():
             links[d / ".agents/skills" / name] = source
+            links[d / ".claude/skills" / name] = source
         return links
 
     def policies(self) -> dict[str, tuple[dict, Path, Path]]:
@@ -236,6 +236,8 @@ def validate(layout: Layout) -> None:
         if not source.exists():
             raise ConfigError(f"missing source: {source}")
     policies = layout.policies()
+    if policies["claude"][0].get("enabledPlugins", {}).get("agentic-rules@agentic-rules") is not False:
+        raise ConfigError("Claude's duplicate agentic-rules plugin must be disabled; shared links own discovery")
     for name, fields in {
         "claude": {"theme", "autoMode"},
         "pi": {"theme", "lastChangelogVersion"},
@@ -271,6 +273,9 @@ def sync(layout: Layout) -> None:
     mcp = check_mcp(read_config(layout.agent / "mcps/mcp-servers.json"))
     prior = previous_state(layout)
     managed = set(mcp) | set(prior.get("mcp_servers", []))
+    # Parse every mutable destination before any writes. A late malformed file must not leave a
+    # partially activated configuration. Filesystem failures remain individually atomic, not a transaction.
+    renders = []
     for name, (policy, destination, overlay) in layout.policies().items():
         saved = read_config(overlay) if overlay.exists() else {}
         live = read_config(destination) if destination.exists() else {}
@@ -278,11 +283,9 @@ def sync(layout: Layout) -> None:
             saved = without_managed_servers(saved, managed)
             live = without_managed_servers(live, managed)
         state = unowned(policy, merge(saved, live))
-        dump_config(overlay, state)
-        dump_config(destination, merge(state, policy))
-        print(f"  [ok] rendered {name}; canonical fields own their values")
+        renders.append((name, overlay, state, destination, merge(state, policy)))
 
-    # Claude user scope is ~/.claude.json, not ~/.mcp.json. Preserve auth and other app state in place.
+    # Claude user scope is ~/.claude.json, not ~/.mcp.json. Preserve auth/app state in place.
     claude_path = layout.destination / ".claude.json"
     claude = read_config(claude_path) if claude_path.exists() else {}
     user_servers = claude.setdefault("mcpServers", {})
@@ -291,17 +294,23 @@ def sync(layout: Layout) -> None:
     for name in managed:
         user_servers.pop(name, None)
     user_servers.update(mcp)
+
+    for name, overlay, state, destination, effective in renders:
+        dump_config(overlay, state)
+        dump_config(destination, effective)
+        print(f"  [ok] rendered {name}; canonical fields own their values")
     dump_config(claude_path, claude)
 
     links = layout.links(inventory)
-    generated = layout.destination / ".agents/skills"
-    if generated.is_symlink():
-        generated.unlink()
-    generated.mkdir(parents=True, exist_ok=True)
-    for name in prior.get("skills", []):
-        stale = generated / name
-        if name not in inventory and stale.is_symlink():
-            stale.unlink()
+    for directory in (".agents/skills", ".claude/skills"):
+        generated = layout.destination / directory
+        if generated.is_symlink():
+            generated.unlink()
+        generated.mkdir(parents=True, exist_ok=True)
+        for name in prior.get("skills", []):
+            stale = generated / name
+            if name not in inventory and stale.is_symlink():
+                stale.unlink()
     for target, source in links.items():
         link(source, target)
 
@@ -347,6 +356,11 @@ def sync(layout: Layout) -> None:
 
 def installed_issues(layout: Layout) -> list[str]:
     issues = []
+    if not (layout.playbook / "skills").is_dir():
+        issues.append("shared engineering playbook is missing; installed doctrine is incomplete")
+    for directory in (".agents/skills", ".claude/skills"):
+        if (layout.destination / directory).is_symlink():
+            issues.append(f"{directory}: discovery root must be a generated real directory")
     inventory = layout.inventory()
     for target, source in layout.links(inventory).items():
         if not target.is_symlink() or target.resolve() != source.resolve():
@@ -399,8 +413,9 @@ def floating_dependencies(layout: Layout) -> None:
             for package in packages:
                 if not re.search(r"@\d+\.\d+\.\d+(?:[-+].*)?$", package):
                     print(f"  [floating] MCP {name}: {package}")
-    for name in read_config(layout.agent / "claude/settings.json").get("enabledPlugins", {}):
-        print(f"  [floating] Claude plugin: {name} (provider-managed snapshot)")
+    for name, enabled in read_config(layout.agent / "claude/settings.json").get("enabledPlugins", {}).items():
+        if enabled:
+            print(f"  [floating] Claude plugin: {name} (provider-managed snapshot)")
 
 
 def check_gnhf(layout: Layout, selected: str) -> None:

@@ -1,41 +1,17 @@
-# Track: [Feature Name]
+# Task: [Concrete outcome]
 
-**Created:** YYYY-MM-DD
-**Branch:** `feature/[kebab-name]`
-**Status:** PLANNING | IN PROGRESS | REVIEW | DONE
+This optional working note routes to project sources; it does not define engineering or Git policy.
 
-## Goal
-[1-2 sentences: what will be delivered and why it matters]
+- **State:** planned / active / verified / blocked
+- **Intent:** [link to the project's requirement or issue]
+- **Contract and decisions:** [links to the authoritative contract and decision log]
+- **Work location:** [assigned Treehouse path and task branch, if applicable]
+- **Outcome:** [what changes for the user]
+- **Remaining work:** [bounded steps with observable acceptance criteria]
+- **Verification:** [project-owned commands, actual results and evidence locations]
+- **Open limits:** [what remains unverified or requires external state]
+- **Delivery:** [review/commit/PR links as authorized by the session]
 
-## Current State
-[What exists today. What's broken or missing. Root cause if applicable.]
-
-## Design
-[Technical approach. Architecture decisions. Pseudocode if helpful.
-Key trade-offs and why this approach was chosen.]
-
-## Phase 1: [Name]
-**Files:** `path/to/file1.py`, `path/to/file2.py`
-**Tasks:**
-1. [Specific, testable task]
-2. [Another task]
-
-**Acceptance:** [What "done" looks like for this phase]
-
-## Phase 2: [Name]
-**Files:** `path/to/file3.py`, `path/to/file4.py`
-**Tasks:**
-1. [Specific, testable task]
-2. [Another task]
-
-**Acceptance:** [What "done" looks like for this phase]
-
-## Phase N: Quality Gates
-- [ ] All tests pass (`pytest`)
-- [ ] Code formatting clean (`black .`)
-- [ ] No regressions in existing tests
-- [ ] PR description matches track goal
-- [ ] Memory updated if needed (`memory/agent-state.md` or `MEMORY.md`)
-
-## References
-- [Links to relevant docs, papers, issues, related tracks]
+Use the applicable agentic-rules skills for requirements, decisions, testing, CI and release
+procedures. Use git-collaboration for remote coordination. Record durable project facts through
+remember in the project's Markdown; this transient task note is not a second global memory store.

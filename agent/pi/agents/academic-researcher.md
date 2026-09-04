@@ -4,6 +4,7 @@ description: Academic paper search with web lookup and local open-PDF verificati
 tools: read, bash, web_search, fetch_content, get_search_content, source_check
 systemPromptMode: replace
 inheritProjectContext: false
+inheritGlobalContext: true
 inheritSkills: true
 skills: librarian
 ---

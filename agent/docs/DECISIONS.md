@@ -62,3 +62,47 @@ architecture contract says what is true now; later entries supersede earlier one
 - **Project memory cannot leave its declared root** — absolute, relative and symlink escapes were
   possible through `--file`. Resolved containment and source-field secret checks are pinned by temporary
   fixtures in `agent/tests/test_memory.py`. Native run logs stay with their original owner.
+
+## 2026-09-04 — coherence audit: procedure owners and CI (§§4, 8, 9)
+
+- **Skills retain one procedure owner** — git-collaboration duplicated commit/release formats and
+  attribution, write-skill forced primary-checkout writes and Claude metadata, and orchestrator assumed
+  one Agent tool and context model. The local skills now route to the engineering playbook and current
+  provider capabilities. Prior plans are explicitly historical; all Pi research roles retain global
+  policy even when project context is omitted. Intent: coherence R3.
+- **The local gate is the CI gate** — there was no hosted workflow for the platform. One read-only
+  workflow invokes the existing scripts; a fast guard self-tests its rejected cases before checking
+  each commit against the contract-owned frozen list. A missing Git base cannot masquerade as success.
+  Intent: coherence R4. Branch-protection administration remains outside this dotfiles change.
+- **CI checks Python 3.11 and 3.14** — the floor is the TOML-reader requirement and 3.14 is the measured
+  development interpreter. Local source checks take under one second and the fixture suite under five;
+  chosen job caps are three/five minutes to allow hosted setup while bounding hangs. Checkout v4 and
+  setup-python v5 action SHAs were resolved from their upstream Git refs on 2026-09-04.
+
+
+## 2026-09-04 — one skill source and explicit Git owners (§§3–4, 6, 8)
+
+GNHF found two Claude plugin skills diverged from the local playbook, which contains pre-existing
+uncommitted work. Native plugin updates cannot reproduce those edits. All harnesses now use per-skill
+links to the same sources, with real discovery roots and the duplicate Claude plugin disabled.
+This removes snapshot reconciliation as a required operating step and preserves the external work.
+Provider plugins still supply capabilities when they do not duplicate shared doctrine.
+
+General manuscript review now derives facts from each project's protocol and evidence. Telemetry
+triage resolves repositories/releases once and consumes project-owned queries/workflows. Shared skill
+authoring, MCP and Herdr edits stay in the assigned checkout; activation follows landing. Task templates
+route decisions/testing/memory instead of maintaining parallel conventions.
+
+The shell publisher and Pi stash checkpoint extension are retired: they added implicit Git owners,
+and stash apply never proved exact restoration. Docker checks now claim environment/syntax smoke
+only, preserve command failures and mount source read-only without the host socket. The retired work
+installer test returns an explicit error. Tests use fake failing commands, not a real Docker daemon.
+
+Sync preflights all mutable JSON/TOML/YAML destinations before writing, so malformed late inputs do not
+partially activate policy. Writes are individually atomic; filesystem failure across files is not a
+transaction. Regression fixtures cover shared skill targets, disabled duplicate policy, missing
+playbook, malformed live state, memory routes and upstream command/argv boundaries.
+
+The guard and workflow are frozen interfaces too (§7); changing enforcement requires its rationale
+in the same commit. CI resolves the merge base for a PR whose target advanced. Doctor treats absent
+optional runners as unavailable features and failed installed version probes as failures.

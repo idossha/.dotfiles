@@ -5,7 +5,7 @@
 - Canonical shared memory, personal skills, MCP declarations, and three harness adapters under `agent/`.
 - Herdr configuration and current integrations for Pi, Claude Code, and Codex.
 - Treehouse as the pinned, shared worktree provider with native status/enter navigation.
-- The external `agentic-rules` engineering playbook linked into Pi and Codex and installed for Claude.
+- The external `agentic-rules` engineering playbook linked from one source into Claude, Pi and Codex.
 - Idempotent configuration validation and synchronization.
 - A global `agentctl start` entry point that opens Herdr without implicitly launching a model harness.
 

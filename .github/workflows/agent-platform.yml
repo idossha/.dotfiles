@@ -1,0 +1,96 @@
+# One repository gate: quick source guards and the same offline tests used locally.
+name: Agent platform
+on:
+  push:
+    paths:
+      - 'agent/**'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - '.github/workflows/agent-platform.yml'
+      - 'zsh/.zshrc'
+      - 'zsh/init_github_repo.sh'
+      - 'testing/**'
+      - 'README.md'
+      - '.gitignore'
+  pull_request:
+    paths:
+      - 'agent/**'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - '.github/workflows/agent-platform.yml'
+      - 'zsh/.zshrc'
+      - 'zsh/init_github_repo.sh'
+      - 'testing/**'
+      - 'README.md'
+      - '.gitignore'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-platform-${{ github.ref }}
+  # Superseded branch/PR work can stop; main always receives a completed result.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  guards:
+    runs-on: ubuntu-24.04
+    # Local guard self-tests + comparison take under one second; bounds a stuck Git invocation.
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4; full history proves each commit
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Self-test source and frozen-interface guards
+        run: python3 agent/tests/test_coherence.py
+      - name: Check ownership and per-commit contract updates
+        env:
+          EVENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -n "$EVENT_BASE" ] && [ "$EVENT_BASE" != 0000000000000000000000000000000000000000 ]; then
+            # PR base may have advanced since the branch forked; compare only introduced history.
+            base=$(git merge-base "$EVENT_BASE" HEAD)
+            python3 agent/scripts/check_coherence.py --base "$base"
+          else
+            # A new branch or manual run has no event base; compare with the known default branch.
+            base=$(git merge-base origin/main HEAD)
+            if [ "$base" = "$(git rev-parse HEAD)" ]; then
+              python3 agent/scripts/check_coherence.py
+            else
+              python3 agent/scripts/check_coherence.py --base "$base"
+            fi
+          fi
+  platform:
+    runs-on: ubuntu-24.04
+    # Local suite is under five seconds; extra allowance covers interpreter setup and pinned installs.
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.14'] # supported floor and the development interpreter
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install only the configuration parsers
+        run: python -m pip install -r agent/requirements.txt
+      - name: Parse shell entrypoints
+        run: |
+          for script in agent/scripts/*.sh agent/scripts/agentctl agent/tests/*.sh testing/*.sh zsh/init_github_repo.sh; do
+            bash -n "$script"
+          done
+      - name: Validate canonical configuration
+        run: agent/scripts/sync-agent-config.sh --check
+      - name: Run the local platform gate
+        env:
+          NO_COLOR: '1'
+          TERM: dumb
+          COLUMNS: '200'
+        run: agent/tests/run.sh

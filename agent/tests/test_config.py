@@ -29,7 +29,11 @@ class OwnershipTests(unittest.TestCase):
         self.agent = self.root / "repo/agent"
         shutil.copytree(source, self.agent, ignore=shutil.ignore_patterns(".venv", "local", "__pycache__"))
         self.destination = self.root / "destination"
-        self.layout = Layout(self.agent, self.destination, self.root / "absent-playbook")
+        playbook = self.root / "playbook"
+        skill = playbook / "skills/house-fixture/SKILL.md"
+        skill.parent.mkdir(parents=True)
+        skill.write_text("---\nname: house-fixture\ndescription: Synthetic engineering procedure\n---\n")
+        self.layout = Layout(self.agent, self.destination, playbook)
 
     def write_json(self, relative, value):
         path = self.destination / relative
@@ -39,6 +43,31 @@ class OwnershipTests(unittest.TestCase):
     def run_sync(self):
         with redirect_stdout(io.StringIO()):
             sync(self.layout)
+
+    def test_claude_and_shared_discovery_resolve_identical_skill_sources(self):
+        self.run_sync()
+        for name in ("house-fixture", "git-collaboration"):
+            claude = self.destination / ".claude/skills" / name
+            shared = self.destination / ".agents/skills" / name
+            self.assertEqual(claude.resolve(), shared.resolve())
+        settings = json.loads((self.destination / ".claude/settings.json").read_text())
+        self.assertIs(settings["enabledPlugins"]["agentic-rules@agentic-rules"], False)
+        self.assertFalse((self.destination / ".claude/skills").is_symlink())
+
+    def test_missing_playbook_cannot_pass_installed_validation(self):
+        self.run_sync()
+        shutil.rmtree(self.layout.playbook)
+        with redirect_stdout(io.StringIO()):
+            self.assertTrue(any("playbook is missing" in x for x in installed_issues(self.layout)))
+
+    def test_malformed_late_live_input_writes_nothing(self):
+        self.write_json(".claude/settings.json", {"theme": "untouched"})
+        self.write_json(".claude.json", {"mcpServers": "not-an-object"})
+        before = (self.destination / ".claude/settings.json").read_bytes()
+        with self.assertRaisesRegex(ValueError, "mcpServers must be an object"):
+            self.run_sync()
+        self.assertEqual((self.destination / ".claude/settings.json").read_bytes(), before)
+        self.assertFalse(self.layout.local.exists())
 
     def test_policy_wins_and_unknown_runtime_fields_survive(self):
         self.write_json(".pi/agent/settings.json", {

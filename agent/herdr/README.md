@@ -35,17 +35,16 @@ safe return rules.
 ## Editing the config
 
 ```bash
-$EDITOR ~/.dotfiles/agent/herdr/config.toml
-herdr server reload-config          # or prefix+shift+r inside the UI
+$EDITOR agent/herdr/config.toml      # from the assigned checkout
 ```
 
 `herdr config check` validates the live `~/.config/herdr/config.toml` and takes no
 path argument, so it only reports on this file once the sync script has linked it.
-Before that, a plain TOML parse is the check:
+Validate the assigned checkout before landing; activate with agentctl sync and reload-config from the primary checkout after landing. Before activation, a plain TOML parse is the check:
 
 ```bash
 python3 -c 'import tomllib,sys; tomllib.load(open(sys.argv[1],"rb"))' \
-  ~/.dotfiles/agent/herdr/config.toml
+  agent/herdr/config.toml
 ```
 
 `herdr --default-config` prints the fully commented default; this file keeps only
@@ -87,20 +86,18 @@ of reordering into an attention queue, and `update.channel = "stable"`.
 
 `herdr integration install <agent>` wires an agent's own hook system to
 `herdr pane report-agent`, so state changes are pushed rather than inferred from
-the screen. The hook scripts are runtime state and stay out of dotfiles; what
-matters is that two of the three write **through a symlink into this repo**, so
-they show up in `git status`:
+the screen. The hook scripts are runtime state and stay out of dotfiles. Claude settings and Codex TOML are
+generated real files; installers must not write through a source symlink.
 
-| Command | Writes |
+| Command | Runtime writes |
 | --- | --- |
-| `herdr integration install claude` | `~/.claude/hooks/herdr-agent-state.sh`. A Claude hook only fires once it is registered in settings, so expect this to also touch `~/.claude/settings.json` — which is `agent/claude/settings.json` through the link. |
-| `herdr integration install codex` | `~/.codex/herdr-agent-state.sh`, plus a `[hooks]` table appended to `agent/codex/config.toml` through the link. |
-| `herdr integration install pi` | `~/.pi/agent/extensions/herdr-agent-state.ts` (Pi loads extensions from that directory, so no separate registration). Git ignores it through `agent/pi/.gitignore`; an ignore file inside `extensions/` would hide it from Pi as well. |
+| `herdr integration install claude` | `~/.claude/hooks/herdr-agent-state.sh` and generated Claude settings |
+| `herdr integration install codex` | `~/.codex/herdr-agent-state.sh` and generated Codex hook settings |
+| `herdr integration install pi` | `~/.pi/agent/extensions/herdr-agent-state.ts`, ignored through `agent/pi/.gitignore` |
 
-`herdr integration status` lists all supported agents and whether each is
-installed; `herdr integration uninstall <agent>` reverses it. Review the resulting
-diff before committing, and re-run `install` after a herdr upgrade —
-`herdr integration status --outdated-only` shows which ones drifted.
+`herdr integration status` inspects installed integrations; `--outdated-only` identifies version
+drift. After a relevant upgrade, inspect the generated changes, retain intentional unowned hook state
+through sync, and run doctor. Canonical hooks still take precedence over local edits.
 
 ## The herdr skill
 
@@ -110,5 +107,8 @@ harness picks it up through the normal skills sync, rather than each agent
 shelling out to discover herdr at runtime. Regenerate it after a herdr upgrade:
 
 ```bash
-herdr --skill > ~/.dotfiles/agent/skills/herdr/SKILL.md
+herdr --skill > agent/skills/herdr/SKILL.md
 ```
+
+Regenerate only in the assigned checkout, review upstream instructions against the shared contract,
+and activate from the primary checkout after landing.

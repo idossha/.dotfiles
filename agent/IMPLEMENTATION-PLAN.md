@@ -1,6 +1,7 @@
 # Agent platform implementation plan — 2026-09-04
 
-This plan supersedes the unfinished implementation phases in `MULTI-HARNESS-PLAN.md` where the two
+**Historical plan; no current execution authority.** The contract and roadmap in `agent/docs/`
+are authoritative. This plan originally superseded the unfinished implementation phases in `MULTI-HARNESS-PLAN.md` where the two
 disagree. The architecture and acceptance gates are in `agent/docs/`.
 
 ## Phase 1 — configuration boundary

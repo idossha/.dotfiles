@@ -7,6 +7,11 @@ Notable changes to the dotfiles are recorded here using the
 
 ### Fixed
 
+- **The engineering playbook is identical across local harnesses** — Claude now links to the same
+  skill sources as Codex and Pi; its duplicate cached agentic-rules plugin is disabled.
+- **Shared review skills no longer impose another project's results** — manuscript review derives
+  facts from project evidence, and telemetry triage resolves current repositories/releases once.
+
 - **Shared policy remains authoritative across harnesses** — synchronization preserves local runtime
   state while correcting duplicate skill discovery and Claude user MCP scope. Run `agentctl sync`,
   then `agentctl doctor`; Python 3.11+ and the pinned `agent/requirements.txt` parsers are required.
@@ -16,6 +21,9 @@ Notable changes to the dotfiles are recorded here using the
   fields are rejected.
 
 ### Added
+
+- **Agent platform CI runs the local gate** on Python 3.11 and 3.14, with self-tested source and
+  per-commit contract guards. Provider activation and live delivery remain separate checks.
 
 - **One command surface now operates the shared agent platform.** `agentctl` can switch named Herdr
   projects, launch FirstMate on Herdr, start bounded GNHF worktree runs, and enter project-approved
@@ -29,6 +37,11 @@ Notable changes to the dotfiles are recorded here using the
   SketchyBar items remain unchanged; without usage data the item shows an unavailable marker.
 
 ### Changed
+
+- **Git has one explicit workflow owner** — the legacy shell GitHub publisher and Pi's misleading
+  stash-restore extension are retired. Git collaboration routes commit/release rules to agentic-rules.
+- **Docker checks report their actual scope** — environment and installer syntax only, with upstream
+  failures preserved. The old work installer test is retired; it no longer swallows failures.
 
 - **Launching an agent no longer writes runtime state into tracked policy.** Claude Code, Codex, and Pi
   now receive generated effective settings whose mutable values remain in local overlays. Shared

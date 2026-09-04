@@ -14,7 +14,7 @@ then the nearest project `AGENTS.md` for project facts.
 - `agent/scripts/agentctl overnight <name> --max-iterations <n> --dry-run` — show a bounded GNHF run in a Treehouse lease.
 - `agent/scripts/agentctl ship <name> --dry-run` — show the project-opted-in no-mistakes delivery gate.
 - `agent/tests/run.sh` — run fixture-driven platform checks (temporary state only; no GUI or network).
-- `bash -n agent/scripts/*.sh agent/scripts/agentctl agent/tests/*.sh` — parse shell entry points.
+- `for f in agent/scripts/*.sh agent/scripts/agentctl agent/tests/*.sh; do bash -n "$f" || exit 1; done` — parse shell entry points.
 
 Before claiming an agent-platform change is complete, run `agent/tests/run.sh` and
 `agent/scripts/agentctl doctor`. A dry-run is evidence of command construction only; it does not prove

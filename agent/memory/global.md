@@ -1,6 +1,6 @@
 # Global Agent Memory
 
-User-level memory for every coding harness: linked to `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`
+User-level policy for every coding harness: imported by Claude and linked to `~/.codex/AGENTS.md`
 and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 
 ## Preferences
@@ -24,14 +24,15 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   artifact and reply with only a short synopsis plus its path; long chat output is hard to scan and annotate.
 - Avoid optional confirmation questions by using established defaults and approved narrow command
   surfaces. Mandatory safety, authorization, destructive-action, secret, and consequential external-state
-  boundaries still stop for the user; suppressing those prompts would silently expand agent authority.
+  boundaries require a user decision only when existing session authorization does not cover them;
+  never ask again for authority already granted. Harness enforcement still applies.
 
 ## Cross-project Playbook
 
 - House engineering conventions are the `agentic-rules` playbook (local clone
   `/Users/idohaber/00_development/agentic-rules`, `docs/PRINCIPLES.md` is the spine). Its skills
-  load in Claude Code as the plugin `agentic-rules:<skill>`, and in Pi and Codex from
-  `~/.agents/skills`; use them without being asked: `project-docs` when
+  load from the same local source through generated links in `~/.claude/skills` and
+  `~/.agents/skills`; the duplicate Claude plugin is disabled; use them without being asked: `project-docs` when
   starting or auditing a repo's markdown, `agent-instructions` for AGENTS.md/CLAUDE.md,
   `architecture-contract` when requirements, a contract or a decision are involved,
   `testing-backend` and `testing-frontend-offscreen` when adding tests, `docs-website` for a
@@ -53,3 +54,7 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 - Do not store large project-specific facts here. Use project-local memory or
   project docs instead.
 - Do not treat session logs, caches, todos, or managed jobs as portable memory.
+
+- Invocation metadata, orchestration tools and plugins do not grant authority. Shared procedures state
+  essential constraints in prose because provider-specific frontmatter and permission behavior differ.
+- Native run logs stay with their runtime owner; only deliberately captured event memory goes to SQLite.

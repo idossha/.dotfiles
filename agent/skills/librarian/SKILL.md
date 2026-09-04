@@ -34,9 +34,9 @@ Determine the action from `$action` (or infer from context):
 ### `find` — Search for papers on a topic
 1. Read `literature.md` to understand what is already collected
 2. Search using multiple strategies in parallel:
-   - WebSearch for "[query] site:pubmed.ncbi.nlm.nih.gov" and "[query] site:scholar.google.com"
+   - web search for "[query] site:pubmed.ncbi.nlm.nih.gov" and "[query] site:scholar.google.com"
    - Use `mcp__openalex__search_works` with the query
-   - Use `mcp__openalex__find_open_access_version` when the topic involves preprints, and WebSearch for arXiv/bioRxiv/medRxiv listings
+   - Use `mcp__openalex__find_open_access_version` when the topic involves preprints, and web search for arXiv/bioRxiv/medRxiv listings
 3. For each candidate paper, report:
    - Full citation (authors, year, title, journal)
    - DOI or URL
@@ -47,7 +47,7 @@ Determine the action from `$action` (or infer from context):
 
 ### `add` — Download and catalog a paper
 1. If `$query` is a file path: the PDF is already local. Read and process it.
-2. If `$query` is a DOI or URL: attempt to download via WebFetch.
+2. If `$query` is a DOI or URL: attempt to download via web fetch.
    - Try direct PDF URLs, PMC PDFs, bioRxiv/medRxiv PDFs
    - If download fails (paywall, redirect), add to "Papers to Acquire" in literature.md
 3. Parse the PDF to extract: authors, year, title, journal

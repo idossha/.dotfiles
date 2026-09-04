@@ -1,7 +1,7 @@
 # Unified Skills
 
-This directory is the canonical source for reusable agent skills. Claude Code is
-the only harness these are linked into.
+This directory is the canonical source for reusable agent skills. Claude Code, Pi and Codex discover the same personal skills through generated links;
+the contract in `agent/docs/ARCHITECTURE.md` defines ownership.
 
 ## Layout
 
@@ -26,19 +26,15 @@ description: Specific trigger-oriented description.
 The `name` must match the directory name. Keep descriptions focused on routing:
 what the skill does and when an agent should load it.
 
-## Harness Link
+## Harness discovery
 
-Run:
+From the assigned checkout, run `agent/scripts/sync-agent-config.sh --check`.
+After landing, run `agent/scripts/agentctl sync` from the primary checkout.
 
-```bash
-~/.dotfiles/agent/scripts/sync-agent-config.sh
-```
-
-The sync script creates this link:
-
-```text
-~/.claude/skills -> ~/.dotfiles/agent/skills
-```
+Claude receives one link per personal and playbook skill in `~/.claude/skills`.
+Pi and Codex use the same sources through `~/.agents/skills`. Both discovery roots are real generated
+directories. The duplicate Claude agentic-rules plugin is disabled so an older snapshot cannot supply
+a different engineering procedure. Supporting references and scripts stay with their owning skill.
 
 ## Inventory
 
@@ -61,7 +57,7 @@ Workflows and playbooks:
 | Skill | Purpose |
 |---|---|
 | `docx-tools` | The global `docx-tools` CLI: build, read, patch, redline, comment. |
-| `git-collaboration` | Commits, branches, PRs, reviews, changelogs. |
+| `git-collaboration` | Git safety, branches, PRs and reviews; routes commit/release conventions to agentic-rules. |
 | `grafana` | Grafana dashboard provisioning. |
 | `grill-me` | Interview the user to stress-test a plan before implementing. |
 | `librarian` | Find, download, rename, and strategically summarize papers. |
@@ -76,29 +72,26 @@ Workflows and playbooks:
 | `web-neuroimaging` | Web research for neuroimaging docs and methods. |
 | `write-skill` | Author or refactor a skill in this directory. |
 
-Document-format skills (`pdf`, `pptx`, `xlsx`) are **not** kept here. Claude Code
-ships bundled equivalents; local copies would shadow them.
+Document-format skills (`pdf`, `pptx`, `xlsx`) are **not** kept here. Use the current harness's bundled format capabilities when available; local copies can shadow provider updates.
 
-## Plugin skills (not stored here)
+## External packages
 
-Skills that ship inside a plugin are registered in `agent/claude/settings.json`
-(`extraKnownMarketplaces` + `enabledPlugins`) and are never copied into this directory —
-a copy would load the same skill twice under two names. They load as `<plugin>:<skill>`.
+The eight engineering skills live in the local `agentic-rules` clone selected by
+`AGENTIC_RULES_DIR` (default `~/00_development/agentic-rules`). They are linked, never copied into
+this directory. A missing clone is reported as unchecked by source validation and fails installed
+validation, because missing engineering doctrine is not a healthy installed platform.
 
-| Plugin | Skills | Source |
-|---|---|---|
-| `agentic-rules` | `project-docs`, `agent-instructions`, `architecture-contract`, `testing-backend`, `testing-frontend-offscreen`, `docs-website`, `changelog-release`, `ci-guards` | `git@github.com:idossha/agentic-rules.git` (clone at `~/00_development/agentic-rules`) |
-| `ti-toolbox` | `ti-toolbox`, `ti-scripting`, `ti-domain`, `ti-codebase`, `troubleshoot-project` | `github.com/idossha/TI-Toolbox` |
-
-After editing a plugin's repository and pushing, run `claude plugin update <plugin>@<marketplace>`;
-the installed copy is a snapshot.
+Provider plugins remain appropriate for provider-specific bundles such as Claude LSP or frontend
+tools. Their enablement lives in the harness adapter, and doctor reports enabled floating packages.
+A package is a distribution mechanism, not another owner of global policy. Inspect plugin-provided
+skill names, MCP servers and hooks for duplicate ownership when adding or upgrading one.
 
 ## Validation
 
 Run:
 
 ```bash
-~/.dotfiles/agent/scripts/sync-agent-config.sh --check
+agent/scripts/sync-agent-config.sh --check
 ```
 
 This verifies that each skill has a `SKILL.md`, a matching frontmatter `name`,

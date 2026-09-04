@@ -138,7 +138,7 @@
     "rust-analyzer-lsp@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "ti-toolbox@ti-toolbox": true,
-    "agentic-rules@agentic-rules": true
+    "agentic-rules@agentic-rules": false
   },
   "extraKnownMarketplaces": {
     "ti-toolbox": {

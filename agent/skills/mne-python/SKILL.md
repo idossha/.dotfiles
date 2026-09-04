@@ -9,10 +9,12 @@ Use MNE-Python as an object-preserving neurophysiology pipeline. Favor official 
 
 ## Version Check
 
+Resolve `MNE_SKILL_DIR` to the directory containing this loaded SKILL.md (follow its installed
+symlink). This is an explicit task variable, not a required harness-provided environment variable.
 Start every nontrivial MNE task by checking the installed version and source location:
 
 ```bash
-MNE_DONTWRITE_HOME=true MNE_HOME=/tmp/mne-home python "${CLAUDE_SKILL_DIR}/scripts/mne_api_lookup.py" --version
+MNE_DONTWRITE_HOME=true MNE_HOME=/tmp/mne-home python "$MNE_SKILL_DIR/scripts/mne_api_lookup.py" --version
 ```
 
 Use the installed package docstrings/source as the source of truth for signatures. Use the online stable docs only for orientation, because local environments may lag the latest stable release.
@@ -22,9 +24,9 @@ Use the installed package docstrings/source as the source of truth for signature
 Use the lookup helper before implementing unfamiliar or version-sensitive operations:
 
 ```bash
-MNE_DONTWRITE_HOME=true MNE_HOME=/tmp/mne-home python "${CLAUDE_SKILL_DIR}/scripts/mne_api_lookup.py" mne.io.read_raw_edf
-MNE_DONTWRITE_HOME=true MNE_HOME=/tmp/mne-home python "${CLAUDE_SKILL_DIR}/scripts/mne_api_lookup.py" mne.io.Raw.filter --source
-MNE_DONTWRITE_HOME=true MNE_HOME=/tmp/mne-home python "${CLAUDE_SKILL_DIR}/scripts/mne_api_lookup.py" --search raw filter
+MNE_DONTWRITE_HOME=true MNE_HOME=/tmp/mne-home python "$MNE_SKILL_DIR/scripts/mne_api_lookup.py" mne.io.read_raw_edf
+MNE_DONTWRITE_HOME=true MNE_HOME=/tmp/mne-home python "$MNE_SKILL_DIR/scripts/mne_api_lookup.py" mne.io.Raw.filter --source
+MNE_DONTWRITE_HOME=true MNE_HOME=/tmp/mne-home python "$MNE_SKILL_DIR/scripts/mne_api_lookup.py" --search raw filter
 ```
 
 The helper imports MNE with a writable temp config home, prints version/path, resolves functions/classes/methods, and can show signatures, doc summaries, source file locations, and source snippets. Prefer it over guessing.
@@ -59,7 +61,7 @@ Read `references/gotchas.md` when changing behavior or debugging results. It cov
 - Keep units explicit: MNE stores EEG/MEG data in SI units; many external formats, plots, and sleep tools display microvolts.
 - Do not download sample datasets in tests or examples unless the user requested it. Use synthetic `RawArray`/`EpochsArray` for small verification.
 - Configure headless plotting in automation (`matplotlib` noninteractive backend; avoid Qt/PyVista windows unless requested).
-- For sleepTI-style EEG work, preserve annotations, sleep-stage labels, channel names, sampling frequency, and absolute timing through conversions.
+- For sleep EEG work, preserve annotations, sleep-stage labels, channel names, sampling frequency, and absolute timing through conversions.
 
 ## Verification
 
