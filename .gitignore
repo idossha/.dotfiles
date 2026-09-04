@@ -1,3 +1,6 @@
 .DS_Store
 __pycache__/
 *.pyc
+agent/local/*.local.json
+agent/local/*.local.toml
+agent/local/*.local.rules

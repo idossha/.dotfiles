@@ -108,7 +108,7 @@ PR title should be review-friendly and usually match the main commit title. Avoi
 - Prefer merge commits or squash merges for PRs when that is the repository norm.
 - Never rebase commits that other people may have based work on.
 - Delete merged branches promptly when branch ownership is clear.
-- Use `git worktree add ../project-feature feature/my-feature` when parallel work needs separate working directories.
+- Use `treehouse get --lease --lease-holder <task>` when parallel work needs separate working directories; never create agent worktrees with raw `git worktree`.
 
 ## Issue best practices
 

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "projects": {
+    "dotfiles": {
+      "path": "/Users/idohaber/.dotfiles",
+      "label": "dotfiles",
+      "visualizations": {
+        "editor": ["nvim", "."]
+      }
+    },
+    "TI-Toolbox": {
+      "path": "/Users/idohaber/01_production/TI-toolbox",
+      "label": "TI-Toolbox",
+      "visualizations": {
+        "editor": ["nvim", "."]
+      }
+    },
+    "tetravox": {
+      "path": "/Users/idohaber/00_development/tetravox",
+      "label": "tetravox",
+      "visualizations": {
+        "editor": ["nvim", "."]
+      }
+    }
+  }
+}

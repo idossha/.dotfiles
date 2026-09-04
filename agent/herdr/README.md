@@ -20,14 +20,17 @@ on top of that:
   up through tab and workspace so a blocked agent is visible without switching to
   it. For Claude Code and Codex that state comes from live screen-buffer matching;
   the installed integration mainly supplies session identity for restore.
-- **`herdr worktree create|open|list|remove`** — a git worktree and a workspace
-  opened over it in one step, which is the mechanism for running several agents on
-  the same repo in parallel without them fighting over one checkout.
+- **Treehouse handoff.** Treehouse owns every agent worktree; Herdr opens the leased path with
+  `herdr worktree open --path <path>` so its panes remain visible. Do not use Herdr's `create` or
+  `remove` subcommands for agent work because that would split lifecycle ownership.
 - **Scripted control.** `herdr agent start` launches a supported agent in an
   existing pane, `herdr agent prompt` submits a prompt to it, `herdr agent wait`
   blocks until it reaches a requested state, and `herdr agent read` pulls its
   output back. Same surface over the JSON socket API (`herdr api schema`), so an
   agent can drive other agents.
+
+See [`../treehouse/README.md`](../treehouse/README.md) for native worktree jumping, durable leases, and
+safe return rules.
 
 ## Editing the config
 
@@ -52,16 +55,19 @@ change.
 ## Keybindings
 
 The prefix is **ctrl+a**, mirroring the maintainer's tmux, instead of herdr's own
-ctrl+b. Everything else stays on herdr's defaults, stated explicitly in the config
-so a release cannot move them quietly:
+ctrl+b. Pane focus uses the same Vim-direction keys as tmux. Sidebar navigation
+and resizing use persistent modes so repeated movement does not require another
+prefix. The main bindings are stated explicitly so a release cannot move them
+quietly:
 
 | Binding | Action |
 | --- | --- |
 | `prefix+h` / `j` / `k` / `l` | focus the pane left / down / up / right |
+| `prefix+w` | enter sidebar navigation; use `j/k` or up/down to preview Spaces, tab/shift+tab to cycle panes including Agent panes, Enter to select, Esc to exit |
+| `prefix+r` | enter resize mode; press `h/j/k/l` or arrows repeatedly, then Enter or Esc to exit |
 | `prefix+v` | split vertical |
 | `prefix+minus` | split horizontal |
 | `prefix+c` / `prefix+n` / `prefix+p` | new tab / next tab / previous tab |
-| `prefix+w` | workspace picker |
 | `prefix+z` | zoom the focused pane |
 | `prefix+b` | toggle the sidebar |
 | `prefix+q` | detach (the server and every pane keep running) |
@@ -69,7 +75,8 @@ so a release cannot move them quietly:
 `prefix+minus` already matches the tmux `-` split. tmux's `|` has no counterpart:
 herdr accepts named punctuation only for `minus`, `comma`, `ampersand`, `plus` and
 `backtick`, so `prefix+v` stands in rather than inventing a key name herdr would
-reject.
+reject. Herdr 0.8.2 exposes a live cursor for Space rows but not one combined cursor
+across both Space and Agent rows; tab/shift+tab is the supported Agent-pane fallback.
 
 Other set values: theme `kanagawa` (closest built-in to Ghostty's Carbonfox),
 `terminal.new_cwd = "follow"` so new panes inherit the current repo,

@@ -1,3 +1,4 @@
+onboarding = false
 # herdr configuration — canonical source, linked to ~/.config/herdr/config.toml.
 # Generated from `herdr --default-config` (herdr 0.8.2) with only the deliberate
 # choices left uncommented. Everything omitted keeps herdr's own default.
@@ -12,6 +13,7 @@
 # the whole UI blue, which clashes visibly against Carbonfox's neutral grey.
 name = "kanagawa"
 
+auto_switch = false
 [terminal]
 # New panes, tabs and workspaces inherit the cwd of whatever they were opened
 # from, so splitting inside a repo keeps you in that repo.
@@ -27,8 +29,22 @@ channel = "stable"
 # both are on screen.
 prefix = "ctrl+a"
 
-# Vim-direction pane focus. These four are already herdr's defaults — stated
-# explicitly so a future default change cannot silently move them.
+# Open herdr's persistent sidebar navigation surface. j/k (or up/down) moves
+# between Spaces and previews each selection immediately; tab/shift+tab cycles
+# panes, including Agent panes. Herdr 0.8.2 does not expose one combined cursor
+# across both the Space and Agent row lists, so pane-direction keys are disabled
+# in this mode instead of stealing j/k from the sidebar.
+workspace_picker = "prefix+w"
+navigate_workspace_up = ["k", "up"]
+navigate_workspace_down = ["j", "down"]
+navigate_pane_left = ""
+navigate_pane_down = ""
+navigate_pane_up = ""
+navigate_pane_right = ""
+
+# Vim-direction pane focus outside the sidebar navigation surface. These four
+# are already herdr's defaults — stated explicitly so a future default change
+# cannot silently move them.
 focus_pane_left = "prefix+h"
 focus_pane_down = "prefix+j"
 focus_pane_up = "prefix+k"
@@ -41,7 +57,16 @@ focus_pane_right = "prefix+l"
 split_vertical = "prefix+v"
 split_horizontal = "prefix+minus"
 
+# Enter persistent resize mode once, then press h/j/k/l or the arrow keys as
+# many times as needed. Enter, esc, or prefix+r exits the mode.
+resize_mode = "prefix+r"
+
 [ui]
 # Group the agent sidebar by space/workspace rather than by attention queue, so
 # rows stay where they were put instead of reordering as agents change state.
 agent_panel_sort = "spaces"
+status_indicators = "symbols"
+
+show_agent_labels_on_pane_borders = true
+[ui.toast]
+delivery = "herdr"

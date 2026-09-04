@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en" data-theme="luxury">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Visual map and quick-command deck for the shared agent platform.">
+  <title>Agentic Workflow Command Deck</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--color-base-300); }
+    body { min-height: 100vh; background: var(--color-base-300); color: var(--color-base-content); }
+    :where(.grid, .flex, .layout-grid, .layout-flex) > * { min-width: 0; }
+    :where(p, h1, h2, h3, h4, li, dd, figcaption, td, th, .badge, .label) { overflow-wrap: anywhere; }
+    :where(img, svg, video, canvas, iframe) { max-width: 100%; height: auto; }
+    code { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .eyebrow { letter-spacing: .18em; text-transform: uppercase; font-size: .72rem; opacity: .58; font-weight: 700; }
+    .glass { background: color-mix(in oklab, var(--color-base-100) 93%, transparent); backdrop-filter: blur(18px); }
+    .hero-grid {
+      background-image:
+        linear-gradient(color-mix(in oklab, var(--color-primary) 8%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in oklab, var(--color-primary) 8%, transparent) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .tool-card { transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+    .tool-card:hover { transform: translateY(-2px); border-color: color-mix(in oklab, var(--color-primary) 52%, transparent); box-shadow: 0 18px 50px color-mix(in oklab, #000 26%, transparent); }
+    .command-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .75rem; align-items: start; }
+    .command-row[hidden] { display: none !important; }
+    .command-code { display: block; color: var(--color-primary); font-size: .82rem; line-height: 1.45; }
+    .flow-figure { display: block !important; }
+    .flow-scroll { width: 100%; overflow-x: auto; }
+    .flow-svg { width: 100%; min-height: 360px; }
+    .flow-svg text { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .flow-node { transition: filter .18s ease, transform .18s ease; transform-origin: center; }
+    .flow-node:focus, .flow-node:hover { filter: brightness(1.1); outline: none; }
+    .version-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .kbd-sequence { display: inline-flex; gap: .25rem; align-items: center; flex-wrap: wrap; }
+    .sticky-index { position: sticky; top: .6rem; z-index: 20; }
+    .anchor-offset { scroll-margin-top: 5rem; }
+    .category-button.active { background: var(--color-primary); color: var(--color-primary-content); border-color: var(--color-primary); }
+    @media (max-width: 780px) {
+      .flow-scroll .flow-svg { width: 760px; max-width: none; min-height: 0; }
+      .command-row { grid-template-columns: 1fr; }
+      .copy-btn { justify-self: start; }
+      .sticky-index { position: static; }
+    }
+    @media print {
+      .no-print, .copy-btn { display: none !important; }
+      body, html { background: white !important; color: black !important; }
+      .card { break-inside: avoid; box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="mx-auto max-w-7xl p-4 md:p-8 lg:p-10 space-y-8">
+    <section class="hero hero-grid rounded-box glass border border-base-content/10 shadow-2xl overflow-hidden">
+      <div class="hero-content w-full py-10 md:py-14">
+        <div class="w-full max-w-6xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-7">
+            <span class="badge badge-primary badge-soft">Living command deck · 2026-09-04</span>
+            <button id="theme-toggle" class="btn btn-sm btn-ghost no-print" type="button" aria-label="Toggle light and dark theme">◐ Theme</button>
+          </div>
+          <div class="grid lg:grid-cols-[1.45fr_.55fr] gap-8 items-end">
+            <div>
+              <div class="eyebrow">The shared agent platform</div>
+              <h1 class="mt-3 text-4xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[.96]">One intent.<br><span class="text-primary">A visible, isolated fleet.</span></h1>
+              <p class="mt-6 text-lg md:text-xl opacity-75 max-w-3xl">FirstMate coordinates. Herdr keeps every project visible. Treehouse owns every agent worktree. Pi, Claude Code, and Codex execute one shared doctrine—then tests, delivery gates, and Lavish make the result inspectable.</p>
+              <div class="mt-7 flex flex-wrap gap-3 no-print">
+                <a class="btn btn-primary" href="#workflow">See the workflow</a>
+                <a class="btn btn-outline" href="#commands">Open the command deck</a>
+              </div>
+            </div>
+            <aside class="card card-border bg-base-100/80">
+              <div class="card-body p-5">
+                <div class="eyebrow">Daily default</div>
+                <ol class="mt-2 space-y-3 text-sm">
+                  <li class="flex gap-3"><span class="badge badge-primary badge-sm">1</span><span>Enter Herdr with <code>agentctl start</code>.</span></li>
+                  <li class="flex gap-3"><span class="badge badge-primary badge-sm">2</span><span>Select a project by stable name.</span></li>
+                  <li class="flex gap-3"><span class="badge badge-primary badge-sm">3</span><span>Let Treehouse isolate every writer.</span></li>
+                  <li class="flex gap-3"><span class="badge badge-primary badge-sm">4</span><span>Ask for the outcome; inspect evidence, not terminal motion.</span></li>
+                </ol>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="sticky-index no-print rounded-box border border-base-content/10 bg-base-100/95 shadow-lg backdrop-blur px-3 py-2 overflow-x-auto" aria-label="Page sections">
+      <div class="flex gap-1 min-w-max">
+        <a class="btn btn-sm btn-ghost" href="#workflow">Workflow</a>
+        <a class="btn btn-sm btn-ghost" href="#choose">Choose a mode</a>
+        <a class="btn btn-sm btn-ghost" href="#ownership">Ownership</a>
+        <a class="btn btn-sm btn-ghost" href="#tools">Tools &amp; frameworks</a>
+        <a class="btn btn-sm btn-ghost" href="#commands">Quick commands</a>
+        <a class="btn btn-sm btn-ghost" href="#guardrails">Guardrails</a>
+      </div>
+    </nav>
+
+    <section class="version-grid gap-3" aria-label="Platform summary">
+      <div class="stat rounded-box bg-base-100 border border-base-content/10"><div class="stat-title">Execution harnesses</div><div class="stat-value text-primary">3</div><div class="stat-desc">Pi · Claude Code · Codex</div></div>
+      <div class="stat rounded-box bg-base-100 border border-base-content/10"><div class="stat-title">Worktree providers</div><div class="stat-value text-secondary">1</div><div class="stat-desc">Treehouse, exclusively</div></div>
+      <div class="stat rounded-box bg-base-100 border border-base-content/10"><div class="stat-title">MCP servers</div><div class="stat-value text-accent">3</div><div class="stat-desc">Context7 · OpenAlex · Playwright</div></div>
+      <div class="stat rounded-box bg-base-100 border border-base-content/10"><div class="stat-title">Pi packages</div><div class="stat-value text-info">7</div><div class="stat-desc">Delegation, web, shell, MCP</div></div>
+      <div class="stat rounded-box bg-base-100 border border-base-content/10"><div class="stat-title">Platform checks</div><div class="stat-value text-success">39</div><div class="stat-desc">Fixture-driven and green</div></div>
+    </section>
+
+    <section id="workflow" class="anchor-offset card card-border bg-base-100 shadow-xl">
+      <div class="card-body gap-6">
+        <div>
+          <div class="eyebrow">Topology</div>
+          <h2 class="card-title text-3xl md:text-4xl">Who touches what?</h2>
+          <p class="mt-2 opacity-70 max-w-4xl">The important distinction is ownership: Herdr displays the work, Treehouse isolates it, a harness executes it, and the shared policy decides how it is engineered.</p>
+        </div>
+        <figure class="flow-figure">
+          <div class="flow-scroll" role="region" aria-label="Scrollable workflow diagram">
+          <svg class="flow-svg" viewBox="0 0 1180 540" role="img" aria-labelledby="flow-title flow-desc">
+            <title id="flow-title">End-to-end agentic workflow</title>
+            <desc id="flow-desc">The captain supplies intent to FirstMate or agentctl. Herdr displays project sessions, Treehouse supplies isolated worktrees, Pi Claude Code or Codex execute shared AGENTS and skills, AXI and MCP tools provide data, and tests or delivery gates produce an inspectable outcome.</desc>
+            <defs>
+              <marker id="flow-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="currentColor" opacity=".58"/></marker>
+              <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="7" stdDeviation="7" flood-opacity=".18"/></filter>
+            </defs>
+
+            <g id="flow-captain" class="flow-node" tabindex="0"><title>Captain: supplies intent and decisions, receives outcomes</title>
+              <rect x="20" y="195" width="145" height="112" rx="28" fill="var(--color-primary)" filter="url(#soft-shadow)"/>
+              <text x="92" y="238" text-anchor="middle" fill="var(--color-primary-content)" font-size="20" font-weight="800">Captain</text>
+              <text x="92" y="267" text-anchor="middle" fill="var(--color-primary-content)" font-size="13">intent · decisions</text>
+              <text x="92" y="287" text-anchor="middle" fill="var(--color-primary-content)" font-size="13">outcomes</text>
+            </g>
+
+            <path d="M165 250 H224" stroke="currentColor" stroke-width="3" opacity=".48" marker-end="url(#flow-arrow)"/>
+            <g id="flow-control" class="flow-node" tabindex="0"><title>Control layer: FirstMate for delegated fleets and agentctl for direct operator commands</title>
+              <rect x="235" y="92" width="205" height="318" rx="28" fill="var(--color-base-200)" stroke="var(--color-secondary)" stroke-width="3" filter="url(#soft-shadow)"/>
+              <text x="337" y="125" text-anchor="middle" font-size="13" font-weight="700" opacity=".58">CONTROL</text>
+              <rect x="260" y="148" width="155" height="82" rx="18" fill="var(--color-secondary)"/>
+              <text x="337" y="181" text-anchor="middle" fill="var(--color-secondary-content)" font-size="19" font-weight="800">FirstMate</text>
+              <text x="337" y="207" text-anchor="middle" fill="var(--color-secondary-content)" font-size="12">route · supervise · report</text>
+              <rect x="260" y="273" width="155" height="82" rx="18" fill="var(--color-base-100)" stroke="var(--color-base-content)" stroke-opacity=".18"/>
+              <text x="337" y="306" text-anchor="middle" font-size="19" font-weight="800">agentctl</text>
+              <text x="337" y="332" text-anchor="middle" font-size="12" opacity=".65">start · project · run</text>
+            </g>
+
+            <path d="M440 175 H492" stroke="currentColor" stroke-width="3" opacity=".48" marker-end="url(#flow-arrow)"/>
+            <path d="M440 318 H492" stroke="currentColor" stroke-width="3" opacity=".48" marker-end="url(#flow-arrow)"/>
+            <g id="flow-environment" class="flow-node" tabindex="0"><title>Environment layer: Herdr owns visibility and Treehouse owns worktrees</title>
+              <rect x="505" y="62" width="238" height="378" rx="30" fill="var(--color-base-200)" stroke="var(--color-accent)" stroke-width="3" filter="url(#soft-shadow)"/>
+              <text x="624" y="96" text-anchor="middle" font-size="13" font-weight="700" opacity=".58">ENVIRONMENT</text>
+              <rect x="532" y="119" width="184" height="112" rx="22" fill="var(--color-accent)"/>
+              <text x="624" y="159" text-anchor="middle" fill="var(--color-accent-content)" font-size="21" font-weight="800">Herdr</text>
+              <text x="624" y="184" text-anchor="middle" fill="var(--color-accent-content)" font-size="12">spaces · tabs · panes</text>
+              <text x="624" y="205" text-anchor="middle" fill="var(--color-accent-content)" font-size="12">visibility only</text>
+              <rect x="532" y="272" width="184" height="124" rx="22" fill="var(--color-warning)"/>
+              <text x="624" y="313" text-anchor="middle" fill="var(--color-warning-content)" font-size="21" font-weight="800">Treehouse</text>
+              <text x="624" y="339" text-anchor="middle" fill="var(--color-warning-content)" font-size="12">pooled worktrees</text>
+              <text x="624" y="360" text-anchor="middle" fill="var(--color-warning-content)" font-size="12">leases · safe return</text>
+              <text x="624" y="380" text-anchor="middle" fill="var(--color-warning-content)" font-size="12" font-weight="700">sole allocator</text>
+            </g>
+
+            <path d="M743 250 H795" stroke="currentColor" stroke-width="3" opacity=".48" marker-end="url(#flow-arrow)"/>
+            <g id="flow-execution" class="flow-node" tabindex="0"><title>Execution layer: three harnesses read the same shared policy and skills</title>
+              <rect x="808" y="82" width="208" height="338" rx="28" fill="var(--color-base-200)" stroke="var(--color-info)" stroke-width="3" filter="url(#soft-shadow)"/>
+              <text x="912" y="116" text-anchor="middle" font-size="13" font-weight="700" opacity=".58">EXECUTION</text>
+              <rect x="833" y="139" width="158" height="52" rx="15" fill="var(--color-info)"/><text x="912" y="172" text-anchor="middle" fill="var(--color-info-content)" font-size="17" font-weight="800">Pi</text>
+              <rect x="833" y="205" width="158" height="52" rx="15" fill="var(--color-base-100)"/><text x="912" y="238" text-anchor="middle" font-size="17" font-weight="800">Claude Code</text>
+              <rect x="833" y="271" width="158" height="52" rx="15" fill="var(--color-base-100)"/><text x="912" y="304" text-anchor="middle" font-size="17" font-weight="800">Codex</text>
+              <rect x="833" y="349" width="158" height="44" rx="13" fill="var(--color-neutral)"/><text x="912" y="376" text-anchor="middle" fill="var(--color-neutral-content)" font-size="12" font-weight="700">AGENTS + skills</text>
+            </g>
+
+            <path d="M1016 250 H1060" stroke="currentColor" stroke-width="3" opacity=".48" marker-end="url(#flow-arrow)"/>
+            <g id="flow-outcome" class="flow-node" tabindex="0"><title>Outcome layer: tools supply evidence and delivery produces a PR, local branch, report, or artifact</title>
+              <rect x="1072" y="126" width="90" height="250" rx="26" fill="var(--color-success)" filter="url(#soft-shadow)"/>
+              <text x="1117" y="174" text-anchor="middle" fill="var(--color-success-content)" font-size="16" font-weight="800">Proof</text>
+              <text x="1117" y="207" text-anchor="middle" fill="var(--color-success-content)" font-size="11">tests</text>
+              <text x="1117" y="229" text-anchor="middle" fill="var(--color-success-content)" font-size="11">review</text>
+              <text x="1117" y="251" text-anchor="middle" fill="var(--color-success-content)" font-size="11">CI</text>
+              <path d="M1092 275 H1142" stroke="var(--color-success-content)" opacity=".35"/>
+              <text x="1117" y="304" text-anchor="middle" fill="var(--color-success-content)" font-size="16" font-weight="800">Outcome</text>
+              <text x="1117" y="333" text-anchor="middle" fill="var(--color-success-content)" font-size="11">PR · branch</text>
+              <text x="1117" y="355" text-anchor="middle" fill="var(--color-success-content)" font-size="11">report · HTML</text>
+            </g>
+
+            <g id="flow-tools" class="flow-node" tabindex="0"><title>Support tools: AXI command surfaces and MCP servers provide bounded data and browser capabilities</title>
+              <rect x="505" y="465" width="511" height="54" rx="17" fill="var(--color-neutral)"/>
+              <text x="760" y="487" text-anchor="middle" fill="var(--color-neutral-content)" font-size="13" font-weight="800">SUPPORT TOOLS</text>
+              <text x="760" y="507" text-anchor="middle" fill="var(--color-neutral-content)" font-size="12">gh-axi · chrome-devtools-axi · tasks-axi · quota-axi · Context7 · OpenAlex · Playwright · Lavish</text>
+            </g>
+            <path d="M912 420 V458" stroke="currentColor" stroke-width="2.5" opacity=".4" marker-end="url(#flow-arrow)"/>
+          </svg>
+          </div>
+          <figcaption class="text-sm opacity-60 mt-2">The runtime is deliberately layered. A tool can supply data or visibility without silently taking ownership of worktree lifecycle, engineering policy, or merge authority.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="choose" class="anchor-offset space-y-4">
+      <div>
+        <div class="eyebrow">Routing guide</div>
+        <h2 class="text-3xl md:text-4xl font-bold">Choose the smallest mode that fits</h2>
+      </div>
+      <div class="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
+        <article class="tool-card card card-border bg-base-100"><div class="card-body p-5"><span class="badge badge-primary">Direct harness</span><h3 class="card-title">One bounded task</h3><p class="text-sm opacity-70">Use Pi, Claude Code, or Codex in one Treehouse worktree.</p><div class="mt-auto text-xs opacity-55">Default for focused implementation.</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body p-5"><span class="badge badge-secondary">FirstMate</span><h3 class="card-title">Several outcomes</h3><p class="text-sm opacity-70">Delegate and supervise across projects or independent tasks.</p><div class="mt-auto text-xs opacity-55">You keep one captain conversation.</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body p-5"><span class="badge badge-info">GNHF</span><h3 class="card-title">Bounded unattended loop</h3><p class="text-sm opacity-70">Run iterative work with a hard iteration or token cap.</p><div class="mt-auto text-xs opacity-55">Treehouse lease retained; no push default.</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body p-5"><span class="badge badge-success">no-mistakes</span><h3 class="card-title">Delivery rigor</h3><p class="text-sm opacity-70">Take an opted-in branch through review, tests, docs, PR, and CI.</p><div class="mt-auto text-xs opacity-55">Project-local opt-in; merge authority stays separate.</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body p-5"><span class="badge badge-accent">Lavish</span><h3 class="card-title">Visual explanation</h3><p class="text-sm opacity-70">Use a rich local HTML surface for diagrams, comparisons, plans, or review.</p><div class="mt-auto text-xs opacity-55">Chat carries only the synopsis and path.</div></div></article>
+      </div>
+    </section>
+
+    <section id="ownership" class="anchor-offset card card-border bg-base-100">
+      <div class="card-body gap-5">
+        <div>
+          <div class="eyebrow">One-owner rule</div>
+          <h2 class="card-title text-3xl">Responsibilities do not overlap</h2>
+          <p class="mt-2 opacity-70">When two tools could do the same thing, this table says which one wins.</p>
+        </div>
+        <div class="overflow-x-auto rounded-box border border-base-content/10">
+          <table class="table table-zebra">
+            <thead><tr><th>Concern</th><th>Owner</th><th>What it does</th><th>Do not substitute</th></tr></thead>
+            <tbody>
+              <tr id="owner-policy"><td>Portable policy</td><td><span class="badge badge-neutral">AGENTS.md</span></td><td>Shared rules, routing, safety boundaries</td><td>Harness-specific copies</td></tr>
+              <tr id="owner-doctrine"><td>Engineering procedures</td><td><span class="badge badge-neutral">agentic-rules</span></td><td>Testing, docs, architecture, CI, releases</td><td>Ad hoc per-harness prompts</td></tr>
+              <tr id="owner-session"><td>Visible sessions</td><td><span class="badge badge-accent">Herdr</span></td><td>Spaces, tabs, panes, agent state</td><td>Treehouse for terminal UI</td></tr>
+              <tr id="owner-worktree"><td>Agent worktrees</td><td><span class="badge badge-warning">Treehouse</span></td><td>Pooled allocation, leases, safe return</td><td>Herdr create/remove, native harness worktrees, raw Git</td></tr>
+              <tr id="owner-fleet"><td>Multi-task supervision</td><td><span class="badge badge-secondary">FirstMate</span></td><td>Intake, routing, recovery, outcomes</td><td>Independent agents sharing one checkout</td></tr>
+              <tr id="owner-model"><td>Model execution</td><td><span class="badge badge-info">Pi / Claude / Codex</span></td><td>Reasoning, editing, commands, focused delegation</td><td>FirstMate as coding doctrine</td></tr>
+              <tr id="owner-loop"><td>Unattended iteration</td><td><span class="badge badge-info">GNHF</span></td><td>Finite iterative loop</td><td>Unbounded background agents</td></tr>
+              <tr id="owner-delivery"><td>Delivery validation</td><td><span class="badge badge-success">no-mistakes</span></td><td>Review → test → docs → PR → CI</td><td>Informal stacked manual reviews</td></tr>
+              <tr id="owner-report"><td>Rich explanation</td><td><span class="badge badge-primary">Lavish</span></td><td>Local visual report and annotations</td><td>Long terminal walls of text</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tools" class="anchor-offset space-y-5">
+      <div>
+        <div class="eyebrow">Installed toolchain</div>
+        <h2 class="text-3xl md:text-4xl font-bold">Major tools and frameworks</h2>
+        <p class="mt-2 opacity-70">Versions were read from the installed tools and canonical Pi configuration on 2026-09-04.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <article class="tool-card card card-border bg-base-100"><div class="card-body"><div class="flex justify-between gap-3"><span class="badge badge-secondary">Orchestration</span><span class="badge badge-ghost">pinned SHA</span></div><h3 class="card-title text-2xl">FirstMate</h3><p class="text-sm opacity-70">Durable fleet supervisor and the captain's single contact point.</p><div class="text-xs font-mono opacity-55">8f7b79c7… · Herdr backend</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body"><div class="flex justify-between gap-3"><span class="badge badge-accent">Session UI</span><span class="badge badge-ghost">0.8.2</span></div><h3 class="card-title text-2xl">Herdr</h3><p class="text-sm opacity-70">Persistent Spaces, tabs, panes, and visible agent states.</p><div class="text-xs opacity-55">Ctrl+A prefix · worktree visibility only</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body"><div class="flex justify-between gap-3"><span class="badge badge-warning">Isolation</span><span class="badge badge-ghost">v2.3.0</span></div><h3 class="card-title text-2xl">Treehouse</h3><p class="text-sm opacity-70">Sole worktree allocator: pooled slots, durable leases, native jumping.</p><div class="text-xs opacity-55">status · enter · get --lease · identity-bound return</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body"><div class="flex justify-between gap-3"><span class="badge badge-info">Harness</span><span class="badge badge-ghost">0.85.0</span></div><h3 class="card-title text-2xl">Pi</h3><p class="text-sm opacity-70">Primary extensible coding harness with shared packages, MCP, and subagents.</p><div class="text-xs opacity-55">default: openai-codex · gpt-5.5 · xhigh</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body"><div class="flex justify-between gap-3"><span class="badge badge-info">Harness</span><span class="badge badge-ghost">2.1.260</span></div><h3 class="card-title text-2xl">Claude Code</h3><p class="text-sm opacity-70">Coding harness with the agentic-rules plugin and Treehouse-only worktree policy.</p><div class="text-xs opacity-55">native worktree paths denied</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body"><div class="flex justify-between gap-3"><span class="badge badge-info">Harness</span><span class="badge badge-ghost">0.153.2</span></div><h3 class="card-title text-2xl">Codex</h3><p class="text-sm opacity-70">Coding harness sharing the same instructions, skills, MCP declarations, and narrow command approvals.</p><div class="text-xs opacity-55">Treehouse status / enter / lease pre-approved</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body"><div class="flex justify-between gap-3"><span class="badge badge-info">Autonomy</span><span class="badge badge-ghost">0.1.49</span></div><h3 class="card-title text-2xl">GNHF</h3><p class="text-sm opacity-70">Bounded unattended iterations in a retained Treehouse lease.</p><div class="text-xs opacity-55">finite cap required · no push default</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body"><div class="flex justify-between gap-3"><span class="badge badge-success">Delivery</span><span class="badge badge-ghost">v1.64.0</span></div><h3 class="card-title text-2xl">no-mistakes</h3><p class="text-sm opacity-70">Opt-in delivery pipeline for review, fixes, tests, docs, PR, and CI.</p><div class="text-xs opacity-55">project configuration controls the gate</div></div></article>
+        <article class="tool-card card card-border bg-base-100"><div class="card-body"><div class="flex justify-between gap-3"><span class="badge badge-primary">Visual review</span><span class="badge badge-ghost">0.1.64</span></div><h3 class="card-title text-2xl">Lavish</h3><p class="text-sm opacity-70">Interactive local HTML reports, annotation, export, and optional sharing.</p><div class="text-xs opacity-55">diagram · table · comparison · plan · code</div></div></article>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-4">
+        <article class="card card-border bg-base-100"><div class="card-body"><div class="flex flex-wrap justify-between gap-3"><h3 class="card-title text-2xl">AXI command surfaces</h3><span class="badge badge-primary badge-soft">Low-friction structured output</span></div><div class="overflow-x-auto"><table class="table table-sm"><thead><tr><th>Tool</th><th>Version</th><th>Use</th></tr></thead><tbody>
+          <tr><td><code>gh-axi</code></td><td>0.1.35</td><td>GitHub issues, PRs, checks, runs, releases</td></tr>
+          <tr><td><code>chrome-devtools-axi</code></td><td>0.1.34</td><td>Browser snapshots, interaction, network, performance</td></tr>
+          <tr><td><code>tasks-axi</code></td><td>0.2.5</td><td>Durable work queue, blockers, decisions, readiness</td></tr>
+          <tr><td><code>quota-axi</code></td><td>0.1.37</td><td>Provider quota, auth evidence, model runway</td></tr>
+        </tbody></table></div></div></article>
+        <article class="card card-border bg-base-100"><div class="card-body"><div class="flex flex-wrap justify-between gap-3"><h3 class="card-title text-2xl">MCP + Pi framework</h3><span class="badge badge-secondary badge-soft">Shared capabilities</span></div><div class="grid sm:grid-cols-2 gap-3 text-sm">
+          <div class="rounded-box bg-base-200 p-4"><strong>Context7</strong><br><span class="opacity-65">Current library documentation</span></div>
+          <div class="rounded-box bg-base-200 p-4"><strong>OpenAlex</strong><br><span class="opacity-65">Academic literature metadata</span></div>
+          <div class="rounded-box bg-base-200 p-4"><strong>Playwright</strong><br><span class="opacity-65">Browser automation and evidence</span></div>
+          <div class="rounded-box bg-base-200 p-4"><strong>Pi web access</strong><br><span class="opacity-65">Search, fetch, source checking</span></div>
+        </div><div class="divider text-xs">Pi packages</div><div class="flex flex-wrap gap-2">
+          <span class="badge badge-outline">subagents 0.64.0</span><span class="badge badge-outline">intercom 0.13.0</span><span class="badge badge-outline">interactive-shell 0.15.1</span><span class="badge badge-outline">web-access 0.27.0</span><span class="badge badge-outline">side-chat 0.2.0</span><span class="badge badge-outline">boomerang 0.7.0</span><span class="badge badge-outline">mcp-adapter 2.32.1</span>
+        </div></div></article>
+      </div>
+
+      <article class="card card-border bg-base-100"><div class="card-body"><div class="flex flex-wrap justify-between gap-3"><h3 class="card-title text-2xl">Engineering playbooks that should trigger automatically</h3><span class="badge badge-neutral">agentic-rules</span></div><div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+        <div class="rounded-box bg-base-200 p-4"><strong>project-docs</strong><br><span class="opacity-65">Repository markdown roster</span></div>
+        <div class="rounded-box bg-base-200 p-4"><strong>agent-instructions</strong><br><span class="opacity-65">AGENTS.md and harness routing</span></div>
+        <div class="rounded-box bg-base-200 p-4"><strong>architecture-contract</strong><br><span class="opacity-65">Requirements, contract, decisions</span></div>
+        <div class="rounded-box bg-base-200 p-4"><strong>testing-backend</strong><br><span class="opacity-65">Independent expected values</span></div>
+        <div class="rounded-box bg-base-200 p-4"><strong>testing-frontend-offscreen</strong><br><span class="opacity-65">Hidden GUI and analytic rendering tests</span></div>
+        <div class="rounded-box bg-base-200 p-4"><strong>ci-guards</strong><br><span class="opacity-65">CI and self-testing guards</span></div>
+        <div class="rounded-box bg-base-200 p-4"><strong>docs-website</strong><br><span class="opacity-65">Generated documentation sites</span></div>
+        <div class="rounded-box bg-base-200 p-4"><strong>changelog-release</strong><br><span class="opacity-65">Changelog, commits, local tags</span></div>
+      </div></div></article>
+    </section>
+
+    <section id="commands" class="anchor-offset card card-border bg-base-100 shadow-xl">
+      <div class="card-body gap-6">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+          <div><div class="eyebrow">Copy-ready reference</div><h2 class="card-title text-3xl md:text-4xl">Quick command deck</h2><p class="mt-2 opacity-70">Press <kbd class="kbd kbd-sm">/</kbd> to search. Filter by task, then copy the exact command.</p></div>
+          <label class="input input-bordered flex items-center gap-2 w-full lg:max-w-md">
+            <span aria-hidden="true">⌕</span>
+            <input id="command-search" type="search" class="grow" placeholder="Search commands, tools, or outcomes…" aria-label="Search quick commands">
+            <kbd class="kbd kbd-sm">/</kbd>
+          </label>
+        </div>
+        <div id="category-filters" class="flex flex-wrap gap-2 no-print" aria-label="Command categories">
+          <button class="category-button btn btn-sm active" type="button" data-filter="all">All</button>
+          <button class="category-button btn btn-sm btn-outline" type="button" data-filter="daily">Daily</button>
+          <button class="category-button btn btn-sm btn-outline" type="button" data-filter="treehouse">Worktrees</button>
+          <button class="category-button btn btn-sm btn-outline" type="button" data-filter="herdr">Herdr</button>
+          <button class="category-button btn btn-sm btn-outline" type="button" data-filter="fleet">Fleet</button>
+          <button class="category-button btn btn-sm btn-outline" type="button" data-filter="delivery">Delivery</button>
+          <button class="category-button btn btn-sm btn-outline" type="button" data-filter="research">Research &amp; UI</button>
+          <button class="category-button btn btn-sm btn-outline" type="button" data-filter="maintenance">Maintenance</button>
+        </div>
+        <div id="command-count" class="text-sm opacity-55" aria-live="polite"></div>
+
+        <div id="command-list" class="grid lg:grid-cols-2 gap-4">
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="daily herdr" data-search="start herdr attach cockpit workspace"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-primary badge-sm">Daily</span><span class="text-sm font-semibold">Open the cockpit</span></div><code class="command-code">agentctl start</code><p class="mt-2 text-xs opacity-60">Launch or attach Herdr; no model starts implicitly.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="daily herdr" data-search="project switch dotfiles TI Toolbox tetravox workspace"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-primary badge-sm">Daily</span><span class="text-sm font-semibold">Jump to a project</span></div><code class="command-code">agentctl project &lt;dotfiles|TI-Toolbox|tetravox&gt;</code><p class="mt-2 text-xs opacity-60">Select by registry name instead of remembering paths.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="daily maintenance" data-search="doctor health versions links integrations"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-primary badge-sm">Daily</span><span class="text-sm font-semibold">Health check</span></div><code class="command-code">agentctl doctor</code><p class="mt-2 text-xs opacity-60">Read-only check of projects, versions, integrations, and pins.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="treehouse daily" data-search="treehouse status list worktrees slots names"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-warning badge-sm">Worktrees</span><span class="text-sm font-semibold">List this repo's slots</span></div><code class="command-code">treehouse status</code><p class="mt-2 text-xs opacity-60">Names and numbers are valid selectors for <code>enter</code>.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="treehouse daily" data-search="treehouse enter jump subshell attach worktree"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-warning badge-sm">Worktrees</span><span class="text-sm font-semibold">Jump into a slot</span></div><code class="command-code">treehouse enter 1</code><p class="mt-2 text-xs opacity-60">Opens a subshell; type <code>exit</code> to return.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="treehouse daily" data-search="treehouse enter print path cd current shell jump"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-warning badge-sm">Worktrees</span><span class="text-sm font-semibold">Move the current shell</span></div><code class="command-code">cd "$(treehouse enter --print-path 1)"</code><p class="mt-2 text-xs opacity-60">Native selector without the extra subshell.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="treehouse" data-search="treehouse get lease acquire allocate automation json"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-warning badge-sm">Worktrees</span><span class="text-sm font-semibold">Allocate for automation</span></div><code class="command-code">treehouse get --lease --lease-holder &lt;task&gt; --json</code><p class="mt-2 text-xs opacity-60">Durable identity survives the allocating process.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-warning/35 bg-warning/10 p-4" data-category="treehouse" data-search="treehouse return release landed clean lease id"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-warning badge-sm">Worktrees</span><span class="text-sm font-semibold">Return after landing</span></div><code class="command-code">treehouse return &lt;path&gt; --if-lease-id &lt;lease-id&gt;</code><p class="mt-2 text-xs opacity-70"><strong>Only after work is landed and clean.</strong> Never add <code>--force</code> to bypass unlanded work.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="treehouse maintenance" data-search="treehouse prune dry run stale inspect"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-warning badge-sm">Worktrees</span><span class="text-sm font-semibold">Inspect reclaimable slots</span></div><code class="command-code">treehouse prune --dry-run</code><p class="mt-2 text-xs opacity-60">Nonmutating pool cleanup preview.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="treehouse herdr" data-search="treehouse herdr open path workspace pane handoff"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-warning badge-sm">Worktrees</span><span class="text-sm font-semibold">Open a leased path in Herdr</span></div><code class="command-code">herdr worktree open --path &lt;treehouse-path&gt; --no-focus</code><p class="mt-2 text-xs opacity-60">Herdr adopts the view; Treehouse retains lifecycle ownership.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="herdr daily" data-search="herdr spaces agents sidebar preview ctrl a w keyboard"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-accent badge-sm">Herdr</span><span class="text-sm font-semibold">Navigate Spaces and Agents</span></div><div class="kbd-sequence"><kbd class="kbd">Ctrl+A</kbd><span>then</span><kbd class="kbd">w</kbd><span>·</span><kbd class="kbd">j/k</kbd><span>Spaces ·</span><kbd class="kbd">Tab</kbd><span>Agent panes ·</span><kbd class="kbd">Enter</kbd></div><p class="mt-2 text-xs opacity-60">In installed Herdr 0.8.2, j/k previews Spaces and Tab/Shift+Tab cycles Agent panes; Enter commits and Esc restores.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button" data-copy="Ctrl+A, w → j/k for Spaces; Tab/Shift+Tab for Agent panes → Enter (Esc restores)">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="herdr" data-search="herdr pane focus vim h j k l"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-accent badge-sm">Herdr</span><span class="text-sm font-semibold">Focus panes</span></div><div class="kbd-sequence"><kbd class="kbd">Ctrl+A</kbd><span>then</span><kbd class="kbd">h</kbd><kbd class="kbd">j</kbd><kbd class="kbd">k</kbd><kbd class="kbd">l</kbd></div><p class="mt-2 text-xs opacity-60">Vim directions match the tmux muscle memory.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button" data-copy="Ctrl+A, then h/j/k/l">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="herdr" data-search="herdr split vertical horizontal v minus"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-accent badge-sm">Herdr</span><span class="text-sm font-semibold">Split panes</span></div><div class="kbd-sequence"><kbd class="kbd">Ctrl+A</kbd><span>then</span><kbd class="kbd">v</kbd><span>vertical ·</span><kbd class="kbd">-</kbd><span>horizontal</span></div></div><button class="copy-btn btn btn-xs btn-ghost" type="button" data-copy="Ctrl+A, v = vertical split; Ctrl+A, - = horizontal split">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="herdr" data-search="herdr resize mode r repeat"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-accent badge-sm">Herdr</span><span class="text-sm font-semibold">Resize repeatedly</span></div><div class="kbd-sequence"><kbd class="kbd">Ctrl+A</kbd><span>then</span><kbd class="kbd">r</kbd><span>then repeated</span><kbd class="kbd">h/j/k/l</kbd></div><p class="mt-2 text-xs opacity-60">Enter or Esc exits resize mode.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button" data-copy="Ctrl+A, r → repeated h/j/k/l → Enter or Esc">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="herdr" data-search="herdr tabs new next previous zoom sidebar detach"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-accent badge-sm">Herdr</span><span class="text-sm font-semibold">Tabs and view</span></div><div class="kbd-sequence"><kbd class="kbd">Ctrl+A</kbd><span>+</span><kbd class="kbd">c</kbd><span>new ·</span><kbd class="kbd">n/p</kbd><span>next/prev ·</span><kbd class="kbd">z</kbd><span>zoom ·</span><kbd class="kbd">b</kbd><span>sidebar ·</span><kbd class="kbd">q</kbd><span>detach</span></div></div><button class="copy-btn btn btn-xs btn-ghost" type="button" data-copy="Ctrl+A: c new tab; n/p next/previous; z zoom; b sidebar; q detach">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="herdr maintenance" data-search="herdr reload config check"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-accent badge-sm">Herdr</span><span class="text-sm font-semibold">Check and reload config</span></div><code class="command-code">herdr config check &amp;&amp; herdr server reload-config</code></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="fleet" data-search="firstmate fleet pi start supervisor"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-secondary badge-sm">Fleet</span><span class="text-sm font-semibold">Start FirstMate</span></div><code class="command-code">agentctl fleet --harness pi</code><p class="mt-2 text-xs opacity-60">Use Claude or Codex by replacing <code>pi</code>.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="fleet daily" data-search="bearings status morning brief fleet"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-secondary badge-sm">Fleet</span><span class="text-sm font-semibold">Fleet bearings</span></div><code class="command-code">/bearings</code><p class="mt-2 text-xs opacity-60">Catch up on work, decisions, and review-ready outcomes.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="fleet" data-search="ahoy recap visible conversation decisions"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-secondary badge-sm">Fleet</span><span class="text-sm font-semibold">Recap this session</span></div><code class="command-code">/ahoy</code><p class="mt-2 text-xs opacity-60">Recaps visible events and unanswered decisions.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="fleet" data-search="afk away supervision"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-secondary badge-sm">Fleet</span><span class="text-sm font-semibold">Walk away safely</span></div><code class="command-code">/afk</code><p class="mt-2 text-xs opacity-60">Keeps bounded supervision active while you are away.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="fleet maintenance" data-search="stow memory context reset persist"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-secondary badge-sm">Fleet</span><span class="text-sm font-semibold">Persist durable context</span></div><code class="command-code">/stow</code><p class="mt-2 text-xs opacity-60">Curates useful knowledge and open-work records before reset.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="fleet maintenance" data-search="update firstmate pull latest"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-secondary badge-sm">Fleet</span><span class="text-sm font-semibold">Guarded FirstMate update</span></div><code class="command-code">/updatefirstmate</code></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="fleet" data-search="council advisors debate review decision"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-secondary badge-sm">Fleet</span><span class="text-sm font-semibold">Convene advisors</span></div><code class="command-code">/council</code><p class="mt-2 text-xs opacity-60">A bounded, supervisor-mediated advisor council in Pi.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="delivery" data-search="overnight gnhf autonomous bounded iterations"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-info badge-sm">Autonomy</span><span class="text-sm font-semibold">Bounded overnight run</span></div><code class="command-code">agentctl overnight &lt;project&gt; --max-iterations 3 -- "&lt;objective&gt;"</code><p class="mt-2 text-xs opacity-60">Acquires and retains a Treehouse lease; never pushes by default.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="delivery" data-search="ship no mistakes pipeline opt in"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-success badge-sm">Delivery</span><span class="text-sm font-semibold">Open the delivery gate</span></div><code class="command-code">agentctl ship &lt;project&gt;</code><p class="mt-2 text-xs opacity-60">Works only when the project has reviewed <code>.no-mistakes.yaml</code>.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="delivery" data-search="no mistakes axi run intent pipeline"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-success badge-sm">Delivery</span><span class="text-sm font-semibold">Drive a branch pipeline</span></div><code class="command-code">no-mistakes axi run --intent "&lt;accepted goal&gt;"</code><p class="mt-2 text-xs opacity-60">Use from the task branch; do not add <code>--yes</code> when a real decision may surface.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="delivery research" data-search="github pull request view checks gh axi"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-primary badge-sm">GitHub</span><span class="text-sm font-semibold">Inspect a PR and checks</span></div><code class="command-code">gh-axi pr view 42 --comments &amp;&amp; gh-axi pr checks 42</code></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="research" data-search="quota providers models runway tui"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-primary badge-sm">Routing</span><span class="text-sm font-semibold">See quota and runway</span></div><code class="command-code">quota-axi --tui</code><p class="mt-2 text-xs opacity-60">Use <code>quota-axi models --sort runway</code> for model selection evidence.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="research" data-search="browser chrome devtools snapshot hidden ui"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-primary badge-sm">Browser</span><span class="text-sm font-semibold">Start isolated browser evidence</span></div><code class="command-code">CHROME_DEVTOOLS_AXI_SESSION=&lt;task&gt; chrome-devtools-axi open &lt;url&gt;</code><p class="mt-2 text-xs opacity-60">Then use <code>snapshot</code>, <code>screenshot</code>, <code>network</code>, or <code>lighthouse</code>. Default is headless.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="research" data-search="tasks backlog ready show dashboard"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-primary badge-sm">Work queue</span><span class="text-sm font-semibold">Inspect durable tasks</span></div><code class="command-code">tasks-axi</code><p class="mt-2 text-xs opacity-60">Dashboard; use <code>tasks-axi ready</code> or <code>tasks-axi show &lt;id&gt; --full</code> for focused views.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="research" data-search="lavish visual artifact open review"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-primary badge-sm">Visual review</span><span class="text-sm font-semibold">Open a Lavish artifact</span></div><code class="command-code">lavish-axi &lt;artifact.html&gt;</code><p class="mt-2 text-xs opacity-60">Use <code>lavish-axi export &lt;artifact.html&gt;</code> for a portable copy.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="maintenance" data-search="sync configuration links render"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-neutral badge-sm">Maintenance</span><span class="text-sm font-semibold">Sync shared configuration</span></div><code class="command-code">agentctl sync</code><p class="mt-2 text-xs opacity-60">Use the nonmutating check below before claiming completion.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="maintenance" data-search="verify config tests doctor gate"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-neutral badge-sm">Maintenance</span><span class="text-sm font-semibold">Run the platform gate</span></div><code class="command-code">agent/scripts/sync-agent-config.sh --check &amp;&amp; agent/tests/run.sh &amp;&amp; agentctl doctor</code></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="maintenance" data-search="install tools treehouse firstmate gnhf no mistakes"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-neutral badge-sm">Maintenance</span><span class="text-sm font-semibold">Install pinned tools</span></div><code class="command-code">agent/scripts/install-agent-tools.sh --tools</code><p class="mt-2 text-xs opacity-60">Use <code>--dry-run</code> first to inspect network and filesystem changes.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+          <article class="command-row rounded-box border border-base-content/10 bg-base-200 p-4" data-category="maintenance" data-search="pi print headless stdin eof gotcha"><div><div class="flex flex-wrap gap-2 mb-2"><span class="badge badge-neutral badge-sm">Maintenance</span><span class="text-sm font-semibold">Headless Pi without hanging</span></div><code class="command-code">pi -p "&lt;prompt&gt;" &lt;/dev/null</code><p class="mt-2 text-xs opacity-60">Pi print mode reads stdin until EOF.</p></div><button class="copy-btn btn btn-xs btn-ghost" type="button">Copy</button></article>
+        </div>
+        <div id="no-results" class="alert alert-warning" hidden><span>No command matches that search and category.</span></div>
+      </div>
+    </section>
+
+    <section id="guardrails" class="anchor-offset grid lg:grid-cols-[1.1fr_.9fr] gap-4">
+      <article class="card card-border bg-base-100"><div class="card-body"><div class="eyebrow">Guardrails</div><h2 class="card-title text-3xl">The rules that prevent expensive mistakes</h2><ul class="mt-3 space-y-3 text-sm">
+        <li class="alert alert-warning alert-soft"><span><strong>Treehouse owns worktrees.</strong> Herdr opens them; harnesses do not create their own.</span></li>
+        <li class="alert alert-warning alert-soft"><span><strong>Unlanded work is preserved.</strong> A failed cleanup is investigated, never bypassed with force.</span></li>
+        <li class="alert alert-info alert-soft"><span><strong>Unattended work is bounded.</strong> GNHF always has an iteration or token cap and no automatic push.</span></li>
+        <li class="alert alert-info alert-soft"><span><strong>GUI evidence stays hidden.</strong> Rendering is judged analytically; tests never take the screen.</span></li>
+        <li class="alert alert-success alert-soft"><span><strong>Delivery and merge authority are separate.</strong> Green checks do not invent permission to merge.</span></li>
+        <li class="alert alert-success alert-soft"><span><strong>Releases stop at the local tag.</strong> Publishing remains a deliberate human action.</span></li>
+      </ul></div></article>
+      <article class="card card-border bg-neutral text-neutral-content"><div class="card-body"><div class="eyebrow">Sources of truth</div><h2 class="card-title text-3xl">Where to look when memory conflicts</h2><dl class="mt-3 space-y-4 text-sm">
+        <div><dt class="font-bold text-primary">Portable policy</dt><dd class="opacity-70 font-mono">~/.dotfiles/agent/AGENTS.md</dd></div>
+        <div><dt class="font-bold text-primary">Architecture + decisions</dt><dd class="opacity-70 font-mono">~/.dotfiles/agent/docs/</dd></div>
+        <div><dt class="font-bold text-primary">Worktree lifecycle</dt><dd class="opacity-70 font-mono">~/.dotfiles/agent/treehouse/README.md</dd></div>
+        <div><dt class="font-bold text-primary">Tool entry point</dt><dd class="opacity-70 font-mono">~/.dotfiles/agent/scripts/agentctl</dd></div>
+        <div><dt class="font-bold text-primary">Engineering playbooks</dt><dd class="opacity-70 font-mono">~/00_development/agentic-rules/skills/</dd></div>
+        <div><dt class="font-bold text-primary">Project facts</dt><dd class="opacity-70">The nearest project <code>AGENTS.md</code>.</dd></div>
+      </dl></div></article>
+    </section>
+
+    <footer class="text-center py-8 opacity-55 text-sm">
+      <p>Evidence: canonical dotfiles policy, installed tool help/version output, Pi package settings, MCP declarations, and the 39-check platform gate · captured 2026-09-04.</p>
+    </footer>
+  </main>
+
+  <div id="copy-toast" class="toast toast-end toast-bottom no-print" hidden><div class="alert alert-success"><span>Copied</span></div></div>
+
+  <script>
+    const root = document.documentElement;
+    const themeButton = document.getElementById('theme-toggle');
+    themeButton.addEventListener('click', () => {
+      const next = root.dataset.theme === 'luxury' ? 'nord' : 'luxury';
+      root.dataset.theme = next;
+      themeButton.textContent = next === 'luxury' ? '◐ Theme' : '◑ Theme';
+    });
+
+    const rows = [...document.querySelectorAll('.command-row')];
+    const search = document.getElementById('command-search');
+    const count = document.getElementById('command-count');
+    const noResults = document.getElementById('no-results');
+    const filterButtons = [...document.querySelectorAll('.category-button')];
+    let activeFilter = 'all';
+
+    function applyCommandFilter() {
+      const query = search.value.trim().toLowerCase();
+      let visible = 0;
+      rows.forEach((row) => {
+        const categories = row.dataset.category.split(/\s+/);
+        const haystack = `${row.dataset.search || ''} ${row.textContent}`.toLowerCase();
+        const categoryMatch = activeFilter === 'all' || categories.includes(activeFilter);
+        const searchMatch = !query || haystack.includes(query);
+        row.hidden = !(categoryMatch && searchMatch);
+        if (!row.hidden) visible += 1;
+      });
+      count.textContent = `${visible} command${visible === 1 ? '' : 's'} shown`;
+      noResults.hidden = visible !== 0;
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        activeFilter = button.dataset.filter;
+        filterButtons.forEach((candidate) => {
+          const selected = candidate === button;
+          candidate.classList.toggle('active', selected);
+          candidate.classList.toggle('btn-outline', !selected);
+          candidate.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        });
+        applyCommandFilter();
+      });
+    });
+    search.addEventListener('input', applyCommandFilter);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === '/' && document.activeElement !== search && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        event.preventDefault();
+        search.focus();
+      }
+      if (event.key === 'Escape' && document.activeElement === search) {
+        search.value = '';
+        search.blur();
+        applyCommandFilter();
+      }
+    });
+
+    const toast = document.getElementById('copy-toast');
+    let toastTimer;
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (_) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
+      toast.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.hidden = true; }, 1300);
+    }
+
+    document.querySelectorAll('.copy-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        const explicit = button.dataset.copy;
+        const code = button.closest('.command-row').querySelector('.command-code');
+        copyText(explicit || (code ? code.textContent.trim() : button.closest('.command-row').innerText.trim()));
+      });
+    });
+
+    applyCommandFilter();
+  </script>
+</body>
+</html>

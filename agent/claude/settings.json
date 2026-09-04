@@ -1,13 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(*)",
       "Read(*)",
       "Write(*)",
       "Edit(*)",
       "Glob(*)",
       "Grep(*)",
-      "Agent(*)",
       "Skill(*)",
       "WebFetch(*)",
       "WebSearch(*)",
@@ -23,8 +21,6 @@
       "AskUserQuestion(*)",
       "EnterPlanMode(*)",
       "ExitPlanMode(*)",
-      "EnterWorktree(*)",
-      "ExitWorktree(*)",
       "mcp__openalex__search_works",
       "mcp__openalex__search_authors",
       "mcp__openalex__get_author_works",
@@ -35,7 +31,12 @@
       "mcp__context7__query-docs"
     ],
     "deny": [
-      "TaskCreate(*)"
+      "TaskCreate(*)",
+      "EnterWorktree(*)",
+      "ExitWorktree(*)",
+      "Bash(git worktree add:*)",
+      "Bash(herdr worktree create:*)",
+      "Bash(gnhf --worktree:*)"
     ],
     "defaultMode": "auto"
   },
@@ -156,12 +157,6 @@
     }
   },
   "effortLevel": "low",
-  "tui": "fullscreen",
-  "skipWorkflowUsageWarning": true,
-  "theme": "auto",
-  "editorMode": "vim",
-  "verbose": false,
-  "agentPushNotifEnabled": true,
   "modelSettings": {
     "claude-fable-5": {
       "effortLevel": "low"
@@ -169,5 +164,10 @@
     "claude-opus-5": {
       "effortLevel": "low"
     }
-  }
+  },
+  "tui": "fullscreen",
+  "skipWorkflowUsageWarning": true,
+  "editorMode": "vim",
+  "verbose": false,
+  "agentPushNotifEnabled": true
 }

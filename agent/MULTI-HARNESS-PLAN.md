@@ -1,5 +1,9 @@
 # Multi-harness agent system: Claude Code, Pi and Codex under herdr
 
+> **Historical design record.** `agent/docs/ARCHITECTURE.md` and `agent/docs/DECISIONS.md` supersede
+> this plan. In particular, Treehouse now owns every agent worktree and Herdr owns only terminal/session
+> visibility; do not follow the Herdr-created worktree recommendations below.
+
 **What this is.** The design for running three coding harnesses from one canonical configuration
 in `~/.dotfiles/agent`, with herdr as the session layer and the `agentic-rules` playbook as the
 shared engineering doctrine, and the decision on which of Kun Chen's tools to adopt versus build.

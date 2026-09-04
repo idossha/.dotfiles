@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "projects": {
+    "fixture": {
+      "path": "@PROJECT@",
+      "label": "Fixture project",
+      "visualizations": {
+        "editor": ["fixture-editor", "."]
+      }
+    }
+  }
+}

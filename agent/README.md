@@ -1,61 +1,78 @@
-# Agent Configuration
+# Agent Platform
 
-This directory is the source of truth for reusable agent-coding context.
+This directory is the source of truth for shared agent policy and adapters across Claude Code, Codex,
+and Pi. Herdr supplies visible multi-project sessions, Treehouse owns pooled worktrees, and FirstMate,
+GNHF, and no-mistakes are optional upstream tools launched through one operator CLI.
+
+Start with [AGENTS.md](AGENTS.md), then read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the contract
+and [docs/ROADMAP.md](docs/ROADMAP.md) for incomplete gates.
 
 ## Layout
 
-```text
-agent/
-  AGENTS.md                 # Portable coding-agent instructions
-  memory/
-    global.md               # Global memory, linked to ~/.claude/CLAUDE.md
-  mcps/
-    mcp-servers.json        # Canonical MCP server definitions
-  claude/
-    settings.json           # Durable Claude settings
-    statusline-command.sh   # Claude statusline command
-    templates/              # Claude templates
-  pi/
-    settings.json           # Pi global settings (packages pinned)
-    extensions/             # Pi TypeScript extensions
-    agents/                 # Pi subagent definitions (pi-subagents)
-  codex/
-    config.toml             # Codex config; the MCP block is generated from mcps/
-    rules/                  # Codex execpolicy rules
-  herdr/
-    config.toml             # herdr session-manager config
-  skills/
-    <skill-name>/SKILL.md   # Reusable skills (personal and domain)
-  scripts/
-    sync-agent-config.sh    # Links this directory into ~/.claude, ~/.pi, ~/.codex, ~/.agents, ~/.config/herdr
-    install-agent-tools.sh  # Opt-in: Pi packages, herdr integrations, the adopted external tools
-  MULTI-HARNESS-PLAN.md     # The design: one canonical config, three harnesses, herdr as the session layer
-```
+| Path | Owns |
+|---|---|
+| `AGENTS.md` | Portable routing and load-bearing global rules |
+| `docs/` | Requirements, current architecture, decisions, and roadmap |
+| `projects.json` | Stable project names, repository paths, and optional visualizations |
+| `scripts/agentctl` | Doctor, sync, project, fleet, overnight, and shipping commands |
+| `memory/global.md` | User-level memory shared by every harness |
+| `skills/` | Personal and domain skills authored here exactly once |
+| `mcps/mcp-servers.json` | Shared MCP server declarations |
+| `claude/`, `codex/`, `pi/` | Thin harness-only settings and hooks |
+| `herdr/` | Session and multiplexing configuration |
+| `treehouse/` | Worktree policy, lease lifecycle, and native jump commands |
+| `tests/` | Nonmutating fixture-driven platform checks |
 
-Three harnesses are in use — Claude Code, Pi and Codex — under herdr as the session layer.
-The retired 2026-07 harness configs under the repo-root `deprecated/` directory are the ancestors of
-`pi/` and `codex/` and are kept for history only.
+Cross-project testing, documentation, architecture, CI, commit, and release procedures live in the
+separate `agentic-rules` repository and are installed as skills. They are intentionally not copied here.
 
-## Sync Model
-
-Content here is canonical and version-controlled; `~/.claude` is a thin set of
-symlinks pointing back at it. After editing anything in `agent/`, run:
+## Operator Workflow
 
 ```bash
-~/.dotfiles/agent/scripts/sync-agent-config.sh
+agent/scripts/agentctl doctor
+agentctl start
+agent/scripts/agentctl project dotfiles
+treehouse status
+treehouse enter 1
+agent/scripts/agentctl fleet --harness pi
+agent/scripts/agentctl overnight dotfiles --max-iterations 3 --dry-run -- "address the accepted issues"
+agent/scripts/agentctl ship dotfiles --dry-run
 ```
 
-The sync script:
+`agentctl start` is the normal entry point. It launches or attaches the Herdr interface and does not
+implicitly start a model harness. Use `agentctl fleet --harness pi` when you explicitly want the
+FirstMate supervisor backed by Herdr.
 
-- links Claude skills to `agent/skills`, and generates `~/.agents/skills` as one symlink per skill
-  (the skills here plus the agentic-rules playbook skills) for Pi and Codex
-- links the global memory to `~/.claude/CLAUDE.md`, `~/.pi/agent/AGENTS.md` and `~/.codex/AGENTS.md`
-- links Claude settings/statusline/templates to `agent/claude`
-- links Pi settings, extensions, agents and prompts to `agent/pi`
-- regenerates the Codex MCP block from `agent/mcps/mcp-servers.json`, then links `~/.codex/config.toml` and `rules`
-- links `~/.mcp.json` (Claude) and `~/.agents/mcp.json` (Pi's MCP adapter) to `agent/mcps/mcp-servers.json`
-- links `~/.config/herdr/config.toml` to `agent/herdr`
-- links portable instructions to `~/AGENTS.md` and repo-root `AGENTS.md`
+Project switching is name-based. `project` enters or creates the repository's Herdr workspace; `fleet`
+starts the optional FirstMate supervisor on Herdr; visualization commands are explicit and do not launch
+by default. Treehouse, not Herdr or a model harness, allocates every agent worktree. `overnight` acquires a
+durable Treehouse lease and requires a finite cap. `ship` requires a project-local no-mistakes opt-in.
 
-Runtime state stays local: auth files, caches, logs, sessions, todos, managed
-jobs, and project-specific memory are not committed to dotfiles.
+Within a repository, `treehouse status` lists numbered/name-addressable slots and `treehouse enter 1`
+opens the selected slot in a subshell. To move the current shell instead, use
+`cd "$(treehouse enter --print-path 1)"`. These are native Treehouse commands; see
+[`treehouse/README.md`](treehouse/README.md) for lifecycle and Herdr handoff details.
+
+Use `--dry-run` before any mutating or GUI-opening command to inspect the exact upstream command.
+
+## Configuration Boundary
+
+Tracked files contain stable policy. Generated destinations and gitignored overlays hold onboarding,
+themes, trust hashes, per-project trust, changelog cursors, sessions, auth, caches, and other
+harness-written state. Edit canonical files here rather than live files under `~/.claude`, `~/.codex`,
+or `~/.pi`.
+
+After editing canonical configuration:
+
+```bash
+agent/scripts/sync-agent-config.sh --check
+agent/tests/run.sh
+agent/scripts/agentctl sync
+```
+
+The first two commands are nonmutating checks. The final command renders or links effective harness
+configuration.
+
+External tools remain opt-in. `scripts/install-agent-tools.sh --tools` installs the pinned Treehouse,
+GNHF, and no-mistakes releases and clones FirstMate into its own checkout; dotfiles configure those tools
+but do not vendor their policy, state, or skills.

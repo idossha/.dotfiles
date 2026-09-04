@@ -1,74 +1,106 @@
 # Agent Instructions
 
-Use this as the instruction entry point for coding agents. Claude Code is the
-harness in use; this file is linked to `~/AGENTS.md` and the repo-root
-`AGENTS.md`.
+This is the portable map for the dotfiles agent platform. Read `docs/ARCHITECTURE.md` for the contract,
+then the nearest project `AGENTS.md` for project facts.
 
-## Source of Truth
+## Commands
 
-Reusable agent configuration lives in `~/.dotfiles/agent/` and is linked into every harness:
+- `agent/scripts/agentctl doctor` — inspect links, versions, integrations, and floating dependencies (read-only).
+- `agent/scripts/agentctl start` — launch or attach the Herdr interface.
+- `agent/scripts/sync-agent-config.sh --check` — validate generated harness configuration without changing it.
+- `agent/scripts/agentctl project <name> --dry-run` — show the resolved Herdr project-switching command.
+- `treehouse status` — list this repository's pooled worktrees; `treehouse enter <name>` jumps into one.
+- `agent/scripts/agentctl fleet --harness pi --dry-run` — show the FirstMate-on-Herdr launch command.
+- `agent/scripts/agentctl overnight <name> --max-iterations <n> --dry-run` — show a bounded GNHF run in a Treehouse lease.
+- `agent/scripts/agentctl ship <name> --dry-run` — show the project-opted-in no-mistakes delivery gate.
+- `agent/tests/run.sh` — run fixture-driven platform checks (temporary state only; no GUI or network).
+- `bash -n agent/scripts/*.sh agent/scripts/agentctl agent/tests/*.sh` — parse shell entry points.
 
-| Canonical file | Claude Code | Pi | Codex |
-|---|---|---|---|
-| `memory/global.md` | `~/.claude/CLAUDE.md` | `~/.pi/agent/AGENTS.md` | `~/.codex/AGENTS.md` |
-| `skills/` (personal and domain) | `~/.claude/skills` | `~/.agents/skills` | `~/.agents/skills` |
-| agentic-rules playbook skills | the `agentic-rules` plugin | `~/.agents/skills` | `~/.agents/skills` |
-| `mcps/mcp-servers.json` | `~/.mcp.json` | `~/.agents/mcp.json` (pi-mcp-adapter) | `[mcp_servers]` block in `codex/config.toml` |
-| `claude/`, `pi/`, `codex/`, `herdr/` | settings, statusline | settings, extensions, agents | config.toml, rules |
+Before claiming an agent-platform change is complete, run `agent/tests/run.sh` and
+`agent/scripts/agentctl doctor`. A dry-run is evidence of command construction only; it does not prove
+that FirstMate, GNHF, no-mistakes, a GUI, or a remote operation succeeded.
 
-The session layer is herdr (`herdr/config.toml`); see `MULTI-HARNESS-PLAN.md` for the design.
+## Sources of Truth
 
-After editing those files, run:
+| Concern | Authoritative location |
+|---|---|
+| Portable global policy and routing | `agent/AGENTS.md`, installed as the global agent instructions |
+| Architecture, decisions, and open work | `agent/docs/` |
+| Personal and domain procedures | `agent/skills/` |
+| Cross-project engineering procedures | `agentic-rules` skills in `/Users/idohaber/00_development/agentic-rules` |
+| MCP declarations and harness adapters | `agent/mcps/`, `agent/claude/`, `agent/pi/`, `agent/codex/` |
+| Projects and operator commands | `agent/projects.json`, `agent/scripts/agentctl` |
+| Worktree allocation and lifecycle | [Treehouse](https://github.com/kunchenguid/treehouse), `agent/treehouse/README.md` |
+| Session multiplexing | `agent/herdr/` |
 
-```bash
-~/.dotfiles/agent/scripts/sync-agent-config.sh
-```
+Project-specific commands, data, trust, deployment posture, and delivery configuration belong in the
+project. Crystallized cross-project knowledge belongs in the Obsidian Zettelkasten; raw events belong in
+SQLite. Use `agent/scripts/remember` when durable knowledge is worth keeping.
+
+## Engineering Playbook
+
+Use the matching `agentic-rules` skill without waiting to be asked:
+
+- `project-docs` for the markdown roster; `agent-instructions` for AGENTS.md and CLAUDE.md.
+- `architecture-contract` for requirements, contracts, frozen interfaces, and decisions.
+- `testing-backend` for non-visual tests and guards; `testing-frontend-offscreen` for GUI/rendering tests.
+- `ci-guards` for workflows and self-testing guards; `docs-website` for a generated documentation site.
+- `changelog-release` for changelogs, commit messages, versions, tags, and releases.
+
+Read `agentic-rules/docs/PRINCIPLES.md` when those concerns overlap. Do not restate its procedures here:
+two copies drift and different harnesses then follow different rules.
 
 ## Operating Rules
 
-- Preserve user work. Inspect status/diffs before mutating git state.
-- Keep reusable instructions in `agent/`; keep project-specific facts in the
-  project's own `AGENTS.md`, `CLAUDE.md`, or memory files.
-- Do not commit runtime state, auth files, caches, logs, sessions, or local
-  project memories.
-- Prefer official docs and configured MCP servers for API or tool questions.
-- Keep every harness adapter thin. Canonical content belongs in `agent/`, not
-  under `.claude`, `.pi` or `.codex` directly; a harness-only line goes in that
-  harness's own file (`claude/settings.json`, `pi/settings.json`, `codex/config.toml`).
-- A skill is authored once: personal and domain skills in `agent/skills`, cross-project
-  engineering skills in the agentic-rules repository. Never copy a skill into a second
-  location; `~/.agents/skills` is generated by the sync script.
+1. **Preserve user work and inspect status before changing git state** — destructive cleanup can erase
+   edits owned by another person or agent.
+2. **Author portable policy once under `agent/` and keep harness adapters thin** — policy copied into
+   Claude, Codex, or Pi settings diverges as soon as only one copy changes.
+3. **Keep harness-written state in local overlays or generated destinations** — linking mutable runtime
+   fields into tracked files makes merely launching a harness dirty the repository.
+4. **Keep project facts in the project and secrets outside version control** — global context otherwise
+   leaks assumptions or credentials into unrelated repositories.
+5. **Author each skill once** — duplicate skill names can load twice or expose different instructions to
+   different harnesses; `~/.agents/skills` is generated by the sync script.
+6. **Use Treehouse for every agent-owned worktree** — pooled slots prevent concurrent writers from
+   colliding, while harness-native, Herdr-native, and raw `git worktree` creation split lifecycle ownership.
+   Standalone automation acquires `treehouse get --lease --lease-holder <task>`; an orchestrator such as
+   FirstMate may use its own guarded Treehouse owner lifecycle. This provider choice supersedes older
+   project templates and examples unless the user explicitly names an exception. Work only in the
+   reported path, return it only after landing, and never force-return unlanded work without explicit
+   discard authority.
+7. **Give unattended GNHF work an isolated Treehouse lease and a finite iteration or token cap** — an
+   unbounded loop can consume time and money or repeatedly damage the active checkout.
+8. **Require project-local opt-in before no-mistakes and leave pushes manual by default** — a universal
+   shipping command cannot know each repository's release and remote-safety contract.
+9. **Treat FirstMate as an optional supervisor, not a policy source** — importing its AGENTS.md or skills
+   would replace the shared doctrine with an upstream distro's assumptions.
+10. **Run GUI and end-to-end tests hidden and judge renderings analytically** — a visible suite steals
+    focus, and visual inspection is not repeatable evidence.
+11. **Use independent readers and generated reference values in backend tests** — a writer compared with
+    itself turns its own defect into the expected result.
+12. **Stop releases at a local tag and omit AI co-author trailers** — an automatic push can publish a bad
+    release, while generated attribution obscures repository authorship policy.
+13. **Keep chat terse and move explanation-heavy work into Lavish** — long terminal prose is difficult to
+    scan, annotate, and revisit; chat carries only the outcome, essential evidence, and next action.
+14. **Use defaults and narrow pre-approved commands before asking questions** — repeated optional prompts
+    interrupt flow, while mandatory authority and safety decisions remain visible to the user.
 
-## Cross-project Playbook
+## Harness Notes
 
-Engineering conventions shared across projects live in the `agentic-rules` plugin
-(canonical repo `git@github.com:idossha/agentic-rules.git`; local clone
-`/Users/idohaber/00_development/agentic-rules`). Read its `docs/PRINCIPLES.md` before
-setting up, documenting, testing or releasing a project; its skills load as
-`agentic-rules:<skill>` and are meant to be used unprompted:
+- Claude Code imports this map through the generated global `CLAUDE.md`; Claude-only files hold only
+  hooks and settings that other harnesses cannot consume.
+- Codex and Pi consume the same global instructions, skills, and MCP declaration through generated links
+  or adapters. Do not patch their live home-directory files.
+- Herdr owns terminal visibility only. Open Treehouse paths in Herdr when a task needs a pane, but do not
+  use `herdr worktree create`, harness-native worktree tools, or raw `git worktree` commands for agent work.
+- After canonical configuration changes, run `agent/scripts/agentctl sync`; use
+  `agent/scripts/sync-agent-config.sh --check` in tests and reviews so verification cannot mutate live
+  configuration.
 
-- `project-docs` — the markdown roster (README, CONTRIBUTING, SECURITY, CITATION, docs/).
-- `agent-instructions` — AGENTS.md as a map, CLAUDE.md as `@AGENTS.md`, path-scoped rules.
-- `architecture-contract` — intent documents with gate tests, the contract, the decision log.
-- `testing-backend` / `testing-frontend-offscreen` — fixtures from an independent reader;
-  GUI tests hidden by default and proved quiet.
-- `docs-website` — a VitePress site generated from `docs/`.
-- `changelog-release` — Keep a Changelog entries, commit messages, a release that stops at the tag.
-- `ci-guards` — CI split by cost, guards with their own red tests.
+## Gotchas That Still Bite
 
-Dotfiles carry only the marketplace registration and the enable flag in
-`agent/claude/settings.json`, never a copy of those skills: a second copy loads the same
-skill twice. Edit the plugin in its own repository; after a push, run
-`claude plugin update agentic-rules@agentic-rules` (the installed plugin is a snapshot).
-
-## Memory Routing
-
-- Crystallized, reusable knowledge goes to the Obsidian Zettelkasten:
-  `/Users/idohaber/00_development/vault/Zettelkasten`.
-- Project-specific knowledge goes to Markdown in the project directory,
-  usually `memory/agent-memory.md` or a project `AGENTS.md`.
-- Raw logs, session events, telemetry, and high-volume machine-readable memory
-  go to SQLite, not Obsidian.
-- Use `~/.dotfiles/agent/scripts/remember` for low-friction memory writes.
-- At task end, only write memory when the session produced durable knowledge.
-  Ask first if the memory is sensitive, ambiguous, or project-specific.
+- **An ignore file inside Pi's extensions directory hides the Herdr extension from Pi discovery.** Keep
+  the generated integration ignored from `agent/pi/.gitignore`, not `extensions/.gitignore`.
+- **Pi print mode reads stdin until EOF.** Redirect scripted runs from `/dev/null` unless piped prompt
+  content is intentional, or the process can hang indefinitely.

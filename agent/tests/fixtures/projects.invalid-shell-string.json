@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "projects": {
+    "unsafe": {
+      "path": "/tmp",
+      "label": "Unsafe fixture",
+      "visualizations": {
+        "editor": "nvim . && arbitrary-command"
+      }
+    }
+  }
+}

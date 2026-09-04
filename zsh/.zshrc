@@ -17,6 +17,7 @@ fi
 # ============================
 export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.dotfiles/agent/scripts:$PATH"
 export OBSIDIAN_VAULT_PATH="/Users/idohaber/00_development/vault"
 
 # ============================

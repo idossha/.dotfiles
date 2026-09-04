@@ -19,6 +19,12 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 - Project-specific memory belongs in Markdown inside the project directory.
 - Raw logs and high-volume event memory belong in SQLite.
 - Use `~/.dotfiles/agent/scripts/remember` for low-friction memory capture.
+- Keep conversational output to a minimal outcome, evidence, and next action. When an explanation
+  needs a diagram, comparison, plan, dense table, or extended walkthrough, create a local Lavish HTML
+  artifact and reply with only a short synopsis plus its path; long chat output is hard to scan and annotate.
+- Avoid optional confirmation questions by using established defaults and approved narrow command
+  surfaces. Mandatory safety, authorization, destructive-action, secret, and consequential external-state
+  boundaries still stop for the user; suppressing those prompts would silently expand agent authority.
 
 ## Cross-project Playbook
 
@@ -35,9 +41,11 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   numbers, not pictures; GUI and e2e tests run against a hidden app and never take the
   screen; AGENTS.md is canonical and CLAUDE.md imports it; commits carry no AI co-author
   trailers; a release script stops at the local tag and never pushes.
-- Sessions run under herdr (one workspace per repository, agents visible in the sidebar);
-  parallel work gets its own `herdr worktree`; inside a herdr pane (`HERDR_ENV=1`) the `herdr`
-  skill controls panes and other agents. Unattended loops carry a cost or iteration cap.
+- Herdr owns visible sessions; [Treehouse](https://github.com/kunchenguid/treehouse) owns every
+  agent worktree. Standalone automation acquires a durable Treehouse lease; FirstMate uses its guarded
+  Treehouse owner lifecycle. Never substitute Herdr, a harness-native worktree tool, or raw `git worktree`,
+  and never force-return unlanded work without explicit discard authority. Unattended loops carry a cost
+  or iteration cap.
 
 ## Boundaries
 
