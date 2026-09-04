@@ -108,6 +108,13 @@ in the same commit. CI resolves the merge base for a PR whose target advanced. D
 optional runners as unavailable features and failed installed version probes as failures.
 
 
+## 2026-09-04 — coherence audit gates verified (§6)
+
+The [resolution record](audits/2026-09-04-coherence-resolution.md) closes the five audit-intent gates
+with command evidence and reconciles all 15 GNHF findings. The broader operational gate stays open
+for fleet/session/delivery and representative model-activation trials. The report keeps GNHF's exact
+end status, test scope, provider limits and concurrent-work preservation explicit.
+
 ## 2026-09-04 — Pi discovery uses native RPC (§§6–8)
 
 The installed Pi 0.85.0 public SDK and its resource-loader module both fail to import because they
