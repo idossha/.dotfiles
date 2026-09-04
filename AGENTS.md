@@ -1,1 +1,1 @@
-/Users/idohaber/.dotfiles/agent/AGENTS.md
+agent/AGENTS.md

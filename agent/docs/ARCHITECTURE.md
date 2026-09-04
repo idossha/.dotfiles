@@ -11,8 +11,10 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 
 1. **`agent/` owns portable agent configuration.** Global instructions, personal skills, MCP
    definitions, and harness adapters are authored once here; generated destinations are not edited.
-2. **`agent/AGENTS.md` is the portable map.** Harness-specific files contain only settings or hooks
-   that another harness cannot consume; shared development doctrine lives in AGENTS.md or a skill.
+2. **Global policy and project routing have separate scopes.** `agent/memory/global.md` supplies
+   user instructions; `agent/AGENTS.md` is the dotfiles project map, reached by a relative root link.
+   Claude imports AGENTS.md. Installing the project map at the home ancestor would leak its commands
+   and contract into unrelated repositories.
 3. **`agentic-rules` owns cross-project engineering procedures.** Testing, documentation,
    architecture, CI, and release doctrine remain in that repository and are linked or installed;
    copying those skills here would create two versions of the same rule.
@@ -31,7 +33,12 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    and state home; dotfiles configure and launch it but do not vendor its operating contract. Its
    configured Herdr backend already acquires Treehouse worktrees.
 4. **GNHF is the bounded unattended-loop runner.** Dotfiles acquire a retained Treehouse lease and
-   require explicit iteration or token limits for unattended runs; direct pushing is never the default.
+   require iteration limits, no usage-limit waiting by default, and a reviewed execution-mode adapter;
+   upstream permission-bypass defaults are not inherited. The source must be clean and committed; the
+   lease must belong to the same repository and fast-forward to that source revision. GNHF owns
+   iteration commits and its rollback within that exclusive lease; the parent reviews the result.
+   Direct pushing is never the default. A token cap includes cached usage and can roll back an
+   unfinished iteration; the final run status, not process launch, establishes completion.
 5. **no-mistakes is an optional delivery gate.** Repositories opt in with project-local configuration;
    dotfiles provide discovery and launch, not a universal test command.
 
@@ -44,6 +51,16 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    declared once and rendered or linked by `agent/scripts/sync-agent-config.sh`.
 3. **External executables are pinned or explicitly reported as floating.** A silent `@latest` makes
    two sessions with the same dotfiles run different code.
+4. **Canonical keys win over local state.** Generated JSON/TOML/YAML files retain unowned runtime
+   fields, including newly introduced provider fields, in ignored overlays. A local overlay cannot
+   silently replace policy-owned permissions or package pins.
+5. **MCP declarations are adapted at the documented scope.** Claude user servers are merged into
+   its local app-state file without storing that file in Git; Pi receives the shared JSON and Codex
+   receives generated TOML. Unsupported portable fields fail validation instead of disappearing.
+   Previously managed entries are retired through a local ownership manifest; unrelated entries survive.
+6. **Skill discovery has one route per skill per harness.** Retire legacy managed Codex/Pi links;
+   preserve provider-bundled skills. Claude plugin snapshots are packaging artifacts whose content
+   must be compared with the playbook used by the other harnesses after upgrades.
 
 ## 4. Shared development doctrine
 
@@ -51,8 +68,8 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    release procedures in every harness lowers compliance and creates drift.
 2. **The agentic-rules testing split remains authoritative.** Backend tests derive expected values
    independently; rendering tests make analytic assertions and run hidden; goldens are regression-only.
-3. **Project facts remain with the project.** Global configuration cannot name Tetravox, TI-Toolbox,
-   datasets, secrets, or project-specific deployment posture because every other project would inherit it.
+3. **Project facts remain with the project.** The global project registry may map names to paths, but datasets, secrets and deployment posture
+   stay project-local because every other project would otherwise inherit them.
 
 ## 5. Operator surface
 
@@ -80,6 +97,11 @@ The platform gate is command-based:
 - Shell scripts pass `bash -n`; JSON and TOML parse; project aliases resolve to existing directories.
 - A dry-run test proves GNHF acquires Treehouse isolation without its own worktree flag, receives a finite
   cap, and leaves no push enabled; no-mistakes remains opt-in.
+- `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
+  back with independent JSON/TOML parsers; tests neither source the user's shell profile nor access
+  real homes, vaults, remotes or visible apps.
+- `--check` validates source without writing; `--check-installed` detects generated configuration
+  and discovery drift. `doctor` includes the installed check and reports floating dependencies.
 
 ## 7. Frozen interfaces
 
@@ -89,5 +111,40 @@ Changing these requires this contract and `agent/docs/DECISIONS.md` in the same 
 2. `agent/projects.json` — the named-project registry schema.
 3. `agent/mcps/mcp-servers.json` — the shared MCP declaration.
 4. `agent/scripts/sync-agent-config.sh` — tracked/generated/local ownership boundaries.
+5. `agent/scripts/agent_config.py` — configuration validation, rendering and discovery semantics.
+6. `agent/gnhf/config.yml` — unattended execution defaults.
+7. `agent/tools.env` — shared adopted-tool pins.
 
 Additive fields are optional; when absent, they reproduce the previous behavior.
+
+## 8. Portability and change boundaries
+
+**Portable means shared intent and verifiable adapters, not identical provider capabilities.**
+AGENTS.md routes policy; skills own procedures; CLI programs perform operations; MCP exposes structured
+capabilities; plugins distribute provider-compatible bundles. Orchestrators select and supervise work
+but do not grant authority. Provider-specific frontmatter is optional metadata, never the sole place
+an essential constraint is stated.
+
+| Concern | Sole procedural or state owner |
+|---|---|
+| Engineering contract, testing, CI and release procedures | External agentic-rules playbook |
+| Git collaboration and remote coordination | Local git-collaboration, routing commit/release rules to the playbook |
+| In-session delegation / persistent fleet / unattended iterations | Active harness / FirstMate / GNHF, one selected owner per task |
+| Worktrees / visible sessions | Treehouse / Herdr |
+| Test assertions and delivery commands | Each project; local checks and CI invoke the same scripts |
+| Durable knowledge / project facts / captured event memory | Zettelkasten / project Markdown / SQLite |
+| Session logs and caches | Native runtime owner; no automatic second memory copy |
+| User authorization | Current session and enforced harness boundary; adapters do not broaden it |
+
+| Dependency | Source of version truth | Why |
+|---|---|---|
+| Python | 3.11 minimum | Standard-library TOML reader; interpreter preflight prevents false validation on macOS's older Python |
+| PyYAML and tomli-w | `agent/requirements.txt` | Real YAML parsing and TOML serialization; handwritten parsers and skipped checks rejected |
+| Treehouse, GNHF, no-mistakes, FirstMate | `agent/tools.env` | One pin source for installation and doctor prevents two independent upgrade lists |
+| Pi packages | `agent/pi/settings.json` | Adapter-specific exact package references |
+| Harness binaries, Claude plugins, unpinned MCP packages | Doctor's explicit floating inventory | Provider-managed updates remain visible; future compatibility is verified, never promised |
+
+The operator manual for §3 and upgrades is [CONFIGURATION.md](CONFIGURATION.md).
+After a provider upgrade, inspect its installed help/schema and discovery, run the platform gate and
+doctor, then exercise any changed adapter. Green fixtures do not prove model activation, remote
+service health, or a live fleet/delivery workflow.

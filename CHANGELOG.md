@@ -5,6 +5,16 @@ Notable changes to the dotfiles are recorded here using the
 
 ## [Unreleased]
 
+### Fixed
+
+- **Shared policy remains authoritative across harnesses** — synchronization preserves local runtime
+  state while correcting duplicate skill discovery and Claude user MCP scope. Run `agentctl sync`,
+  then `agentctl doctor`; Python 3.11+ and the pinned `agent/requirements.txt` parsers are required.
+- **Overnight audits start from the requested revision** — bounded GNHF runs validate their execution
+  mode, retain their Treehouse lease, reject dirty sources and report upstream failures consistently.
+- **Project memory stays inside its project** — escaping `--file` paths and secret-looking source
+  fields are rejected.
+
 ### Added
 
 - **One command surface now operates the shared agent platform.** `agentctl` can switch named Herdr

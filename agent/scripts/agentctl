@@ -9,10 +9,10 @@ PROJECTS_FILE="${AGENTCTL_PROJECTS_FILE:-$AGENT_DIR/projects.json}"
 SYNC_SCRIPT="${AGENTCTL_SYNC_SCRIPT:-$SCRIPT_DIR/sync-agent-config.sh}"
 AGENT_TOOLS_DIR="${AGENT_TOOLS_DIR:-$HOME/00_development/agent-tools}"
 FIRSTMATE_DIR="${AGENTCTL_FIRSTMATE_DIR:-$AGENT_TOOLS_DIR/firstmate}"
-FIRSTMATE_PIN="8f7b79c77c2198a71a01082215227a64500015e3"
-TREEHOUSE_PIN="2.3.0"
-GNHF_PIN="0.1.49"
-NO_MISTAKES_PIN="1.64.0"
+# shellcheck source=../tools.env
+source "$AGENT_DIR/tools.env"
+# shellcheck source=python-runtime.sh
+source "$SCRIPT_DIR/python-runtime.sh"
 DEFAULT_MAX_ITERATIONS=10
 
 DRY_RUN=0
@@ -64,7 +64,7 @@ run_command() {
     print_command "$@"
     return 0
   fi
-  "$@"
+  "$@" || return 1
 }
 
 require_command() {
@@ -73,7 +73,7 @@ require_command() {
 
 validate_registry() {
   [ -f "$PROJECTS_FILE" ] || die 2 "project registry not found: $PROJECTS_FILE"
-  python3 - "$PROJECTS_FILE" <<'PY' || exit 2
+  "$AGENT_PYTHON" - "$PROJECTS_FILE" <<'PY' || exit 2
 import json
 import sys
 from pathlib import Path
@@ -84,7 +84,7 @@ try:
 except (OSError, json.JSONDecodeError) as exc:
     print(f"agentctl: invalid project registry: {exc}", file=sys.stderr)
     raise SystemExit(1)
-if registry.get("schema_version") != 1 or not isinstance(registry.get("projects"), dict):
+if not isinstance(registry, dict) or registry.get("schema_version") != 1 or not isinstance(registry.get("projects"), dict) or not registry["projects"]:
     print("agentctl: project registry must have schema_version 1 and a projects object", file=sys.stderr)
     raise SystemExit(1)
 for alias, project in registry["projects"].items():
@@ -94,6 +94,9 @@ for alias, project in registry["projects"].items():
     if not isinstance(project.get("path"), str) or not isinstance(project.get("label"), str):
         print(f"agentctl: project {alias!r} needs string path and label fields", file=sys.stderr)
         raise SystemExit(1)
+    if not project["path"].startswith("/") or not project["label"]:
+        print(f"agentctl: project {alias!r} needs an absolute path and non-empty label", file=sys.stderr)
+        raise SystemExit(1)
     views = project.get("visualizations", {})
     if not isinstance(views, dict) or any(
         not isinstance(name, str) or not isinstance(argv, list) or not argv
@@ -102,12 +105,17 @@ for alias, project in registry["projects"].items():
     ):
         print(f"agentctl: project {alias!r} visualizations must be non-empty argv arrays", file=sys.stderr)
         raise SystemExit(1)
+    values = [alias, project["path"], project["label"], *views.keys(),
+              *(arg for argv in views.values() for arg in argv)]
+    if any(any(ord(c) < 32 for c in value) for value in values):
+        print("agentctl: registry strings must not contain control characters", file=sys.stderr)
+        raise SystemExit(1)
 PY
 }
 
 project_field() {
   local alias="$1" field="$2" view="${3:-}"
-  python3 - "$PROJECTS_FILE" "$alias" "$field" "$view" <<'PY'
+  "$AGENT_PYTHON" - "$PROJECTS_FILE" "$alias" "$field" "$view" <<'PY'
 import json
 import sys
 
@@ -139,7 +147,10 @@ tool_version() {
   local tool="$1" output
   shift
   if command -v "$tool" >/dev/null 2>&1; then
-    output="$("$tool" "$@" 2>&1 || true)"
+    if ! output="$("$tool" "$@" 2>&1)"; then
+      printf '  [fail] %-14s version probe failed\n' "$tool"
+      return 1
+    fi
     printf '  [ok]   %-14s %s\n' "$tool" "$(printf '%s\n' "$output" | tail -1)"
     return 0
   fi
@@ -163,12 +174,15 @@ start_command() {
     # current session. The command is deliberately idempotent here.
     printf 'Already inside Herdr.\n'
   else
-    exec herdr
+    run_command herdr
   fi
 }
 
 doctor() {
   local failed=0 alias path actual
+  echo "Configuration:"
+  "$SYNC_SCRIPT" --check-installed || failed=1
+  "$AGENT_PYTHON" "$SCRIPT_DIR/agent_config.py" --inventory || failed=1
   if validate_registry; then
     printf 'Project registry: %s\n' "$PROJECTS_FILE"
     while IFS= read -r alias; do
@@ -179,36 +193,41 @@ doctor() {
         printf '  [fail] %-14s missing: %s\n' "$alias" "$path"
         failed=1
       fi
-    done < <(python3 -c 'import json,sys; print("\n".join(json.load(open(sys.argv[1]))["projects"]))' "$PROJECTS_FILE")
+    done < <("$AGENT_PYTHON" -c 'import json,sys; print("\n".join(json.load(open(sys.argv[1]))["projects"]))' "$PROJECTS_FILE")
   else
     failed=1
   fi
 
   echo "Runtime tools:"
   tool_version herdr --version || failed=1
-  tool_version pi --version || true
-  tool_version claude --version || true
-  tool_version codex --version || true
+  for harness in pi claude codex; do
+    if command -v "$harness" >/dev/null 2>&1; then
+      tool_version "$harness" --version || failed=1
+    else
+      printf '  [optional] %s not installed\n' "$harness"
+    fi
+  done
   tool_version jq --version || failed=1
 
   echo "Adopted integrations:"
   if command -v treehouse >/dev/null 2>&1; then
-    actual="$(treehouse --version 2>&1 | head -1 | tr -d '[:space:]')"
-    if [ "$actual" = "v$TREEHOUSE_PIN" ]; then
+    actual="$(treehouse --version 2>&1)" || { printf "  [fail] treehouse version probe failed\n"; return 1; }
+    actual="$(printf %s "$actual" | tr -d '[:space:]')"
+    if [ "$actual" = "v$TREEHOUSE_VERSION" ]; then
       printf '  [ok]   treehouse      %s\n' "$actual"
     else
-      printf '  [fail] treehouse      expected v%s; found %s\n' "$TREEHOUSE_PIN" "${actual:-unknown}"
+      printf '  [fail] treehouse      expected v%s; found %s\n' "$TREEHOUSE_VERSION" "${actual:-unknown}"
       failed=1
     fi
   else
-    printf '  [fail] treehouse      not found (expected v%s)\n' "$TREEHOUSE_PIN"
+    printf '  [fail] treehouse      not found (expected v%s)\n' "$TREEHOUSE_VERSION"
     failed=1
   fi
   if command -v gnhf >/dev/null 2>&1; then
-    actual="$(gnhf --version 2>&1 | head -1)"
-    case "$actual" in *"$GNHF_PIN"*) printf '  [ok]   gnhf           %s\n' "$actual" ;; *) printf '  [fail] gnhf           expected %s; found %s\n' "$GNHF_PIN" "$actual"; failed=1 ;; esac
+    actual="$(gnhf --version 2>&1)" || { printf "  [fail] gnhf version probe failed\n"; return 1; }
+    case "$actual" in "$GNHF_VERSION") printf '  [ok]   gnhf           %s\n' "$actual" ;; *) printf '  [fail] gnhf           expected %s; found %s\n' "$GNHF_VERSION" "$actual"; failed=1 ;; esac
   else
-    printf '  [fail] gnhf           not found (expected %s)\n' "$GNHF_PIN"
+    printf '  [fail] gnhf           not found (expected %s)\n' "$GNHF_VERSION"
     failed=1
   fi
   if command -v no-mistakes >/dev/null 2>&1; then
@@ -217,17 +236,17 @@ doctor() {
     else
       actual="$(no-mistakes --version 2>&1 | head -1)"
     fi
-    case "$actual" in *"$NO_MISTAKES_PIN"*) printf '  [ok]   no-mistakes    %s\n' "$actual" ;; *) printf '  [fail] no-mistakes    expected %s; found %s\n' "$NO_MISTAKES_PIN" "$actual"; failed=1 ;; esac
+    case "$actual" in *"$NO_MISTAKES_VERSION"*) printf '  [ok]   no-mistakes    %s\n' "$actual" ;; *) printf '  [fail] no-mistakes    expected %s; found %s\n' "$NO_MISTAKES_VERSION" "$actual"; failed=1 ;; esac
   else
-    printf '  [fail] no-mistakes    not found (expected %s)\n' "$NO_MISTAKES_PIN"
+    printf '  [fail] no-mistakes    not found (expected %s)\n' "$NO_MISTAKES_VERSION"
     failed=1
   fi
   if [ -d "$FIRSTMATE_DIR/.git" ]; then
     actual="$(git -C "$FIRSTMATE_DIR" rev-parse HEAD 2>/dev/null || true)"
-    if [ "$actual" = "$FIRSTMATE_PIN" ] && [ "$(tr -d '[:space:]' < "$FIRSTMATE_DIR/config/backend" 2>/dev/null || true)" = herdr ]; then
+    if [ "$actual" = "$FIRSTMATE_COMMIT" ] && [ "$(tr -d '[:space:]' < "$FIRSTMATE_DIR/config/backend" 2>/dev/null || true)" = herdr ]; then
       printf '  [ok]   firstmate      %s (Herdr backend)\n' "$actual"
     else
-      printf '  [fail] firstmate      expected %s with config/backend=herdr; found %s\n' "$FIRSTMATE_PIN" "${actual:-unknown}"
+      printf '  [fail] firstmate      expected %s with config/backend=herdr; found %s\n' "$FIRSTMATE_COMMIT" "${actual:-unknown}"
       failed=1
     fi
   else
@@ -271,7 +290,7 @@ project_command() {
       printf ' %q' "${view_command[@]}"
       printf '\n'
     else
-      (cd "$PROJECT_PATH" && "${view_command[@]}")
+      (cd "$PROJECT_PATH" && "${view_command[@]}") || return 1
     fi
     return
   fi
@@ -282,8 +301,8 @@ project_command() {
   fi
 
   local workspaces workspace_id
-  workspaces="$(herdr workspace list)"
-  workspace_id="$(python3 -c '
+  workspaces="$(herdr workspace list)" || return 1
+  workspace_id="$("$AGENT_PYTHON" -c '
 import json, sys
 
 target_path, target_label, payload = sys.argv[1:]
@@ -312,9 +331,9 @@ if unique:
     print(unique[0])
 ' "$PROJECT_PATH" "$PROJECT_LABEL" "$workspaces")"
   if [ -n "$workspace_id" ]; then
-    herdr workspace focus "$workspace_id"
+    run_command herdr workspace focus "$workspace_id"
   else
-    herdr workspace create --cwd "$PROJECT_PATH" --label "$PROJECT_LABEL" --focus
+    run_command herdr workspace create --cwd "$PROJECT_PATH" --label "$PROJECT_LABEL" --focus
   fi
 }
 
@@ -336,7 +355,7 @@ fleet_command() {
   if [ "$DRY_RUN" -eq 1 ]; then
     printf 'DRY-RUN: cd %q && FM_BACKEND=herdr %q\n' "$FIRSTMATE_DIR" "$harness"
   else
-    (cd "$FIRSTMATE_DIR" && FM_BACKEND=herdr "$harness")
+    (cd "$FIRSTMATE_DIR" && FM_BACKEND=herdr "$harness") || return 1
   fi
 }
 
@@ -361,14 +380,17 @@ overnight_command() {
   [ -n "$objective" ] || die 2 "overnight requires a non-empty objective"
   validate_registry
   resolve_project "$alias"
-  [ -d "$PROJECT_PATH/.git" ] || die 3 "GNHF requires a Git repository: $PROJECT_PATH"
+  local source_head
+  source_head="$(git -C "$PROJECT_PATH" rev-parse --verify HEAD 2>/dev/null)" || die 3 "GNHF requires a committed Git repository: $PROJECT_PATH"
+  [ -z "$(git -C "$PROJECT_PATH" status --porcelain)" ] || die 3 "overnight requires a clean source checkout; commit the intended starting state first"
   local lease_holder="agentctl-overnight:$alias:$$"
-  local -a command=(gnhf --max-iterations "$max_iterations")
+  local -a command=(gnhf --max-iterations "$max_iterations" --max-rate-limit-wait 0)
   [ -z "$max_tokens" ] || command+=(--max-tokens "$max_tokens")
   [ -z "$agent" ] || command+=(--agent "$agent")
   command+=("$objective")
   if [ "$DRY_RUN" -eq 1 ]; then
     printf 'DRY-RUN: cd %q && treehouse get --lease --lease-holder %q --json\n' "$PROJECT_PATH" "$lease_holder"
+    printf 'DRY-RUN: git -C %q merge --ff-only %q\n' '<treehouse-worktree>' "$source_head"
     printf 'DRY-RUN: cd %q &&' '<treehouse-worktree>'
     printf ' %q' "${command[@]}"
     printf '\n'
@@ -378,6 +400,9 @@ overnight_command() {
   require_command treehouse
   require_command jq
   require_command gnhf
+  [ "$(gnhf --version)" = "$GNHF_VERSION" ] || die 3 "GNHF version differs from the reviewed pin; run doctor"
+  # Execution permissions are explicit in the managed GNHF adapter (§2.4).
+  "$AGENT_PYTHON" "$SCRIPT_DIR/agent_config.py" --check-gnhf "$agent" || die 3 "GNHF execution mode is missing or unsafe; sync configuration first"
   local allocation lease_fields worktree lease_id project_root worktree_root status=0
   allocation="$(cd "$PROJECT_PATH" && treehouse get --lease --lease-holder "$lease_holder" --json)" || \
     die 1 "Treehouse could not allocate an overnight worktree"
@@ -389,10 +414,17 @@ overnight_command() {
   worktree_root="$(cd "$worktree" && pwd -P)"
   [ "$worktree_root" != "$project_root" ] || die 3 "Treehouse returned the primary checkout instead of an isolated worktree"
 
-  (cd "$worktree_root" && "${command[@]}") || status=$?
   printf 'Treehouse lease retained: %s\n' "$worktree_root"
   printf 'Return it after the work is landed: (cd %q && treehouse return %q --if-lease-id %q)\n' \
     "$PROJECT_PATH" "$worktree_root" "$lease_id"
+  local project_common worktree_common
+  project_common="$(git -C "$PROJECT_PATH" rev-parse --path-format=absolute --git-common-dir)"
+  worktree_common="$(git -C "$worktree_root" rev-parse --path-format=absolute --git-common-dir)" || die 3 "Treehouse returned a non-repository"
+  [ "$project_common" = "$worktree_common" ] || die 3 "Treehouse returned a different repository"
+  [ -z "$(git -C "$worktree_root" status --porcelain)" ] || die 3 "Treehouse returned a dirty worktree"
+  # Treehouse starts at its configured base; preserve the requested project's actual revision.
+  git -C "$worktree_root" merge --ff-only "$source_head" || die 3 "source revision cannot fast-forward the lease; inspect the retained worktree"
+  (cd "$worktree_root" && "${command[@]}" < /dev/null) || status=1
   return "$status"
 }
 
@@ -411,7 +443,7 @@ ship_command() {
   if [ "$DRY_RUN" -eq 1 ]; then
     printf 'DRY-RUN: cd %q && no-mistakes\n' "$PROJECT_PATH"
   else
-    (cd "$PROJECT_PATH" && no-mistakes)
+    (cd "$PROJECT_PATH" && no-mistakes) || return 1
   fi
 }
 

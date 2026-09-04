@@ -4,3 +4,10 @@ __pycache__/
 agent/local/*.local.json
 agent/local/*.local.toml
 agent/local/*.local.rules
+
+# Local execution and review state is never portable memory.
+agent/.venv/
+agent/local/*.local.yml
+.gnhf/
+.lavish/
+.claude/settings.local.json

@@ -20,7 +20,8 @@ architecture contract says what is true now; later entries supersede earlier one
 - 2026-09-04 — **The agentic-rules playbook remains external and authoritative** — it already owns the
   shared testing, documentation, CI, architecture, and release procedures — copying those skills into
   dotfiles rejected because duplicate skills drift and can load twice.
-- 2026-09-04 — **`agentctl start` is the normal entry point** — it creates or reuses one FirstMate
+- **Superseded 2026-09-04 by the Herdr-only entry below.**
+  2026-09-04 — **`agentctl start` is the normal entry point** — it creates or reuses one FirstMate
   workspace, starts Pi by default, and attaches Herdr — a remembered sequence of Herdr and harness
   commands rejected because it recreates the tab-juggling the platform is intended to remove.
 - 2026-09-04 — **Chat stays terse and explanation moves to Lavish** — concise outcomes remain readable
@@ -36,3 +37,28 @@ architecture contract says what is true now; later entries supersede earlier one
   lease-aware lifecycle keeps concurrent work isolated and lets native `treehouse enter <name>` provide
   fast navigation — Herdr creation, harness-native worktrees, GNHF's worktree flag, and raw Git worktree
   allocation rejected because multiple owners can recycle, reset, or orphan another owner's work.
+
+## 2026-09-04 — coherence audit: configuration ownership (§§1, 2, 3, 8)
+
+- **Global policy and the dotfiles map have separate scopes** — the root map cited a missing path,
+  and the home link injected project commands into unrelated repositories; relative project links and
+  Claude imports replace that accidental second global source. Evidence: authored scope fixtures in
+  `agent/tests/test_config.py`; intent R2 in `requirements/2026-09-04-user-coherence.md`.
+- **Canonical configuration wins and unowned runtime state survives** — the prior JSON overlay won
+  conflicts while Codex preserved only a narrow list of tables. One parsed renderer handles both
+  ownership directions and rejects unsupported MCP fields. The fixture suite reads output independently
+  and proves repeated-sync byte equality, stale-entry retirement and duplicate-link cleanup.
+- **Python 3.11+, PyYAML and tomli-w are explicit script dependencies** — observed macOS Python 3.9
+  failed TOML checks, while unavailable YAML silently skipped validation. The floor comes from the
+  standard-library TOML API; exact parser pins live only in `agent/requirements.txt`.
+- **Installed checks are part of doctor and adopted pins have one owner** — the old doctor passed with
+  stale links and duplicated version constants. `--check-installed` and `agent/tools.env` replace those
+  false greens; floating MCP/plugin dependencies remain explicitly reported.
+- **GNHF uses a reviewed execution mode and the source revision** — the installed upstream default
+  bypasses Codex sandboxing, and Treehouse allocates from its own base. Preflight validates the runner
+  config and a clean source; same-repository and fast-forward checks pin the starting revision.
+  Authored CLI fixtures cover failure codes, dirty input and unsupported adapters. The iteration default
+  remains ten (existing behavior); usage-limit waiting defaults to zero (chosen to bound unattended waits).
+- **Project memory cannot leave its declared root** — absolute, relative and symlink escapes were
+  possible through `--file`. Resolved containment and source-field secret checks are pinned by temporary
+  fixtures in `agent/tests/test_memory.py`. Native run logs stay with their original owner.

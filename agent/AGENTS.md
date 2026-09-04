@@ -1,6 +1,6 @@
 # Agent Instructions
 
-This is the portable map for the dotfiles agent platform. Read `docs/ARCHITECTURE.md` for the contract,
+This is the portable map for the dotfiles agent platform. Read `agent/docs/ARCHITECTURE.md` for the contract,
 then the nearest project `AGENTS.md` for project facts.
 
 ## Commands
@@ -24,7 +24,7 @@ that FirstMate, GNHF, no-mistakes, a GUI, or a remote operation succeeded.
 
 | Concern | Authoritative location |
 |---|---|
-| Portable global policy and routing | `agent/AGENTS.md`, installed as the global agent instructions |
+| User policy / dotfiles project map | `agent/memory/global.md` / `agent/AGENTS.md` |
 | Architecture, decisions, and open work | `agent/docs/` |
 | Personal and domain procedures | `agent/skills/` |
 | Cross-project engineering procedures | `agentic-rules` skills in `/Users/idohaber/00_development/agentic-rules` |
@@ -94,7 +94,7 @@ two copies drift and different harnesses then follow different rules.
   or adapters. Do not patch their live home-directory files.
 - Herdr owns terminal visibility only. Open Treehouse paths in Herdr when a task needs a pane, but do not
   use `herdr worktree create`, harness-native worktree tools, or raw `git worktree` commands for agent work.
-- After canonical configuration changes, run `agent/scripts/agentctl sync`; use
+- After landing canonical configuration changes, run `agent/scripts/agentctl sync` from that checkout; use
   `agent/scripts/sync-agent-config.sh --check` in tests and reviews so verification cannot mutate live
   configuration.
 

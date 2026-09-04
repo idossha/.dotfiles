@@ -33,10 +33,10 @@ AGENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PI_SETTINGS="$AGENT_DIR/pi/settings.json"
 HERDR_SKILL_DIR="$AGENT_DIR/skills/herdr"
 
-TREEHOUSE_VERSION="2.3.0"
-GNHF_VERSION="0.1.49"
-NO_MISTAKES_VERSION="1.64.0"
-FIRSTMATE_COMMIT="8f7b79c77c2198a71a01082215227a64500015e3"
+# shellcheck source=../tools.env
+source "$AGENT_DIR/tools.env"
+# shellcheck source=python-runtime.sh
+source "$SCRIPT_DIR/python-runtime.sh"
 AGENT_TOOLS_DIR="${AGENT_TOOLS_DIR:-$HOME/00_development/agent-tools}"
 FIRSTMATE_DIR="${AGENTCTL_FIRSTMATE_DIR:-$AGENT_TOOLS_DIR/firstmate}"
 FIRSTMATE_REMOTE="git@github.com:kunchenguid/firstmate.git"
@@ -92,7 +92,7 @@ parse_args() {
 # --- Pi packages -------------------------------------------------------------
 
 pinned_packages() {
-  python3 - "$PI_SETTINGS" <<'PY'
+  "$AGENT_PYTHON" - "$PI_SETTINGS" <<'PY'
 import json
 import sys
 
@@ -110,7 +110,7 @@ npm_global_version() {
   local pkg="$1" root
   root="$(npm root -g 2>/dev/null || true)"
   [ -n "$root" ] && [ -f "$root/$pkg/package.json" ] || return 1
-  python3 - "$root/$pkg/package.json" <<'PY'
+  "$AGENT_PYTHON" - "$root/$pkg/package.json" <<'PY'
 import json
 import sys
 

@@ -253,7 +253,9 @@ def remember_crystal(args: argparse.Namespace) -> None:
 def remember_project(args: argparse.Namespace) -> None:
     reject_secrets(args.message)
     root = Path(args.root).expanduser().resolve()
-    path = root / args.file
+    path = (root / args.file).resolve()
+    if not path.is_relative_to(root):
+        die("project memory must stay within --root")
     append_section(path, args.topic, args.message, args.source)
     print(path)
 
@@ -324,6 +326,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
+    reject_secrets(args.topic)
+    if args.source:
+        reject_secrets(args.source)
     args.func(args)
 
 

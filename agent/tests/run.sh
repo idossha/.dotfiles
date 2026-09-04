@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -u
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+export GIT_AUTHOR_NAME=Fixture GIT_AUTHOR_EMAIL=fixture@example.invalid
+export GIT_COMMITTER_NAME=Fixture GIT_COMMITTER_EMAIL=fixture@example.invalid
 
 test_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 agent_dir=$(CDPATH='' cd -- "$test_dir/.." && pwd)
+AGENT_DIR="$agent_dir"
+# shellcheck source=../scripts/python-runtime.sh
+source "$agent_dir/scripts/python-runtime.sh"
 agentctl="$agent_dir/scripts/agentctl"
 fixtures="$test_dir/fixtures"
 pass_count=0
@@ -63,9 +69,13 @@ if [ ! -x "$agentctl" ]; then
   exit 1
 fi
 
-run_capture zsh -dfc "source '$agent_dir/../zsh/.zshrc' >/dev/null 2>&1; command -v agentctl"
-expect_status 0 "canonical zshrc exposes agentctl"
-expect_contains "$agentctl" "agentctl resolves to the canonical operator script"
+# Read the shell surface without sourcing the user's GUI, plugins or filesystem state.
+run_capture "$AGENT_PYTHON" -c '
+from pathlib import Path
+import sys
+assert chr(36) + "HOME/.dotfiles/agent/scripts:" in Path(sys.argv[1]).read_text()
+' "$agent_dir/../zsh/.zshrc"
+expect_status 0 "canonical zshrc exposes the installed agentctl path"
 
 fixture_count=$(find "$fixtures" -type f -name 'projects.*.json' | wc -l | tr -d ' ')
 if [ "$fixture_count" -ne 3 ]; then
@@ -78,6 +88,7 @@ trap 'rm -rf "$scratch"' EXIT HUP INT TERM
 repo="$scratch/project with spaces"
 mkdir -p "$repo" "$scratch/bin"
 git -C "$repo" init -q
+git -C "$repo" commit -q --allow-empty -m "fixture: initial revision"
 
 escaped_repo=$(printf '%s' "$repo" | sed 's/[&|]/\\&/g')
 sed "s|@PROJECT@|$escaped_repo|g" "$fixtures/projects.valid.json" > "$scratch/projects.json"
@@ -165,9 +176,14 @@ run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path
 expect_status 0 "project-local no-mistakes opt-in enables shipping dry-run"
 expect_contains "no-mistakes" "shipping resolves the upstream delivery tool"
 
+git -C "$repo" add .no-mistakes.yaml
+git -C "$repo" commit -q -m "fixture: delivery opt-in"
+
 leased="$scratch/leased tree"
 mkdir -p "$leased"
-git -C "$leased" init -q
+cp "$repo/.no-mistakes.yaml" "$leased/.no-mistakes.yaml"
+# Synthetic linked checkout metadata: shares only this temporary repository's Git directory.
+printf 'gitdir: %s/.git\n' "$repo" > "$leased/.git"
 leased_real="$(cd "$leased" && pwd -P)"
 cat > "$scratch/bin/treehouse" <<EOF
 #!/bin/sh
@@ -179,9 +195,14 @@ esac
 EOF
 cat > "$scratch/bin/gnhf" <<'EOF'
 #!/bin/sh
+if [ "$1" = --version ]; then printf '0.1.49\n'; exit 0; fi
 printf '%s\n' "$PWD $0 $*" >> "$AGENTCTL_TEST_LOG"
+exit "${AGENTCTL_TEST_GNHF_STATUS:-0}"
 EOF
 chmod +x "$scratch/bin/treehouse" "$scratch/bin/gnhf"
+export AGENT_CONFIG_HOME="$scratch/config-home"
+mkdir -p "$AGENT_CONFIG_HOME/.gnhf"
+cp "$agent_dir/gnhf/config.yml" "$AGENT_CONFIG_HOME/.gnhf/config.yml"
 : > "$invocation_log"
 run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
   "$agentctl" overnight fixture --max-iterations 1 -- "retained fixture task"
@@ -191,6 +212,20 @@ expect_contains "--if-lease-id fixture-lease" "overnight prints identity-bound r
 run_capture cat "$invocation_log"
 expect_contains "$leased_real" "GNHF execution records the leased worktree as its working directory"
 expect_not_contains "gnhf --worktree" "actual overnight execution does not ask GNHF to allocate another worktree"
+
+run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
+  AGENTCTL_TEST_GNHF_STATUS=7 "$agentctl" overnight fixture --max-iterations 1 -- "upstream failure"
+expect_status 1 "upstream GNHF failure maps to the documented command-failure exit"
+
+printf 'uncommitted' > "$repo/dirty-fixture"
+run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
+  "$agentctl" overnight fixture --max-iterations 1 -- "dirty source"
+expect_status 3 "overnight rejects a dirty source instead of auditing an older revision"
+rm "$repo/dirty-fixture"
+
+run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
+  "$agentctl" overnight fixture --max-iterations 1 --agent unreviewed-provider -- "new adapter"
+expect_status 3 "unreviewed GNHF execution mode cannot silently inherit upstream permission bypass"
 
 # Keep ordinary system utilities available while ensuring GNHF itself cannot resolve.
 missing_path="$scratch/missing-bin:/usr/bin:/bin"
@@ -202,7 +237,7 @@ run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$missing_p
   "$agentctl" overnight fixture --max-iterations 1 -- "dependency check"
 expect_status 4 "missing GNHF dependency has the stable missing-tool exit code"
 
-run_capture python3 -c '
+run_capture "$AGENT_PYTHON" -c '
 import json, sys
 settings = json.load(open(sys.argv[1]))
 allow = settings["permissions"]["allow"]
@@ -231,6 +266,9 @@ expect_status 0 "tool installer dry-run accepts the Treehouse integration"
 expect_contains "treehouse-v2.3.0-" "tool installer selects the exact Treehouse release archive"
 expect_contains "kunchenguid/treehouse/releases/download/v2.3.0/checksums.txt" \
   "tool installer verifies Treehouse against the published checksum list"
+
+run_capture "$AGENT_PYTHON" -m unittest discover -s "$test_dir" -p 'test_*.py'
+expect_status 0 "configuration, memory and architecture regressions pass"
 
 total=$((pass_count + fail_count))
 if [ "$total" -eq 0 ]; then
