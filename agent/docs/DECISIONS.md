@@ -30,6 +30,7 @@ architecture contract says what is true now; later entries supersede earlier one
 - 2026-09-04 — **Optional questions are suppressed, authority questions are not** — established defaults
   and narrow pre-approved commands remove routine interruptions — disabling all safety prompts rejected
   because it would grant destructive and external authority without a bounded decision.
+  **Amended 2026-09-04** for Codex runtime permissions by the explicit YOLO request below.
 - 2026-09-04 — **`agentctl start` enters Herdr and nothing else** — the operator expects the entry point
   to expose the multiplexer before choosing a harness — implicitly launching Pi/FirstMate superseded
   because it hid the workspace interface behind one model's TUI; proved by `agent/tests/run.sh`.
@@ -141,3 +142,36 @@ recommends its native worktree flag. Shared orchestrator/Treehouse policy owns t
 The documented Pi package object filter disables those packages' skill resources while retaining
 their extensions. Provider mechanics remain available from installed help/source on demand.
 The two remaining package skills (intercom and MCP scripting) describe transport/tool mechanics.
+
+## 2026-09-04 — Codex uses explicit YOLO defaults (§3.7)
+
+**Superseded 2026-09-04** for the sandbox mode by the workspace-write correction below.
+
+- 2026-09-04 — **New Codex sessions use never/full-access and automatic tool overrides** — the user
+  explicitly requested no permission prompts, supplying the decision absent from the earlier rationale
+  "it would grant destructive and external authority without a bounded decision". Canonical settings
+  replace forced MCP prompts and survive sync; an alias or editing only the generated file would miss
+  other launch paths or be overwritten. Intent: `requirements/2026-09-04-user-codex-permissions.md`.
+  Verification uses `agent/tests/run.sh`, source/installed configuration checks, and Codex's resolved
+  configuration. Restart verification uses native conversation IDs and Herdr state; active work must
+  reach a safe boundary before reload. Managed requirements and other harnesses are outside this change.
+
+## 2026-09-04 — Codex retains the workspace sandbox without approval prompts (§3.7)
+
+- 2026-09-04 — **Codex uses `approval_policy = "never"` and `sandbox_mode = "workspace-write"`** —
+  the user supplied these exact values after the YOLO request. Full filesystem access is superseded;
+  commands outside the sandbox fail rather than requesting escalation. Canonical and generated TOML
+  agree after sync, and `sync-agent-config.sh --check-installed` verifies persistence. Intent:
+  `requirements/2026-09-04-user-codex-workspace.md`.
+
+## 2026-09-04 — FirstMate uses token-aware crew dispatch (§2.3, §3.8, §5.1, §6, §7.11)
+
+- 2026-09-04 — **FirstMate worker spawns use a dotfiles-seeded size-aware dispatch profile** — the
+  user gave standing permission to spend cheaper low-effort Luna/mini profiles on small bounded tasks
+  and stronger high-effort profiles on large or ambiguous work. A single static worker model was rejected
+  because it either wastes tokens on mechanical tasks or underpowers hard work; an untracked hand edit was
+  rejected because `doctor` could not prove it remained active; silent intelligence downgrades remain
+  rejected by FirstMate's own standing-permission rule, so this tracked profile is the permission source.
+  Intent: `requirements/2026-09-04-user-firstmate-dispatch.md`. Verification: `agent/tests/run.sh`,
+  `agent/tests/test_cli.py::ExecutionTests.test_fleet_launch_writes_firstmate_dispatch_config`, and
+  `agentctl doctor` drift reporting.

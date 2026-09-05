@@ -131,6 +131,7 @@ run_capture env AGENTCTL_FIRSTMATE_DIR="$scratch/firstmate" PATH="$test_path" \
   "$agentctl" fleet --harness pi --dry-run
 expect_status 0 "FirstMate fleet dry-run accepts the Pi harness"
 expect_contains "FM_BACKEND=herdr" "FirstMate is explicitly configured for Herdr"
+expect_contains "crew-dispatch.json" "FirstMate dry-run applies token-aware dispatch profiles"
 expect_contains "pi" "FirstMate dry-run preserves the selected harness"
 if [ ! -e "$invocation_log" ]; then
   pass "fleet dry-run executes no harness"
@@ -266,6 +267,7 @@ expect_status 0 "tool installer dry-run accepts the Treehouse integration"
 expect_contains "treehouse-v2.3.0-" "tool installer selects the exact Treehouse release archive"
 expect_contains "kunchenguid/treehouse/releases/download/v2.3.0/checksums.txt" \
   "tool installer verifies Treehouse against the published checksum list"
+expect_contains "crew-dispatch.json" "tool installer seeds FirstMate token-aware dispatch profiles"
 
 run_capture "$AGENT_PYTHON" -c '
 import sys, unittest

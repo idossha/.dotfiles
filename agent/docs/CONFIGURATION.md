@@ -39,6 +39,13 @@ Ignored `agent/local/` overlays and their ownership manifest are machine state, 
 Unknown real files displaced by links are backed up. Managed stale links are retired; unrelated
 skills and MCP servers are preserved. Never commit the full Claude app-state file.
 
+FirstMate is configured outside sync because it lives in an external upstream checkout. The canonical
+crew-dispatch template is `agent/firstmate/crew-dispatch.json`; `agentctl fleet` and
+`install-agent-tools.sh --tools` copy it to FirstMate's local `config/crew-dispatch.json` beside
+`config/backend=herdr`, and `agentctl doctor` reports drift. The profile tells FirstMate to spend
+low-effort Luna/mini candidates on small bounded worker tasks, medium profiles by default, and stronger
+high-effort Codex profiles on large or ambiguous work.
+
 Claude MCP user scope was checked against
 [the official scope reference](https://code.claude.com/docs/en/mcp#mcp-installation-scopes)
 on 2026-09-04. Codex discovery and schema references are in [../codex/README.md](../codex/README.md).

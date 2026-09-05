@@ -41,7 +41,10 @@ agent/scripts/agentctl ship dotfiles --dry-run
 
 `agentctl start` is the normal entry point. It launches or attaches the Herdr interface and does not
 implicitly start a model harness. Use `agentctl fleet --harness pi` when you explicitly want the
-FirstMate supervisor backed by Herdr.
+FirstMate supervisor backed by Herdr. `fleet` also reapplies the managed FirstMate
+`config/crew-dispatch.json` from [`firstmate/crew-dispatch.json`](firstmate/crew-dispatch.json), so
+small worker tasks route to low-effort Luna/mini profiles while larger ambiguous work routes to stronger
+high-effort profiles.
 
 Project switching is name-based. `project` enters or creates the repository's Herdr workspace; `fleet`
 starts the optional FirstMate supervisor on Herdr; visualization commands are explicit and do not launch
@@ -74,5 +77,5 @@ The first two commands are nonmutating checks. The final command renders or link
 configuration.
 
 External tools remain opt-in. `scripts/install-agent-tools.sh --tools` installs the pinned Treehouse,
-GNHF, and no-mistakes releases and clones FirstMate into its own checkout; dotfiles configure those tools
-but do not vendor their policy, state, or skills.
+GNHF, and no-mistakes releases and clones FirstMate into its own checkout; dotfiles configure its Herdr
+backend and token-aware crew-dispatch profile, but do not vendor FirstMate's policy, state, or skills.

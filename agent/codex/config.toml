@@ -4,6 +4,10 @@
 # Top-level bare keys must stay above the first table header, or TOML folds them
 # into that table.
 
+# User-selected sandbox defaults (§3.7): avoid permission interruptions in new sessions.
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+
 # AGENTS.md discovery walks every directory from the git project root down to cwd
 # and loads at most one file per directory, in the order
 # AGENTS.override.md > AGENTS.md > project_doc_fallback_filenames (this list),
@@ -28,27 +32,24 @@ prevent_idle_sleep = true
 # Codex runs inside Herdr panes that get split and resized mid-session.
 terminal_resize_reflow = true
 
-# Per-tool overrides on top of the generated server definitions below.
-# approval_mode accepts auto | prompt | writes | approve; "approve" forces an
-# explicit approval prompt for that one tool. These are the tools that spend a
-# real budget (OpenAlex API calls that fan out) or execute arbitrary code in a
-# browser, so they are worth a keystroke each. Declaring a sub-table before the
-# parent [mcp_servers.<name>] table is legal TOML and keeps the generated block
-# below untouched by hand-written settings.
+# Clear earlier forced prompts so tools follow the user's automatic permission policy.
+[apps._default]
+default_tools_approval_mode = "auto"
+
 [mcp_servers.openalex.tools.batch_resolve_references]
-approval_mode = "approve"
+approval_mode = "auto"
 
 [mcp_servers.openalex.tools.find_open_access_version]
-approval_mode = "approve"
+approval_mode = "auto"
 
 [mcp_servers.openalex.tools.get_work]
-approval_mode = "approve"
+approval_mode = "auto"
 
 [mcp_servers.openalex.tools.search_works]
-approval_mode = "approve"
+approval_mode = "auto"
 
 [mcp_servers.playwright.tools.browser_navigate]
-approval_mode = "approve"
+approval_mode = "auto"
 
 [mcp_servers.playwright.tools.browser_run_code_unsafe]
-approval_mode = "approve"
+approval_mode = "auto"

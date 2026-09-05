@@ -17,7 +17,8 @@
 #
 # Optional:
 #   --tools                 Install the pinned adopted tools: Treehouse, GNHF,
-#                           no-mistakes, and an external FirstMate checkout.
+#                           no-mistakes, and an external FirstMate checkout with
+#                           Herdr backend plus token-aware dispatch config.
 #   --dry-run               Print mutating commands without running them.
 #   --refresh-herdr-skill   Only regenerate agent/skills/herdr/SKILL.md from
 #                           `herdr --skill`. That skill is vendored from the
@@ -40,6 +41,7 @@ source "$SCRIPT_DIR/python-runtime.sh"
 AGENT_TOOLS_DIR="${AGENT_TOOLS_DIR:-$HOME/00_development/agent-tools}"
 FIRSTMATE_DIR="${AGENTCTL_FIRSTMATE_DIR:-$AGENT_TOOLS_DIR/firstmate}"
 FIRSTMATE_REMOTE="git@github.com:kunchenguid/firstmate.git"
+FIRSTMATE_DISPATCH_TEMPLATE="$AGENT_DIR/firstmate/crew-dispatch.json"
 
 WITH_TOOLS=0
 REFRESH_HERDR_SKILL=0
@@ -70,6 +72,22 @@ run_mutation() {
   else
     "$@"
   fi
+}
+
+write_firstmate_runtime_config() {
+  if [ ! -f "$FIRSTMATE_DISPATCH_TEMPLATE" ]; then
+    echo "  [fail] FirstMate dispatch template missing: $FIRSTMATE_DISPATCH_TEMPLATE" >&2
+    return 1
+  fi
+  if [ "$DRY_RUN" -eq 1 ]; then
+    print_command mkdir -p "$FIRSTMATE_DIR/config"
+    printf '  [dry-run] write %q with value herdr\n' "$FIRSTMATE_DIR/config/backend"
+    print_command install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
+    return 0
+  fi
+  mkdir -p "$FIRSTMATE_DIR/config"
+  printf 'herdr\n' > "$FIRSTMATE_DIR/config/backend"
+  install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
 }
 
 usage() {
@@ -333,17 +351,15 @@ install_firstmate() {
   if [ "$DRY_RUN" -eq 1 ]; then
     print_command git -C "$FIRSTMATE_DIR" fetch origin "$FIRSTMATE_COMMIT"
     print_command git -C "$FIRSTMATE_DIR" checkout --detach "$FIRSTMATE_COMMIT"
-    print_command mkdir -p "$FIRSTMATE_DIR/config"
-    printf '  [dry-run] write %q with value herdr\n' "$FIRSTMATE_DIR/config/backend"
-    did "FirstMate@$FIRSTMATE_COMMIT with Herdr backend (planned)"
+    write_firstmate_runtime_config || return 1
+    did "FirstMate@$FIRSTMATE_COMMIT with Herdr backend and token-aware dispatch (planned)"
     return 0
   fi
 
   git -C "$FIRSTMATE_DIR" fetch origin "$FIRSTMATE_COMMIT"
   git -C "$FIRSTMATE_DIR" checkout --detach "$FIRSTMATE_COMMIT"
-  mkdir -p "$FIRSTMATE_DIR/config"
-  printf 'herdr\n' > "$FIRSTMATE_DIR/config/backend"
-  did "FirstMate@$FIRSTMATE_COMMIT with Herdr backend"
+  write_firstmate_runtime_config || return 1
+  did "FirstMate@$FIRSTMATE_COMMIT with Herdr backend and token-aware dispatch"
 }
 
 # --- vendored herdr skill (--refresh-herdr-skill) ----------------------------

@@ -16,6 +16,10 @@ destination to its tracked policy source. A sync from an unlanded worktree would
 to temporary paths; sync the canonical checkout after landing.
 
 Use `agentctl doctor` after a harness update and `codex features list` to inspect feature support.
+New Codex sessions default to `approval_policy = "never"` and `sandbox_mode = "workspace-write"`
+at the user's explicit request. App and MCP tool overrides use `auto`. Explicit invocation settings
+and managed requirements can still override these defaults. Resume a saved conversation by its exact
+ID after changing startup configuration; do not terminate active work merely to reload settings.
 Use `codex exec --help` for current headless flags. An unattended mode is not authority to disable
 sandboxing; the GNHF adapter supplies an explicit execution mode.
 

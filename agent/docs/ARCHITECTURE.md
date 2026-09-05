@@ -31,7 +31,9 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    commands are not alternate allocators.
 3. **FirstMate is an optional fleet supervisor over Herdr.** It runs from its own upstream checkout
    and state home; dotfiles configure and launch it but do not vendor its operating contract. Its
-   configured Herdr backend already acquires Treehouse worktrees.
+   configured Herdr backend already acquires Treehouse worktrees. Dotfiles seed FirstMate's local
+   crew-dispatch profile so worker model and effort choices scale by task size: lightweight low-effort
+   candidates for small bounded work, and stronger high-effort candidates for large or ambiguous work.
 4. **GNHF is the bounded unattended-loop runner.** Dotfiles acquire a retained Treehouse lease and
    require iteration limits, no usage-limit waiting by default, and a reviewed execution-mode adapter;
    upstream permission-bypass defaults are not inherited. The source must be clean and committed; the
@@ -63,6 +65,16 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    skill directories. Pi package guides that prescribe a competing supervisor/worktree policy are
    excluded through package resource filters; their extensions remain available. Disable the duplicate Claude engineering plugin; its cached snapshot otherwise
    can prescribe different procedures. Other plugins remain adapter-specific capabilities.
+7. **Codex defaults to the user's explicitly selected workspace permissions.** Canonical configuration sets
+   `approval_policy = "never"`, `sandbox_mode = "workspace-write"`, and automatic tool overrides;
+   this prevents new sessions or a later sync from restoring routine permission prompts. Existing
+   conversations retain their native session IDs during reload. Explicit invocation overrides and
+   managed requirements remain effective; other harness adapters keep their own settings.
+8. **FirstMate worker dispatch policy is seeded from a tracked template.** `agent/firstmate/crew-dispatch.json`
+   is copied into the external checkout's gitignored `config/crew-dispatch.json` by the installer and by
+   `agentctl fleet`; this gives the user's standing permission to route small workers to cheaper
+   low-effort profiles while preserving stronger profiles for hard work. `agentctl doctor` reports drift,
+   and absent local files before setup reproduce FirstMate's previous static-harness behavior.
 
 ## 4. Shared development doctrine
 
@@ -83,7 +95,8 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 1. **`agentctl` is the single human and agent entry point.** `agentctl start` launches or attaches
    Herdr without implicitly starting a model harness; separate commands expose health checks,
    synchronization, workspace entry, fleet launch, bounded overnight work, and delivery gates with
-   stable exit codes.
+   stable exit codes. `agentctl fleet` applies the managed FirstMate backend and crew-dispatch profile
+   before launching the selected primary harness.
 2. **Commands compose instead of hiding upstream tools.** `agentctl` prints the resolved command in
    dry-run mode and preserves upstream logs and recovery instructions.
 3. **Fast project switching is name-based.** A small project registry maps stable names to repository
@@ -104,6 +117,8 @@ The platform gate is command-based:
 - Each shell script passes its own `bash -n <file>` invocation; JSON and TOML parse; project aliases resolve to existing directories.
 - A dry-run test proves GNHF acquires Treehouse isolation without its own worktree flag, receives a finite
   cap, and leaves no push enabled; no-mistakes remains opt-in.
+- FirstMate fleet and installer dry-runs print the managed `crew-dispatch.json` setup, and the CLI fixture
+  test proves a real fleet launch writes the same bytes into the external checkout's local config.
 - `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
   back with independent JSON/TOML parsers; tests neither source the user's shell profile nor access
   real homes, vaults, remotes or visible apps.
@@ -124,6 +139,7 @@ Changing these requires this contract and `agent/docs/DECISIONS.md` in the same 
 8. `agent/scripts/check_coherence.py` — source and commit guard semantics.
 9. `.github/workflows/agent-platform.yml` — platform verification triggers and jobs.
 10. `agent/scripts/pi-resources.mjs` — native resource-discovery probe and evidence scope.
+11. `agent/firstmate/crew-dispatch.json` — FirstMate worker model/effort dispatch defaults.
 
 Additive fields are optional; when absent, they reproduce the previous behavior.
 

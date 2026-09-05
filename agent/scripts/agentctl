@@ -9,6 +9,7 @@ PROJECTS_FILE="${AGENTCTL_PROJECTS_FILE:-$AGENT_DIR/projects.json}"
 SYNC_SCRIPT="${AGENTCTL_SYNC_SCRIPT:-$SCRIPT_DIR/sync-agent-config.sh}"
 AGENT_TOOLS_DIR="${AGENT_TOOLS_DIR:-$HOME/00_development/agent-tools}"
 FIRSTMATE_DIR="${AGENTCTL_FIRSTMATE_DIR:-$AGENT_TOOLS_DIR/firstmate}"
+FIRSTMATE_DISPATCH_TEMPLATE="$AGENT_DIR/firstmate/crew-dispatch.json"
 # shellcheck source=../tools.env
 source "$AGENT_DIR/tools.env"
 # shellcheck source=python-runtime.sh
@@ -31,7 +32,7 @@ Commands:
   project <alias> [--visualization <name>]
       Focus a named Herdr workspace, create it if absent, or explicitly open a registered view.
   fleet [--harness pi|claude|codex]
-      Start a FirstMate primary from its external checkout with the Herdr backend.
+      Start a FirstMate primary with Herdr and the managed token-aware dispatch profile.
   overnight <alias> [--max-iterations N] [--max-tokens N] [--agent NAME] -- <objective>
       Acquire a durable Treehouse lease and run bounded GNHF there. Never pushes.
   ship <alias>
@@ -69,6 +70,19 @@ run_command() {
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || die 4 "required command not found: $1"
+}
+
+ensure_firstmate_config() {
+  [ -f "$FIRSTMATE_DISPATCH_TEMPLATE" ] || die 3 "FirstMate dispatch template missing: $FIRSTMATE_DISPATCH_TEMPLATE"
+  if [ "$DRY_RUN" -eq 1 ]; then
+    print_command mkdir -p "$FIRSTMATE_DIR/config"
+    printf 'DRY-RUN: write %q with value herdr\n' "$FIRSTMATE_DIR/config/backend"
+    print_command install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
+    return 0
+  fi
+  mkdir -p "$FIRSTMATE_DIR/config"
+  printf 'herdr\n' > "$FIRSTMATE_DIR/config/backend"
+  install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
 }
 
 validate_registry() {
@@ -242,10 +256,12 @@ doctor() {
   fi
   if [ -e "$FIRSTMATE_DIR/.git" ]; then
     actual="$(git -C "$FIRSTMATE_DIR" rev-parse HEAD 2>/dev/null || true)"
-    if [ "$actual" = "$FIRSTMATE_COMMIT" ] && [ "$(tr -d '[:space:]' < "$FIRSTMATE_DIR/config/backend" 2>/dev/null || true)" = herdr ]; then
-      printf '  [ok]   firstmate      %s (Herdr backend)\n' "$actual"
+    if [ "$actual" = "$FIRSTMATE_COMMIT" ] \
+      && [ "$(tr -d '[:space:]' < "$FIRSTMATE_DIR/config/backend" 2>/dev/null || true)" = herdr ] \
+      && cmp -s "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"; then
+      printf '  [ok]   firstmate      %s (Herdr backend, token-aware dispatch)\n' "$actual"
     else
-      printf '  [fail] firstmate      expected %s with config/backend=herdr; found %s\n' "$FIRSTMATE_COMMIT" "${actual:-unknown}"
+      printf '  [fail] firstmate      expected %s with config/backend=herdr and managed config/crew-dispatch.json; found %s\n' "$FIRSTMATE_COMMIT" "${actual:-unknown}"
       failed=1
     fi
   else
@@ -349,6 +365,7 @@ fleet_command() {
   if [ "$DRY_RUN" -eq 0 ]; then
     [ -d "$FIRSTMATE_DIR/.git" ] || die 3 "FirstMate checkout missing: $FIRSTMATE_DIR (run install-agent-tools.sh --tools)"
   fi
+  ensure_firstmate_config
   if [ "$DRY_RUN" -eq 0 ]; then require_command "$harness"; fi
   if [ "$DRY_RUN" -eq 1 ]; then
     printf 'DRY-RUN: cd %q && FM_BACKEND=herdr %q\n' "$FIRSTMATE_DIR" "$harness"

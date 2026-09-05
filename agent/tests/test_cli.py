@@ -81,6 +81,17 @@ class ExecutionTests(unittest.TestCase):
                 result = self.invoke(*arguments)
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
+    def test_fleet_launch_writes_firstmate_dispatch_config(self):
+        self.executable("pi", "exit 0\n")
+        result = self.invoke("fleet", "--harness", "pi")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        config = self.root / "firstmate/config"
+        self.assertEqual((config / "backend").read_text(), "herdr\n")
+        self.assertEqual(
+            (config / "crew-dispatch.json").read_text(),
+            (ROOT / "agent/firstmate/crew-dispatch.json").read_text(),
+        )
+
     def test_doctor_rejects_a_version_probe_that_prints_then_fails(self):
         for tool in ("herdr", "treehouse", "gnhf", "no-mistakes", "pi", "claude", "codex", "jq"):
             self.executable(tool, "echo 'fixture version'; exit 23\n")

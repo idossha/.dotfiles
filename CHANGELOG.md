@@ -42,6 +42,10 @@ Notable changes to the dotfiles are recorded here using the
 
 ### Changed
 
+- **FirstMate spends worker tokens by task size** — `agentctl fleet` and the tool installer now seed a
+  crew-dispatch profile that routes small bounded tasks to low-effort Luna/mini agents and reserves
+  stronger high-effort Codex profiles for large or ambiguous work. Existing Herdr, Treehouse, and
+  FirstMate supervision boundaries remain unchanged.
 - **Git has one explicit workflow owner** — the legacy shell GitHub publisher and Pi's misleading
   stash-restore extension are retired. Git collaboration routes commit/release rules to agentic-rules.
 - **Docker checks report their actual scope** — environment and installer syntax only, with upstream

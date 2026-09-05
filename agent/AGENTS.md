@@ -10,7 +10,7 @@ then the nearest project `AGENTS.md` for project facts.
 - `agent/scripts/sync-agent-config.sh --check` — validate generated harness configuration without changing it.
 - `agent/scripts/agentctl project <name> --dry-run` — show the resolved Herdr project-switching command.
 - `treehouse status` — list this repository's pooled worktrees; `treehouse enter <name>` jumps into one.
-- `agent/scripts/agentctl fleet --harness pi --dry-run` — show the FirstMate-on-Herdr launch command.
+- `agent/scripts/agentctl fleet --harness pi --dry-run` — show the FirstMate-on-Herdr launch command and managed dispatch setup.
 - `agent/scripts/agentctl overnight <name> --max-iterations <n> --dry-run` — show a bounded GNHF run in a Treehouse lease.
 - `agent/scripts/agentctl ship <name> --dry-run` — show the project-opted-in no-mistakes delivery gate.
 - `agent/tests/run.sh` — run fixture-driven platform checks (temporary state only; no GUI or network).

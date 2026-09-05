@@ -7,6 +7,9 @@
 - Treehouse as the pinned, shared worktree provider with native status/enter navigation.
 - The external `agentic-rules` engineering playbook linked from one source into Claude, Pi and Codex.
 - Idempotent configuration validation and synchronization.
+- Explicit user-selected Codex workspace sandbox without approval prompts, preserved by synchronization.
+- Token-aware FirstMate crew dispatch seeded from dotfiles so small worker tasks use lightweight
+  low-effort profiles and large/ambiguous tasks use stronger high-effort profiles.
 - A global `agentctl start` entry point that opens Herdr without implicitly launching a model harness.
 
 ## What is next
