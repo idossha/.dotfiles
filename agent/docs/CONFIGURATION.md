@@ -42,7 +42,10 @@ skills and MCP servers are preserved. Never commit the full Claude app-state fil
 FirstMate is configured outside sync because it lives in an external upstream checkout. The canonical
 crew-dispatch template is `agent/firstmate/crew-dispatch.json`; `agentctl fleet` and
 `install-agent-tools.sh --tools` copy it to FirstMate's local `config/crew-dispatch.json` beside
-`config/backend=herdr`, and `agentctl doctor` reports drift. A Pi-backed `agentctl fleet` also runs
+`config/backend=herdr`, and `agentctl doctor` reports drift. They also render `agent/projects.json` into
+a managed block at FirstMate's private `data/projects.md`; missing `delivery` fields default to
+`no-mistakes +yolo`, so known projects use Treehouse worktrees, no-mistakes PR review/test gates, and
+automatic merge for green in-scope work. A Pi-backed `agentctl fleet` also runs
 `herdr integration install pi` and then checks `herdr integration status` before starting Pi, because a
 Herdr upgrade can change the agent-status bridge. The profile tells FirstMate to spend low-effort
 Luna/mini candidates on small bounded worker tasks, medium profiles by default, and stronger high-effort

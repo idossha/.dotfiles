@@ -10,6 +10,7 @@ SYNC_SCRIPT="${AGENTCTL_SYNC_SCRIPT:-$SCRIPT_DIR/sync-agent-config.sh}"
 AGENT_TOOLS_DIR="${AGENT_TOOLS_DIR:-$HOME/00_development/agent-tools}"
 FIRSTMATE_DIR="${AGENTCTL_FIRSTMATE_DIR:-$AGENT_TOOLS_DIR/firstmate}"
 FIRSTMATE_DISPATCH_TEMPLATE="$AGENT_DIR/firstmate/crew-dispatch.json"
+FIRSTMATE_PROJECTS_SCRIPT="$SCRIPT_DIR/firstmate-projects.py"
 # shellcheck source=../tools.env
 source "$AGENT_DIR/tools.env"
 # shellcheck source=python-runtime.sh
@@ -35,8 +36,8 @@ Commands:
       Start a FirstMate primary with Herdr and the managed token-aware dispatch profile.
   overnight <alias> [--max-iterations N] [--max-tokens N] [--agent NAME] -- <objective>
       Acquire a durable Treehouse lease and run bounded GNHF there. Never pushes.
-  ship <alias>
-      Open no-mistakes only when the repository has a project-local .no-mistakes.yaml.
+  ship <alias> --intent <goal> [--base-branch main] [--yes] [--no-automerge]
+      Run the project-local no-mistakes PR gate, then schedule a guarded GitHub auto-merge.
 
 Options:
   --dry-run   Print shell-escaped commands prefixed with "DRY-RUN:" and execute nothing.
@@ -72,17 +73,31 @@ require_command() {
   command -v "$1" >/dev/null 2>&1 || die 4 "required command not found: $1"
 }
 
+ensure_firstmate_projects() {
+  [ -f "$FIRSTMATE_PROJECTS_SCRIPT" ] || die 3 "FirstMate project renderer missing: $FIRSTMATE_PROJECTS_SCRIPT"
+  local -a args=("$AGENT_PYTHON" "$FIRSTMATE_PROJECTS_SCRIPT" --projects "$PROJECTS_FILE" --firstmate "$FIRSTMATE_DIR")
+  [ "$DRY_RUN" -eq 0 ] || args+=(--dry-run)
+  "${args[@]}"
+}
+
+firstmate_projects_current() {
+  [ -f "$FIRSTMATE_PROJECTS_SCRIPT" ] || return 1
+  "$AGENT_PYTHON" "$FIRSTMATE_PROJECTS_SCRIPT" --projects "$PROJECTS_FILE" --firstmate "$FIRSTMATE_DIR" --check >/dev/null
+}
+
 ensure_firstmate_config() {
   [ -f "$FIRSTMATE_DISPATCH_TEMPLATE" ] || die 3 "FirstMate dispatch template missing: $FIRSTMATE_DISPATCH_TEMPLATE"
   if [ "$DRY_RUN" -eq 1 ]; then
     print_command mkdir -p "$FIRSTMATE_DIR/config"
     printf 'DRY-RUN: write %q with value herdr\n' "$FIRSTMATE_DIR/config/backend"
     print_command install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
+    ensure_firstmate_projects
     return 0
   fi
   mkdir -p "$FIRSTMATE_DIR/config"
   printf 'herdr\n' > "$FIRSTMATE_DIR/config/backend"
   install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
+  ensure_firstmate_projects
 }
 
 herdr_pi_integration_current() {
@@ -125,6 +140,9 @@ for alias, project in registry["projects"].items():
     if not isinstance(alias, str) or not alias or not isinstance(project, dict):
         print("agentctl: every project must have a non-empty alias and object value", file=sys.stderr)
         raise SystemExit(1)
+    if any(c.isspace() or c in "[]" for c in alias):
+        print(f"agentctl: project alias {alias!r} cannot be rendered in FirstMate data/projects.md", file=sys.stderr)
+        raise SystemExit(1)
     if not isinstance(project.get("path"), str) or not isinstance(project.get("label"), str):
         print(f"agentctl: project {alias!r} needs string path and label fields", file=sys.stderr)
         raise SystemExit(1)
@@ -139,8 +157,26 @@ for alias, project in registry["projects"].items():
     ):
         print(f"agentctl: project {alias!r} visualizations must be non-empty argv arrays", file=sys.stderr)
         raise SystemExit(1)
+    delivery = project.get("delivery", {})
+    if not isinstance(delivery, dict):
+        print(f"agentctl: project {alias!r} delivery must be an object", file=sys.stderr)
+        raise SystemExit(1)
+    mode = delivery.get("mode", "no-mistakes")
+    if mode not in {"no-mistakes", "direct-PR", "local-only", "no-mistakes-prod-only"}:
+        print(f"agentctl: project {alias!r} delivery.mode is invalid", file=sys.stderr)
+        raise SystemExit(1)
+    automerge = delivery.get("automerge", True)
+    if not isinstance(automerge, bool):
+        print(f"agentctl: project {alias!r} delivery.automerge must be boolean", file=sys.stderr)
+        raise SystemExit(1)
+    description = delivery.get("description", "")
+    if description is None:
+        description = ""
+    if not isinstance(description, str):
+        print(f"agentctl: project {alias!r} delivery.description must be a string", file=sys.stderr)
+        raise SystemExit(1)
     values = [alias, project["path"], project["label"], *views.keys(),
-              *(arg for argv in views.values() for arg in argv)]
+              *(arg for argv in views.values() for arg in argv), mode, description]
     if any(any(ord(c) < 32 for c in value) for value in values):
         print("agentctl: registry strings must not contain control characters", file=sys.stderr)
         raise SystemExit(1)
@@ -304,10 +340,11 @@ doctor() {
     actual="$(git -C "$FIRSTMATE_DIR" rev-parse HEAD 2>/dev/null || true)"
     if [ "$actual" = "$FIRSTMATE_COMMIT" ] \
       && [ "$(tr -d '[:space:]' < "$FIRSTMATE_DIR/config/backend" 2>/dev/null || true)" = herdr ] \
-      && cmp -s "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"; then
-      printf '  [ok]   firstmate      %s (Herdr backend, token-aware dispatch)\n' "$actual"
+      && cmp -s "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json" \
+      && firstmate_projects_current; then
+      printf '  [ok]   firstmate      %s (Herdr backend, token-aware dispatch, no-mistakes +yolo projects)\n' "$actual"
     else
-      printf '  [fail] firstmate      expected %s with config/backend=herdr and managed config/crew-dispatch.json; found %s\n' "$FIRSTMATE_COMMIT" "${actual:-unknown}"
+      printf '  [fail] firstmate      expected %s with config/backend=herdr, managed config/crew-dispatch.json, and managed data/projects.md; found %s\n' "$FIRSTMATE_COMMIT" "${actual:-unknown}"
       failed=1
     fi
   else
@@ -500,21 +537,73 @@ overnight_command() {
 
 ship_command() {
   [ $# -ge 1 ] || die 2 "ship requires a project alias"
-  local alias="$1"
+  local alias="$1" base_branch=main intent="" auto_yes=0 automerge=1
   shift
   while [ $# -gt 0 ]; do
-    case "$1" in --dry-run) DRY_RUN=1 ;; *) die 2 "unknown ship option: $1" ;; esac
+    case "$1" in
+      --dry-run) DRY_RUN=1 ;;
+      --base-branch) [ $# -ge 2 ] || die 2 "--base-branch requires a name"; base_branch="$2"; shift ;;
+      --intent) [ $# -ge 2 ] || die 2 "--intent requires a goal"; intent="$2"; shift ;;
+      --yes) auto_yes=1 ;;
+      --no-automerge) automerge=0 ;;
+      *) die 2 "unknown ship option: $1" ;;
+    esac
     shift
   done
   validate_registry
   resolve_project "$alias"
   [ -f "$PROJECT_PATH/.no-mistakes.yaml" ] || die 3 "project has not opted in: create and review $PROJECT_PATH/.no-mistakes.yaml"
-  if [ "$DRY_RUN" -eq 0 ]; then require_command no-mistakes; fi
+  local -a run_args=(no-mistakes axi run --base-branch "$base_branch" --intent "${intent:-<required-intent>}")
+  [ "$auto_yes" -eq 0 ] || run_args+=(--yes)
   if [ "$DRY_RUN" -eq 1 ]; then
-    printf 'DRY-RUN: cd %q && no-mistakes\n' "$PROJECT_PATH"
-  else
-    (cd "$PROJECT_PATH" && no-mistakes) || return 1
+    printf 'DRY-RUN: cd %q && no-mistakes init\n' "$PROJECT_PATH"
+    printf 'DRY-RUN: cd %q &&' "$PROJECT_PATH"
+    printf ' %q' "${run_args[@]}"
+    printf '\n'
+    if [ "$automerge" -eq 1 ]; then
+      printf 'DRY-RUN: cd %q && no-mistakes axi status\n' "$PROJECT_PATH"
+      printf 'DRY-RUN: cd %q && gh-axi pr merge <no-mistakes-pr-number> --squash --delete-branch --auto\n' "$PROJECT_PATH"
+    fi
+    return 0
   fi
+  [ -n "$intent" ] || die 2 "ship requires --intent so no-mistakes can judge the change against the user's goal"
+  require_command git
+  require_command no-mistakes
+  [ "$automerge" -eq 0 ] || require_command gh-axi
+  local current_branch
+  current_branch="$(git -C "$PROJECT_PATH" branch --show-current 2>/dev/null)" || die 3 "ship requires a Git repository: $PROJECT_PATH"
+  [ -n "$current_branch" ] || die 3 "ship requires a named feature branch, not a detached HEAD"
+  [ "$current_branch" != "$base_branch" ] || die 3 "ship must run from a feature branch, not $base_branch"
+  [ -z "$(git -C "$PROJECT_PATH" status --porcelain)" ] || die 3 "ship requires clean committed work before no-mistakes starts"
+  (cd "$PROJECT_PATH" && no-mistakes init) || return 1
+  local tmp pr_number
+  tmp="$(mktemp "${TMPDIR:-/tmp}/agentctl-ship.XXXXXX")"
+  trap 'rm -f "$tmp"' RETURN
+  if ! (cd "$PROJECT_PATH" && "${run_args[@]}") 2>&1 | tee "$tmp"; then
+    return 1
+  fi
+  if [ "$automerge" -eq 1 ]; then
+    if ! (cd "$PROJECT_PATH" && no-mistakes axi status) 2>&1 | tee -a "$tmp"; then
+      return 1
+    fi
+    pr_number="$($AGENT_PYTHON - "$tmp" <<'PY'
+from pathlib import Path
+import re
+import sys
+text = Path(sys.argv[1]).read_text(errors="replace")
+matches = re.findall(r"https://[^\s)]+/(?:pull|merge_requests)/(\d+)", text)
+if matches:
+    print(matches[-1])
+PY
+)"
+    if [ -z "$pr_number" ]; then
+      printf 'agentctl: no no-mistakes PR URL found yet; continue the active gate before auto-merge.\n' >&2
+      return 0
+    fi
+    (cd "$PROJECT_PATH" && gh-axi pr merge "$pr_number" --squash --delete-branch --auto) || return 1
+  fi
+  trap - RETURN
+  rm -f "$tmp"
 }
 
 main() {

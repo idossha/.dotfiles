@@ -26,7 +26,12 @@ class ExecutionTests(unittest.TestCase):
         self.bin.mkdir()
         self.project = self.root / "project with spaces"
         self.project.mkdir()
+        subprocess.run(["git", "-C", str(self.project), "init", "-q"], check=True)
+        subprocess.run(["git", "-C", str(self.project), "checkout", "-q", "-b", "feature"], check=True)
+        subprocess.run(["git", "-C", str(self.project), "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-q", "--allow-empty", "-m", "fixture: base"], check=True)
         (self.project / ".no-mistakes.yaml").touch()
+        subprocess.run(["git", "-C", str(self.project), "add", ".no-mistakes.yaml"], check=True)
+        subprocess.run(["git", "-C", str(self.project), "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-q", "-m", "fixture: delivery gate"], check=True)
         self.registry = self.root / "projects.json"
         self.arguments = ["contains spaces", 'quote"literal', "--leading-hyphen",
                           "$(touch should-not-exist)", "backtick" + chr(96)]
@@ -73,9 +78,9 @@ class ExecutionTests(unittest.TestCase):
         self.assertIn("control characters", result.stderr)
 
     def test_upstream_failures_map_to_one_for_each_execution_path(self):
-        for tool in ("herdr", "pi", "no-mistakes", "fixture-view"):
+        for tool in ("herdr", "gh-axi", "pi", "no-mistakes", "fixture-view"):
             self.executable(tool, "exit 23\n")
-        for arguments in (["start"], ["fleet", "--harness", "pi"], ["ship", "fixture"],
+        for arguments in (["start"], ["fleet", "--harness", "pi"], ["ship", "fixture", "--intent", "fixture goal"],
                           ["project", "fixture"], ["project", "fixture", "--visualization", "view"]):
             with self.subTest(command=arguments):
                 result = self.invoke(*arguments)
@@ -94,6 +99,20 @@ class ExecutionTests(unittest.TestCase):
             (config / "crew-dispatch.json").read_text(),
             (ROOT / "agent/firstmate/crew-dispatch.json").read_text(),
         )
+        projects = self.root / "firstmate/data/projects.md"
+        self.assertIn("- fixture [no-mistakes +yolo]", projects.read_text())
+
+    def test_ship_runs_no_mistakes_then_schedules_guarded_auto_merge(self):
+        self.executable("no-mistakes", "case \"$1 $2\" in\n"
+                                     "  'init ') exit 0 ;;\n"
+                                     "  'axi run') echo 'Open the PR: https://github.com/owner/repo/pull/42'; exit 0 ;;\n"
+                                     "  'axi status') echo 'status: checks-passed https://github.com/owner/repo/pull/42'; exit 0 ;;\n"
+                                     "esac\nexit 23\n")
+        self.executable("gh-axi", "printf '%s\\n' \"$0 $*\" > \"$FIXTURE_ARGV\"\n")
+        result = self.invoke("ship", "fixture", "--intent", "fixture goal")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((self.root / "argv.json").read_text().strip(),
+                         str(self.bin / "gh-axi") + " pr merge 42 --squash --delete-branch --auto")
 
     def test_doctor_rejects_a_version_probe_that_prints_then_fails(self):
         for tool in ("herdr", "treehouse", "gnhf", "no-mistakes", "pi", "claude", "codex", "jq"):

@@ -19,7 +19,7 @@
 #   --tools                 Install the pinned adopted tools: Treehouse, GNHF,
 #                           no-mistakes, AXI helper CLIs, and an external
 #                           FirstMate checkout with Herdr backend plus
-#                           token-aware dispatch config.
+#                           token-aware dispatch and no-mistakes +yolo project config.
 #   --dry-run               Print mutating commands without running them.
 #   --refresh-herdr-skill   Only regenerate agent/skills/herdr/SKILL.md from
 #                           `herdr --skill`. That skill is vendored from the
@@ -43,6 +43,8 @@ AGENT_TOOLS_DIR="${AGENT_TOOLS_DIR:-$HOME/00_development/agent-tools}"
 FIRSTMATE_DIR="${AGENTCTL_FIRSTMATE_DIR:-$AGENT_TOOLS_DIR/firstmate}"
 FIRSTMATE_REMOTE="git@github.com:kunchenguid/firstmate.git"
 FIRSTMATE_DISPATCH_TEMPLATE="$AGENT_DIR/firstmate/crew-dispatch.json"
+FIRSTMATE_PROJECTS_SCRIPT="$SCRIPT_DIR/firstmate-projects.py"
+PROJECTS_FILE="${AGENTCTL_PROJECTS_FILE:-$AGENT_DIR/projects.json}"
 
 WITH_TOOLS=0
 REFRESH_HERDR_SKILL=0
@@ -80,15 +82,21 @@ write_firstmate_runtime_config() {
     echo "  [fail] FirstMate dispatch template missing: $FIRSTMATE_DISPATCH_TEMPLATE" >&2
     return 1
   fi
+  if [ ! -f "$FIRSTMATE_PROJECTS_SCRIPT" ]; then
+    echo "  [fail] FirstMate project renderer missing: $FIRSTMATE_PROJECTS_SCRIPT" >&2
+    return 1
+  fi
   if [ "$DRY_RUN" -eq 1 ]; then
     print_command mkdir -p "$FIRSTMATE_DIR/config"
     printf '  [dry-run] write %q with value herdr\n' "$FIRSTMATE_DIR/config/backend"
     print_command install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
+    "$AGENT_PYTHON" "$FIRSTMATE_PROJECTS_SCRIPT" --projects "$PROJECTS_FILE" --firstmate "$FIRSTMATE_DIR" --dry-run
     return 0
   fi
   mkdir -p "$FIRSTMATE_DIR/config"
   printf 'herdr\n' > "$FIRSTMATE_DIR/config/backend"
   install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
+  "$AGENT_PYTHON" "$FIRSTMATE_PROJECTS_SCRIPT" --projects "$PROJECTS_FILE" --firstmate "$FIRSTMATE_DIR"
 }
 
 usage() {
@@ -392,14 +400,14 @@ install_firstmate() {
     print_command git -C "$FIRSTMATE_DIR" fetch origin "$FIRSTMATE_COMMIT"
     print_command git -C "$FIRSTMATE_DIR" checkout --detach "$FIRSTMATE_COMMIT"
     write_firstmate_runtime_config || return 1
-    did "FirstMate@$FIRSTMATE_COMMIT with Herdr backend and token-aware dispatch (planned)"
+    did "FirstMate@$FIRSTMATE_COMMIT with Herdr backend, token-aware dispatch, and no-mistakes +yolo project defaults (planned)"
     return 0
   fi
 
   git -C "$FIRSTMATE_DIR" fetch origin "$FIRSTMATE_COMMIT"
   git -C "$FIRSTMATE_DIR" checkout --detach "$FIRSTMATE_COMMIT"
   write_firstmate_runtime_config || return 1
-  did "FirstMate@$FIRSTMATE_COMMIT with Herdr backend and token-aware dispatch"
+  did "FirstMate@$FIRSTMATE_COMMIT with Herdr backend, token-aware dispatch, and no-mistakes +yolo project defaults"
 }
 
 # --- vendored herdr skill (--refresh-herdr-skill) ----------------------------

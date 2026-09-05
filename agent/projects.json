@@ -4,6 +4,11 @@
     "dotfiles": {
       "path": "/Users/idohaber/.dotfiles",
       "label": "dotfiles",
+      "delivery": {
+        "mode": "no-mistakes",
+        "automerge": true,
+        "description": "dotfiles agent platform"
+      },
       "visualizations": {
         "editor": ["nvim", "."]
       }
@@ -11,6 +16,11 @@
     "TI-Toolbox": {
       "path": "/Users/idohaber/01_production/TI-toolbox",
       "label": "TI-Toolbox",
+      "delivery": {
+        "mode": "no-mistakes",
+        "automerge": true,
+        "description": "TI-Toolbox production repository"
+      },
       "visualizations": {
         "editor": ["nvim", "."]
       }
@@ -18,6 +28,11 @@
     "tetravox": {
       "path": "/Users/idohaber/00_development/tetravox",
       "label": "tetravox",
+      "delivery": {
+        "mode": "no-mistakes",
+        "automerge": true,
+        "description": "tetravox development repository"
+      },
       "visualizations": {
         "editor": ["nvim", "."]
       }

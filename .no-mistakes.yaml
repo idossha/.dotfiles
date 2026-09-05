@@ -1,0 +1,9 @@
+# Dotfiles delivery gate. The no-mistakes pipeline owns review, fixes, tests,
+# PR creation and CI evidence for changes targeting main.
+commands:
+  lint: 'for f in agent/scripts/*.sh agent/scripts/agentctl agent/tests/*.sh; do bash -n "$f" || exit 1; done'
+  test: 'agent/tests/run.sh'
+
+test:
+  evidence:
+    store_in_repo: true

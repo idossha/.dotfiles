@@ -10,9 +10,9 @@ then the nearest project `AGENTS.md` for project facts.
 - `agent/scripts/sync-agent-config.sh --check` — validate generated harness configuration without changing it.
 - `agent/scripts/agentctl project <name> --dry-run` — show the resolved Herdr project-switching command.
 - `treehouse status` — list this repository's pooled worktrees; `treehouse enter <name>` jumps into one.
-- `agent/scripts/agentctl fleet --harness pi --dry-run` — show the FirstMate-on-Herdr launch command, Pi integration refresh, and managed dispatch setup.
+- `agent/scripts/agentctl fleet --harness pi --dry-run` — show the FirstMate-on-Herdr launch command, Pi integration refresh, managed dispatch setup, and managed no-mistakes +yolo project defaults.
 - `agent/scripts/agentctl overnight <name> --max-iterations <n> --dry-run` — show a bounded GNHF run in a Treehouse lease.
-- `agent/scripts/agentctl ship <name> --dry-run` — show the project-opted-in no-mistakes delivery gate.
+- `agent/scripts/agentctl ship <name> --intent <goal> --dry-run` — show the project-opted-in no-mistakes PR gate and guarded auto-merge plan.
 - `agent/tests/run.sh` — run fixture-driven platform checks (temporary state only; no GUI or network).
 - `for f in agent/scripts/*.sh agent/scripts/agentctl agent/tests/*.sh; do bash -n "$f" || exit 1; done` — parse shell entry points.
 
@@ -71,8 +71,10 @@ two copies drift and different harnesses then follow different rules.
    discard authority.
 7. **Give unattended GNHF work an isolated Treehouse lease and a finite iteration or token cap** — an
    unbounded loop can consume time and money or repeatedly damage the active checkout.
-8. **Require project-local opt-in before no-mistakes and leave pushes manual by default** — a universal
-   shipping command cannot know each repository's release and remote-safety contract.
+8. **Default ship tasks to Treehouse, no-mistakes PRs and guarded green auto-merge** — the managed
+   FirstMate registry marks known projects `no-mistakes +yolo`: workers use isolated Treehouse slots,
+   no-mistakes owns review/fix/test/PR/CI, and FirstMate may merge only green, in-scope work. Red,
+   destructive, irreversible, security-sensitive or out-of-scope work still escalates.
 9. **Treat FirstMate as an optional supervisor, not a policy source** — importing its AGENTS.md or skills
    would replace the shared doctrine with an upstream distro's assumptions.
 10. **Run GUI and end-to-end tests hidden and judge renderings analytically** — a visible suite steals

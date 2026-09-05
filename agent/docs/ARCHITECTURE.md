@@ -35,8 +35,10 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    configured Herdr backend already acquires Treehouse worktrees. Dotfiles seed FirstMate's local
    crew-dispatch profile so worker model and effort choices scale by task size: lightweight low-effort
    candidates for small bounded work, and stronger high-effort candidates for large or ambiguous work.
-   A Pi-backed fleet launch refreshes Herdr's Pi integration before starting Pi so agent status remains
-   visible after a Herdr update.
+   Dotfiles also seed its private project registry from `agent/projects.json`; absent delivery fields
+   default to `no-mistakes +yolo`, meaning ship tasks use no-mistakes PR review/test gates and FirstMate
+   may merge green in-scope work without another confirmation. A Pi-backed fleet launch refreshes
+   Herdr's Pi integration before starting Pi so agent status remains visible after a Herdr update.
 4. **GNHF is the bounded unattended-loop runner.** Dotfiles acquire a retained Treehouse lease and
    require iteration limits, no usage-limit waiting by default, and a reviewed execution-mode adapter;
    upstream permission-bypass defaults are not inherited. The source must be clean and committed; the
@@ -44,8 +46,10 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    iteration commits and its rollback within that exclusive lease; the parent reviews the result.
    Direct pushing is never the default. A token cap includes cached usage and can roll back an
    unfinished iteration; the final run status, not process launch, establishes completion.
-5. **no-mistakes is an optional delivery gate.** Repositories opt in with project-local configuration;
-   dotfiles provide discovery and launch, not a universal test command.
+5. **no-mistakes is the default registered-project delivery gate, still project-opted-in.** Known
+   projects default to the FirstMate `no-mistakes +yolo` posture, but each repository must carry its own
+   reviewed `.no-mistakes.yaml` before `agentctl ship` runs. Project config owns the concrete lint/test
+   commands; dotfiles provide discovery, launch, and guarded auto-merge scheduling for GitHub PRs.
 
 ## 3. Configuration ownership
 
@@ -78,6 +82,12 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    `agentctl fleet`; this gives the user's standing permission to route small workers to cheaper
    low-effort profiles while preserving stronger profiles for hard work. `agentctl doctor` reports drift,
    and absent local files before setup reproduce FirstMate's previous static-harness behavior.
+9. **FirstMate project delivery posture is seeded from the project registry.** `agent/projects.json`
+   may set `delivery.mode`, `delivery.automerge`, and `delivery.description`; missing fields mean
+   `no-mistakes`, `true`, and the project label. The installer and `agentctl fleet` render those values
+   into a managed block in FirstMate's private `data/projects.md`, preserving unrelated private entries.
+   This is the user's standing `+yolo` merge authority only for green, in-scope PRs after no-mistakes and
+   CI; red, destructive, irreversible, security-sensitive, and out-of-scope work still escalates.
 
 ## 4. Shared development doctrine
 
@@ -99,8 +109,10 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 1. **`agentctl` is the single human and agent entry point.** `agentctl start` launches or attaches
    Herdr without implicitly starting a model harness; separate commands expose health checks,
    synchronization, workspace entry, fleet launch, bounded overnight work, and delivery gates with
-   stable exit codes. `agentctl fleet` applies the managed FirstMate backend and crew-dispatch profile
-   before launching the selected primary harness.
+   stable exit codes. `agentctl fleet` applies the managed FirstMate backend, crew-dispatch profile, and
+   no-mistakes +yolo project registry before launching the selected primary harness. `agentctl ship`
+   runs a repository's no-mistakes AXI PR gate from a clean feature branch and schedules a guarded
+   GitHub auto-merge unless disabled.
 2. **Commands compose instead of hiding upstream tools.** `agentctl` prints the resolved command in
    dry-run mode and preserves upstream logs and recovery instructions.
    GitHub inspection defaults to `gh-axi` when available; browser exploration defaults to
@@ -124,9 +136,10 @@ The platform gate is command-based:
 - Each shell script passes its own `bash -n <file>` invocation; JSON and TOML parse; project aliases resolve to existing directories.
 - A dry-run test proves GNHF acquires Treehouse isolation without its own worktree flag, receives a finite
   cap, and leaves no push enabled; no-mistakes remains opt-in.
-- FirstMate fleet and installer dry-runs print the managed `crew-dispatch.json` setup and the Pi integration
-  refresh. The CLI fixture test proves a real fleet launch writes the same bytes into the external checkout's
-  local config and refreshes Herdr's Pi integration before starting Pi.
+- FirstMate fleet and installer dry-runs print the managed `crew-dispatch.json` setup, managed
+  `data/projects.md` delivery posture, and the Pi integration refresh. The CLI fixture test proves a real
+  fleet launch writes the same bytes into the external checkout's local config, renders the project
+  registry as no-mistakes +yolo, and refreshes Herdr's Pi integration before starting Pi.
 - `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
   back with independent JSON/TOML parsers; tests neither source the user's shell profile nor access
   real homes, vaults, remotes or visible apps.
@@ -148,6 +161,8 @@ Changing these requires this contract and `agent/docs/DECISIONS.md` in the same 
 9. `.github/workflows/agent-platform.yml` — platform verification triggers and jobs.
 10. `agent/scripts/pi-resources.mjs` — native resource-discovery probe and evidence scope.
 11. `agent/firstmate/crew-dispatch.json` — FirstMate worker model/effort dispatch defaults.
+12. `agent/scripts/firstmate-projects.py` — FirstMate managed project-posture rendering semantics.
+13. `.no-mistakes.yaml` — dotfiles delivery-gate commands and evidence policy.
 
 Additive fields are optional; when absent, they reproduce the previous behavior.
 

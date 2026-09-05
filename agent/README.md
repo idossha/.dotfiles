@@ -36,7 +36,7 @@ treehouse status
 treehouse enter 1
 agent/scripts/agentctl fleet --harness pi
 agent/scripts/agentctl overnight dotfiles --max-iterations 3 --dry-run -- "address the accepted issues"
-agent/scripts/agentctl ship dotfiles --dry-run
+agent/scripts/agentctl ship dotfiles --intent "state the user's goal" --dry-run
 ```
 
 `agentctl start` is the normal entry point. It launches or attaches the Herdr interface and does not
@@ -49,7 +49,9 @@ Luna/mini profiles while larger ambiguous work routes to stronger high-effort pr
 Project switching is name-based. `project` enters or creates the repository's Herdr workspace; `fleet`
 starts the optional FirstMate supervisor on Herdr; visualization commands are explicit and do not launch
 by default. Treehouse, not Herdr or a model harness, allocates every agent worktree. `overnight` acquires a
-durable Treehouse lease and requires a finite cap. `ship` requires a project-local no-mistakes opt-in.
+durable Treehouse lease and requires a finite cap. `ship` requires a project-local no-mistakes opt-in,
+runs the no-mistakes PR gate against the stated intent, and schedules a guarded GitHub auto-merge by
+default after the pipeline produces a PR.
 
 Within a repository, `treehouse status` lists numbered/name-addressable slots and `treehouse enter 1`
 opens the selected slot in a subshell. To move the current shell instead, use
@@ -85,8 +87,10 @@ configuration.
 
 External tools remain opt-in. `scripts/install-agent-tools.sh --tools` installs the pinned Treehouse,
 GNHF, no-mistakes, and AXI helper CLIs, then clones FirstMate into its own checkout; dotfiles configure
-its Herdr backend and token-aware crew-dispatch profile, but do not vendor FirstMate's policy, state, or
-skills.
+its Herdr backend, token-aware crew-dispatch profile, and managed project registry. The generated
+FirstMate project defaults are `no-mistakes +yolo`: use Treehouse worktrees, ship through no-mistakes PRs,
+and merge green in-scope work without another confirmation. Dotfiles do not vendor FirstMate's policy,
+state, or skills.
 
 ## AXI helper workflow
 

@@ -97,7 +97,7 @@ sed "s|@PROJECT@|$escaped_repo|g" "$fixtures/projects.valid.json" > "$scratch/pr
 
 # A dry-run must not execute either the visualization or an upstream orchestration tool.
 invocation_log="$scratch/invocations.log"
-for tool in fixture-editor herdr gnhf no-mistakes pi treehouse; do
+for tool in fixture-editor herdr gh-axi gnhf no-mistakes pi treehouse; do
   # shellcheck disable=SC2016 # The fake must expand these only if agentctl wrongly executes it.
   printf '#!/bin/sh\nprintf "%%s\\n" "$0 $*" >> "$AGENTCTL_TEST_LOG"\n' > "$scratch/bin/$tool"
   chmod +x "$scratch/bin/$tool"
@@ -136,6 +136,8 @@ expect_contains "herdr integration install pi" "FirstMate Pi dry-run refreshes H
 expect_contains "herdr integration status" "FirstMate Pi dry-run checks Herdr integration status"
 expect_contains "FM_BACKEND=herdr" "FirstMate is explicitly configured for Herdr"
 expect_contains "crew-dispatch.json" "FirstMate dry-run applies token-aware dispatch profiles"
+expect_contains "data/projects.md" "FirstMate dry-run seeds managed project delivery defaults"
+expect_contains "no-mistakes +yolo" "FirstMate dry-run defaults projects to no-mistakes with autonomous green merge"
 expect_contains "pi" "FirstMate dry-run preserves the selected harness"
 if [ ! -e "$invocation_log" ]; then
   pass "fleet dry-run executes no harness"
@@ -179,7 +181,8 @@ touch "$repo/.no-mistakes.yaml"
 run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
   "$agentctl" ship fixture --dry-run
 expect_status 0 "project-local no-mistakes opt-in enables shipping dry-run"
-expect_contains "no-mistakes" "shipping resolves the upstream delivery tool"
+expect_contains "no-mistakes axi run" "shipping resolves the no-mistakes AXI delivery gate"
+expect_contains "gh-axi pr merge" "shipping schedules guarded GitHub auto-merge by default"
 
 git -C "$repo" add .no-mistakes.yaml
 git -C "$repo" commit -q -m "fixture: delivery opt-in"
@@ -277,6 +280,7 @@ expect_contains "chrome-devtools-axi@" "tool installer includes pinned AXI brows
 expect_contains "lavish-axi@" "tool installer includes pinned AXI review helper"
 expect_contains "quota-axi@" "tool installer includes pinned AXI quota helper"
 expect_contains "crew-dispatch.json" "tool installer seeds FirstMate token-aware dispatch profiles"
+expect_contains "data/projects.md" "tool installer seeds managed FirstMate project delivery defaults"
 
 run_capture "$AGENT_PYTHON" -c '
 import sys, unittest

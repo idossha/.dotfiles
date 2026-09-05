@@ -16,7 +16,8 @@ The runner asserts that it found all three registry fixtures and checks dry-run 
 executing upstream tools. Fakes record actual CLI arguments and working directories and return failing
 statuses. A synthetic linked Git directory shares only a temporary repository's metadata; it proves
 repository identity checks without allocating real worktrees. `start` enters Herdr; `fleet` explicitly
-selects FirstMate and its harness.
+selects FirstMate and its harness while seeding managed no-mistakes +yolo project defaults. `ship`
+prints the no-mistakes AXI gate and guarded GitHub auto-merge plan.
 
 `test_config.py` uses authored policy/runtime fixtures and independent JSON/TOML readers to prove
 state preservation, precedence, idempotence, discovery cleanup, rejected malformed shapes, and absence

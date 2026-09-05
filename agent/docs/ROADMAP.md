@@ -10,6 +10,8 @@
 - Explicit user-selected Codex workspace sandbox without approval prompts, preserved by synchronization.
 - Token-aware FirstMate crew dispatch seeded from dotfiles so small worker tasks use lightweight
   low-effort profiles and large/ambiguous tasks use stronger high-effort profiles.
+- Managed FirstMate project defaults from `agent/projects.json`: Treehouse worktrees, no-mistakes PR
+  gates, and `+yolo` green auto-merge for registered projects.
 - Pinned AXI helper CLIs for GitHub operations, browser exploration, Lavish review artifacts and quota
   visibility.
 - A global `agentctl start` entry point that opens Herdr without implicitly launching a model harness.
@@ -28,5 +30,6 @@
 - [x] Run a bounded GNHF assessment and review its committed report; the resolution records its exact end status.
 - [ ] Run one multi-project Herdr trial, one FirstMate fleet task, one AXI-assisted GitHub/browser review,
   and one no-mistakes delivery trial
-  before declaring the broader platform gate closed.
+  before declaring the broader platform gate closed. The current branch is set up to perform the first
+  no-mistakes delivery trial for dotfiles itself.
 - [ ] Exercise representative skill activation across the three harnesses, including two distinct manuscripts.
