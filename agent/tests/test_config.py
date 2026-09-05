@@ -46,7 +46,7 @@ class OwnershipTests(unittest.TestCase):
 
     def test_claude_and_shared_discovery_resolve_identical_skill_sources(self):
         self.run_sync()
-        for name in ("house-fixture", "git-collaboration"):
+        for name in ("house-fixture", "mcp-authoring"):
             claude = self.destination / ".claude/skills" / name
             shared = self.destination / ".agents/skills" / name
             self.assertEqual(claude.resolve(), shared.resolve())
@@ -144,12 +144,23 @@ class OwnershipTests(unittest.TestCase):
     def test_old_codex_discovery_is_retired_but_system_skills_survive(self):
         legacy = self.destination / ".codex/skills"
         legacy.mkdir(parents=True)
-        (legacy / "git-collaboration").symlink_to(self.agent / "skills/git-collaboration")
+        (legacy / "mcp-authoring").symlink_to(self.agent / "skills/mcp-authoring")
         (legacy / ".system").mkdir()
         (legacy / ".system/marker").write_text("provider-owned")
         self.run_sync()
-        self.assertFalse((legacy / "git-collaboration").is_symlink())
+        self.assertFalse((legacy / "mcp-authoring").is_symlink())
         self.assertEqual((legacy / ".system/marker").read_text(), "provider-owned")
+
+    def test_removed_optional_static_links_are_retired(self):
+        templates = self.destination / ".claude/templates"
+        agents = self.destination / ".pi/agent/agents"
+        templates.parent.mkdir(parents=True)
+        agents.parent.mkdir(parents=True)
+        templates.symlink_to(self.agent / "claude/templates")
+        agents.symlink_to(self.agent / "pi/agents")
+        self.run_sync()
+        self.assertFalse(templates.exists() or templates.is_symlink())
+        self.assertFalse(agents.exists() or agents.is_symlink())
 
     def test_global_map_cannot_leak_dotfiles_project_rules(self):
         self.destination.mkdir()
@@ -161,7 +172,13 @@ class OwnershipTests(unittest.TestCase):
         self.assertEqual(project_map.readlink(), Path("agent/AGENTS.md"))
         self.assertEqual((self.destination / ".claude/CLAUDE.md").read_text().strip(), "@AGENTS.md")
         self.assertEqual((self.destination / ".claude/AGENTS.md").resolve(),
-                         (self.agent / "memory/global.md").resolve())
+                         (self.agent / "policy/global.md").resolve())
+
+    def test_memory_policy_has_no_local_router_overlap(self):
+        self.assertTrue((self.agent / "policy/global.md").is_file())
+        self.assertFalse((self.agent / "memory/global.md").exists())
+        self.assertFalse((self.agent / "scripts/remember").exists())
+        self.assertFalse((self.agent / "skills/remember").exists())
 
     def test_validation_rejects_empty_skill_set_and_colliding_names(self):
         empty = self.root / "empty"
@@ -172,7 +189,7 @@ class OwnershipTests(unittest.TestCase):
             skill_inventory([self.agent / "skills", self.agent / "skills"])
 
     def test_invalid_yaml_is_rejected(self):
-        path = self.agent / "skills/git-collaboration/SKILL.md"
+        path = self.agent / "skills/mcp-authoring/SKILL.md"
         path.write_text("---\nname: [invalid\ndescription: fixture\n---\n")
         import yaml
         with self.assertRaises(yaml.YAMLError):

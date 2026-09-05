@@ -11,10 +11,11 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 
 1. **`agent/` owns portable agent configuration.** Global instructions, personal skills, MCP
    definitions, and harness adapters are authored once here; generated destinations are not edited.
-2. **Global policy and project routing have separate scopes.** `agent/memory/global.md` supplies
-   user instructions; `agent/AGENTS.md` is the dotfiles project map, reached by a relative root link.
-   Claude imports AGENTS.md. Installing the project map at the home ancestor would leak its commands
-   and contract into unrelated repositories.
+2. **Global policy, project routing, and memory capture have separate scopes.** `agent/policy/global.md`
+   supplies user instructions; `agent/AGENTS.md` is the dotfiles project map, reached by a relative root
+   link; `idosleep` owns agent memory capture, recall, and consolidation outside dotfiles. Claude imports
+   AGENTS.md. Installing the project map at the home ancestor would leak its commands and contract into
+   unrelated repositories.
 3. **`agentic-rules` owns cross-project engineering procedures.** Testing, documentation,
    architecture, CI, and release doctrine remain in that repository and are linked or installed;
    copying those skills here would create two versions of the same rule.
@@ -86,6 +87,7 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    stay project-local because every other project would otherwise inherit them. Domain review skills
    derive sample sizes, outcomes and defaults from the target's records; they do not prescribe one
    study's results. Task templates route decisions and validation to project-owned documents/scripts.
+   `idosleep` traces may recall context, but they do not replace reviewable project documents.
 4. **Each Git mutation has one explicit owner.** Pi session forks do not apply stash patches. The old
    shell repository publisher is retired; collaboration routes to the shared playbook and project
    gates. Provider extensions must not introduce a second implicit checkpoint or publishing lifecycle.
@@ -154,12 +156,12 @@ an essential constraint is stated.
 | Concern | Sole procedural or state owner |
 |---|---|
 | Engineering contract, testing, CI and release procedures | External agentic-rules playbook |
-| Git collaboration and remote coordination | Local git-collaboration, routing commit/release rules to the playbook |
+| Git collaboration and remote coordination | Active harness Git tools plus the external changelog-release playbook for commit/release grammar |
 | In-session delegation / persistent fleet / unattended iterations | Active harness / FirstMate / GNHF, one selected owner per task |
 | Worktrees / visible sessions | Treehouse / Herdr |
 | Test assertions and delivery commands | Each project; local checks and CI invoke the same scripts |
-| Durable knowledge / project facts / captured event memory | Zettelkasten / project Markdown / SQLite |
-| Session logs and caches | Native runtime owner; no automatic second memory copy |
+| Agent memory capture, recall and consolidation | `idosleep` vault, hooks and MCP; project docs remain the reviewable source for project decisions |
+| Session logs and caches | Native runtime owner; no automatic second memory copy in dotfiles |
 | User authorization | Current session and enforced harness boundary; adapters do not broaden it |
 
 | Dependency | Source of version truth | Why |

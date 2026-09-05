@@ -19,8 +19,8 @@ repository identity checks without allocating real worktrees. `start` enters Her
 selects FirstMate and its harness.
 
 `test_config.py` uses authored policy/runtime fixtures and independent JSON/TOML readers to prove
-state preservation, precedence, idempotence, discovery cleanup, and rejected malformed shapes.
-`test_memory.py` checks root containment, all three capture routes and secret screening of all fields.
+state preservation, precedence, idempotence, discovery cleanup, rejected malformed shapes, and absence
+of the retired dotfiles memory router.
 `test_cli.py` reads executed argv with JSON, checks each command's failure mapping, and verifies
 retired publishing/Docker test surfaces cannot claim success after upstream failure.
 `test_coherence.py` plants frozen-interface and instruction-scope violations to prove the guard fails.

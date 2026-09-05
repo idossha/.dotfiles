@@ -24,7 +24,7 @@ that FirstMate, GNHF, no-mistakes, a GUI, or a remote operation succeeded.
 
 | Concern | Authoritative location |
 |---|---|
-| User policy / dotfiles project map | `agent/memory/global.md` / `agent/AGENTS.md` |
+| User policy / dotfiles project map | `agent/policy/global.md` / `agent/AGENTS.md` |
 | Architecture, decisions, and open work | `agent/docs/` |
 | Personal and domain procedures | `agent/skills/` |
 | Cross-project engineering procedures | `agentic-rules` skills in `/Users/idohaber/00_development/agentic-rules` |
@@ -34,8 +34,8 @@ that FirstMate, GNHF, no-mistakes, a GUI, or a remote operation succeeded.
 | Session multiplexing | `agent/herdr/` |
 
 Project-specific commands, data, trust, deployment posture, and delivery configuration belong in the
-project. Crystallized cross-project knowledge belongs in the Obsidian Zettelkasten; raw events belong in
-SQLite. Use `agent/scripts/remember` when durable knowledge is worth keeping.
+project. Agent memory capture, recall, and consolidation belong to `idosleep`; do not maintain a second
+memory router in dotfiles.
 
 ## Engineering Playbook
 

@@ -27,7 +27,7 @@ This skill has side effects (writes a reviewed `.docx` and a report). It is user
 ## When to use / not use
 
 - **Use** for reviewing a paper draft, manuscript, or supplement: consistency audit, soundness/over-claim check, citation fact-check, pre-submission sweep, "go through the whole paper."
-- **Do not** use to *write* a rebuttal (that is `reviewer-response-docx`), to *manage the literature library* (that is `librarian`), or to drive raw `.docx` build/patch mechanics (that is `docx-tools`). This skill *consumes* those.
+- **Do not** use to *write* a rebuttal, to *manage the literature library* (that is `librarian`), or to own raw `.docx` build/patch mechanics. This skill consumes the installed `docx-tools` CLI when review emission needs it.
 
 ## Reference files (read on demand)
 
@@ -88,7 +88,7 @@ Report coverage-first: every defensible finding is emitted with a severity **and
 
 ## Multi-agent orchestration
 
-Use the `orchestrator` skill and the active harness's supported delegation mechanism only when the document exceeds what you can hold and diff in one context; a short manuscript or a single-section re-review is faster run inline. When you do fan out, send each wave's independent agents in one message and cap it at what the merge step can actually read. Shape:
+Use the active harness's supported delegation mechanism only when the document exceeds what you can hold and diff in one context; a short manuscript or a single-section re-review is faster run inline. When you do fan out, send each wave's independent agents in one message and cap it at what the merge step can actually read. Shape:
 
 - **Pre-pass (single, blocking):** build the three shared inventories + load the documented-decision list. Read-only inputs to all downstream agents.
 - **Consistency — do NOT fan by section:** one whole-document number-ledger agent (+ one terminology/cross-ref agent). Cross-section diffing is the whole point.

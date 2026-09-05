@@ -27,7 +27,7 @@ at a lease that will later be returned.
 
 | Input | Destination / boundary |
 |---|---|
-| `memory/global.md` | Codex/Pi global AGENTS.md and Claude's imported AGENTS.md |
+| `policy/global.md` | Codex/Pi global AGENTS.md and Claude's imported AGENTS.md |
 | `AGENTS.md` | Relative repository-root project link only |
 | `skills/` and external playbook skills | One discovery route per harness; provider-bundled skills survive |
 | `claude/settings.json`, `pi/settings.json`, `codex/config.toml` | Real generated files; unknown local fields preserved, canonical keys authoritative |

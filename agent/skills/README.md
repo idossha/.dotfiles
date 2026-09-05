@@ -56,20 +56,12 @@ Workflows and playbooks:
 
 | Skill | Purpose |
 |---|---|
-| `docx-tools` | The global `docx-tools` CLI: build, read, patch, redline, comment. |
-| `git-collaboration` | Git safety, branches, PRs and reviews; routes commit/release conventions to agentic-rules. |
-| `grafana` | Grafana dashboard provisioning. |
 | `grill-me` | Interview the user to stress-test a plan before implementing. |
 | `librarian` | Find, download, rename, and strategically summarize papers. |
 | `manuscript-review` | Full soundness/consistency/literature review of a manuscript. |
 | `matlab` | Run MATLAB in batch mode from the terminal. |
 | `mcp-authoring` | Author and configure MCP servers. |
-| `orchestrator` | When to delegate to subagents, and when not to. |
-| `remember` | Route durable knowledge to the Zettelkasten, project docs, or SQLite. |
-| `reviewer-response-docx` | Compose response-to-reviewers Word documents. |
 | `suna` | Work on a SUNA manuscript project (figures, references, review comments, compliance). |
-| `telemetry-triage` | Telemetry triage workflow for the TI-toolbox projects. |
-| `web-neuroimaging` | Web research for neuroimaging docs and methods. |
 | `write-skill` | Author or refactor a skill in this directory. |
 
 Document-format skills (`pdf`, `pptx`, `xlsx`) are **not** kept here. Use the current harness's bundled format capabilities when available; local copies can shadow provider updates.

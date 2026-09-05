@@ -189,18 +189,23 @@ class Layout:
 
     def links(self, inventory: dict[str, Path]) -> dict[Path, Path]:
         a, d = self.agent, self.destination
+        global_policy = a / "policy/global.md"
         links = {
-            d / ".claude/AGENTS.md": a / "memory/global.md",
+            d / ".claude/AGENTS.md": global_policy,
             d / ".claude/CLAUDE.md": a / "claude/CLAUDE.md",
             d / ".claude/statusline-command.sh": a / "claude/statusline-command.sh",
-            d / ".claude/templates": a / "claude/templates",
-            d / ".pi/agent/AGENTS.md": a / "memory/global.md",
-            d / ".codex/AGENTS.md": a / "memory/global.md",
+            d / ".pi/agent/AGENTS.md": global_policy,
+            d / ".codex/AGENTS.md": global_policy,
             d / ".agents/mcp.json": a / "mcps/mcp-servers.json",
             d / ".config/herdr/config.toml": a / "herdr/config.toml",
         }
+        optional_claude_templates = a / "claude/templates"
+        if optional_claude_templates.exists():
+            links[d / ".claude/templates"] = optional_claude_templates
         for name in ("extensions", "agents", "prompts"):
-            links[d / ".pi/agent" / name] = a / "pi" / name
+            source = a / "pi" / name
+            if source.exists():
+                links[d / ".pi/agent" / name] = source
         for name, source in inventory.items():
             links[d / ".agents/skills" / name] = source
             links[d / ".claude/skills" / name] = source
@@ -327,8 +332,12 @@ def sync(layout: Layout) -> None:
     for target, source in (
         (layout.destination / "AGENTS.md", layout.agent / "AGENTS.md"),
         (layout.destination / ".mcp.json", layout.agent / "mcps/mcp-servers.json"),
+        (layout.destination / ".claude/templates", layout.agent / "claude/templates"),
+        (layout.destination / ".pi/agent/agents", layout.agent / "pi/agents"),
     ):
-        if target.is_symlink() and target.resolve() == source.resolve():
+        if target.is_symlink() and target.resolve() == source.resolve() and not source.exists():
+            target.unlink()
+        elif target.is_symlink() and target.resolve() == source.resolve() and target.name in {"AGENTS.md", ".mcp.json"}:
             target.unlink()
     link(layout.agent / "AGENTS.md", layout.agent.parent / "AGENTS.md", relative=True)
 

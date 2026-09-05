@@ -1,6 +1,6 @@
 ## Orchestration and ownership
 
-Use SKILL.md for the severity/confidence rubric and the orchestrator skill for delegation mechanics.
+Use SKILL.md for the severity/confidence rubric and the active harness for delegation mechanics.
 This checklist defines review-specific ownership only; it does not define another agent framework.
 
 - Build the section/block index, number ledger, citation inventory and project-sourced decision list

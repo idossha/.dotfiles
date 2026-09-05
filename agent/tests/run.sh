@@ -277,7 +277,7 @@ if suite.countTestCases() == 0:
 result = unittest.TextTestRunner(verbosity=1).run(suite)
 raise SystemExit(0 if result.wasSuccessful() else 1)
 ' "$test_dir"
-expect_status 0 "configuration, memory and architecture regressions pass"
+expect_status 0 "configuration and architecture regressions pass"
 
 total=$((pass_count + fail_count))
 if [ "$total" -eq 0 ]; then

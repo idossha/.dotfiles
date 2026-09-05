@@ -2,7 +2,7 @@
 
 ## What exists
 
-- Canonical shared memory, personal skills, MCP declarations, and three harness adapters under `agent/`.
+- Canonical shared policy, personal skills, MCP declarations, and three harness adapters under `agent/`.
 - Herdr configuration and current integrations for Pi, Claude Code, and Codex.
 - Treehouse as the pinned, shared worktree provider with native status/enter navigation.
 - The external `agentic-rules` engineering playbook linked from one source into Claude, Pi and Codex.
@@ -21,8 +21,8 @@
 - [x] Install and expose GNHF with mandatory bounded-work defaults.
 - [x] Install and expose no-mistakes as a project-local opt-in delivery gate.
 - [x] Add deterministic checks for scripts, configuration, links, integrations, and dry-run safety.
-- [x] Add configuration ownership, discovery drift, interpreter and memory-boundary regressions.
-- [x] Complete the 2026-09-04 coherence audit and its hosted CI gate; see [resolution](audits/2026-09-04-coherence-resolution.md).
+- [x] Add configuration ownership, discovery drift, and interpreter regressions.
+- [x] Complete the 2026-09-04 coherence audit and its hosted CI gate; the decision log keeps the retained summary after the detailed audit artifacts were retired.
 - [x] Run a bounded GNHF assessment and review its committed report; the resolution records its exact end status.
 - [ ] Run one multi-project Herdr trial, one FirstMate fleet task, and one no-mistakes delivery trial
   before declaring the broader platform gate closed.

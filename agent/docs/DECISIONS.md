@@ -44,7 +44,7 @@ architecture contract says what is true now; later entries supersede earlier one
 - **Global policy and the dotfiles map have separate scopes** — the root map cited a missing path,
   and the home link injected project commands into unrelated repositories; relative project links and
   Claude imports replace that accidental second global source. Evidence: authored scope fixtures in
-  `agent/tests/test_config.py`; intent R2 in `requirements/2026-09-04-user-coherence.md`.
+  `agent/tests/test_config.py`; original coherence intent R2.
 - **Canonical configuration wins and unowned runtime state survives** — the prior JSON overlay won
   conflicts while Codex preserved only a narrow list of tables. One parsed renderer handles both
   ownership directions and rejects unsupported MCP fields. The fixture suite reads output independently
@@ -60,9 +60,10 @@ architecture contract says what is true now; later entries supersede earlier one
   config and a clean source; same-repository and fast-forward checks pin the starting revision.
   Authored CLI fixtures cover failure codes, dirty input and unsupported adapters. The iteration default
   remains ten (existing behavior); usage-limit waiting defaults to zero (chosen to bound unattended waits).
-- **Project memory cannot leave its declared root** — absolute, relative and symlink escapes were
-  possible through `--file`. Resolved containment and source-field secret checks are pinned by temporary
-  fixtures in `agent/tests/test_memory.py`. Native run logs stay with their original owner.
+- **Superseded 2026-09-05 by the idosleep memory-owner entry below.**
+  **Project memory cannot leave its declared root** — absolute, relative and symlink escapes were
+  possible through `--file`. Resolved containment and source-field secret checks were pinned by temporary
+  fixtures until the local memory router was removed. Native run logs stay with their original owner.
 
 ## 2026-09-04 — coherence audit: procedure owners and CI (§§4, 8, 9)
 
@@ -111,8 +112,8 @@ optional runners as unavailable features and failed installed version probes as 
 
 ## 2026-09-04 — coherence audit gates verified (§6)
 
-The [resolution record](audits/2026-09-04-coherence-resolution.md) closes the five audit-intent gates
-with command evidence and reconciles all 15 GNHF findings. The broader operational gate stays open
+The retained resolution summary closes the five audit-intent gates with command evidence and reconciles
+all 15 GNHF findings. The broader operational gate stays open
 for fleet/session/delivery and representative model-activation trials. The report keeps GNHF's exact
 end status, test scope, provider limits and concurrent-work preservation explicit.
 
@@ -151,7 +152,7 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   explicitly requested no permission prompts, supplying the decision absent from the earlier rationale
   "it would grant destructive and external authority without a bounded decision". Canonical settings
   replace forced MCP prompts and survive sync; an alias or editing only the generated file would miss
-  other launch paths or be overwritten. Intent: `requirements/2026-09-04-user-codex-permissions.md`.
+  other launch paths or be overwritten. Intent: original user Codex-permissions request.
   Verification uses `agent/tests/run.sh`, source/installed configuration checks, and Codex's resolved
   configuration. Restart verification uses native conversation IDs and Herdr state; active work must
   reach a safe boundary before reload. Managed requirements and other harnesses are outside this change.
@@ -162,7 +163,7 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   the user supplied these exact values after the YOLO request. Full filesystem access is superseded;
   commands outside the sandbox fail rather than requesting escalation. Canonical and generated TOML
   agree after sync, and `sync-agent-config.sh --check-installed` verifies persistence. Intent:
-  `requirements/2026-09-04-user-codex-workspace.md`.
+  the original user Codex-workspace request.
 
 ## 2026-09-04 — FirstMate uses token-aware crew dispatch (§2.3, §3.8, §5.1, §6, §7.11)
 
@@ -172,6 +173,26 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   because it either wastes tokens on mechanical tasks or underpowers hard work; an untracked hand edit was
   rejected because `doctor` could not prove it remained active; silent intelligence downgrades remain
   rejected by FirstMate's own standing-permission rule, so this tracked profile is the permission source.
-  Intent: `requirements/2026-09-04-user-firstmate-dispatch.md`. Verification: `agent/tests/run.sh`,
+  Intent: original user FirstMate-dispatch request. Verification: `agent/tests/run.sh`,
   `agent/tests/test_cli.py::ExecutionTests.test_fleet_launch_writes_firstmate_dispatch_config`, and
   `agentctl doctor` drift reporting.
+
+## 2026-09-05 — idosleep owns agent memory (§§1, 4, 8)
+
+- 2026-09-05 — **`idosleep` is the sole agent-memory owner** — the installed CLI already exposes
+  automatic hook capture/injection plus `recall`, `sleep`, MCP tools and manual `idosleep remember`, while
+  the dotfiles `scripts/remember` CLI and `skills/remember` maintained a second routing policy and second
+  set of stores. Keeping both was rejected because agents would split facts across two dedupe, secret
+  screening and retrieval systems; evidence: `idosleep --help`, `idosleep remember --help`, and
+  `tests.test_config.OwnershipTests.test_memory_policy_has_no_local_router_overlap`.
+- 2026-09-05 — **Global instructions move from `agent/memory/global.md` to `agent/policy/global.md`** —
+  the file is policy loaded by every harness, not a memory substrate. Removing the `memory/` source path
+  prevents it being confused with idosleep's vault while preserving the same shared instruction scope;
+  deleting global policy outright was rejected because Codex, Pi and Claude still need one portable policy
+  source separate from the dotfiles project map.
+- 2026-09-05 — **The dotfiles adapter keeps only active local skills, prompts and retained summaries** —
+  the detailed 2026-09-04 intent/audit files, Claude track template, custom Pi subagent roles, and several
+  personal workflow skills were intentionally removed by the maintainer. Synchronization now treats
+  `claude/templates` and `pi/agents` as optional adapter directories and retires old generated symlinks
+  when their sources are absent; tests assert the optional-link behavior instead of restoring deleted
+  content.

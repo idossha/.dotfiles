@@ -67,12 +67,16 @@ def source_issues(root: Path) -> list[str]:
                                             "Subagents inherit none of the conversation."),
     }
     for relative, forbidden in paid_conflicts.items():
-        source = (root / relative).read_text()
+        path = root / relative
+        if not path.exists():
+            continue
+        source = path.read_text()
         for phrase in forbidden:
             if phrase in source:
                 issues.append(f"{relative}: retired conflicting procedure returned")
     for relative in ("agent/IMPLEMENTATION-PLAN.md", "agent/MULTI-HARNESS-PLAN.md"):
-        if "Historical" not in (root / relative).read_text()[:500]:
+        path = root / relative
+        if path.exists() and "Historical" not in path.read_text()[:500]:
             issues.append(f"{relative}: archived plans must not appear authoritative")
     if (root / "agent/pi/extensions/git-checkpoint.ts").exists():
         issues.append("retired Pi stash checkpoint reintroduced a second Git owner")

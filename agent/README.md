@@ -15,7 +15,7 @@ and [docs/ROADMAP.md](docs/ROADMAP.md) for incomplete gates.
 | `docs/` | Requirements, current architecture, decisions, and roadmap |
 | `projects.json` | Stable project names, repository paths, and optional visualizations |
 | `scripts/agentctl` | Doctor, sync, project, fleet, overnight, and shipping commands |
-| `memory/global.md` | User-level memory shared by every harness |
+| `policy/global.md` | User-level policy shared by every harness |
 | `skills/` | Personal and domain skills authored here exactly once |
 | `mcps/mcp-servers.json` | Shared MCP server declarations |
 | `claude/`, `codex/`, `pi/` | Thin harness-only settings and hooks |

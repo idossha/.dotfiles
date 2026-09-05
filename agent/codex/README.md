@@ -7,7 +7,7 @@ This directory contains Codex-specific policy; sync renders real files under `~/
   come only from `agent/mcps/mcp-servers.json`.
 - `rules/default.rules` supplies portable command approvals. Extra local approvals stay in the ignored
   overlay and generated destination.
-- Global instructions point to `agent/memory/global.md`; the project map is the repository's
+- Global instructions point to `agent/policy/global.md`; the project map is the repository's
   `AGENTS.md`. Personal and engineering skills are discovered through `~/.agents/skills`.
 
 Generated settings preserve unowned runtime fields, including new provider tables, model preferences,

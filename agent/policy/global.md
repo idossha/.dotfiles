@@ -1,4 +1,4 @@
-# Global Agent Memory
+# Global Agent Policy
 
 User-level policy for every coding harness: imported by Claude and linked to `~/.codex/AGENTS.md`
 and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
@@ -15,10 +15,10 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 - Put reusable agent instructions, MCP definitions, and skills under
   `~/.dotfiles/agent/`.
 - Vault path: `/Users/idohaber/00_development/vault/`.
-- Crystallized knowledge belongs in the Obsidian Zettelkasten.
-- Project-specific memory belongs in Markdown inside the project directory.
-- Raw logs and high-volume event memory belong in SQLite.
-- Use `~/.dotfiles/agent/scripts/remember` for low-friction memory capture.
+- Agent memory capture, recall, and consolidation belong to `idosleep`; do not add a second memory
+  router, CLI, or store under dotfiles.
+- Project facts that must guide every agent or be reviewed with code belong in project Markdown;
+  architecture decisions belong in `docs/DECISIONS.md`.
 - Keep conversational output to a minimal outcome, evidence, and next action. When an explanation
   needs a diagram, comparison, plan, dense table, or extended walkthrough, create a local Lavish HTML
   artifact and reply with only a short synopsis plus its path; long chat output is hard to scan and annotate.
@@ -51,10 +51,9 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 ## Boundaries
 
 - Do not store secrets, API keys, tokens, or auth material here.
-- Do not store large project-specific facts here. Use project-local memory or
-  project docs instead.
-- Do not treat session logs, caches, todos, or managed jobs as portable memory.
+- Do not store large project-specific facts here. Use project docs instead.
+- Do not treat session logs, caches, todos, managed jobs, or `idosleep` traces as portable policy.
 
 - Invocation metadata, orchestration tools and plugins do not grant authority. Shared procedures state
   essential constraints in prose because provider-specific frontmatter and permission behavior differ.
-- Native run logs stay with their runtime owner; only deliberately captured event memory goes to SQLite.
+- Native run logs stay with their runtime owner; `idosleep` owns any deliberate memory capture and recall.

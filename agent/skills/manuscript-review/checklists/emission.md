@@ -1,7 +1,7 @@
 ## Ingest, anchors and emission
 
-The docx-tools skill owns the CLI/schema mechanics. Verify installed help when an option or round-trip
-property is uncertain. This procedure owns the review deliverables and their fidelity.
+The installed `docx-tools` CLI owns the file-format mechanics. Verify installed help when an option or
+round-trip property is uncertain. This procedure owns the review deliverables and their fidelity.
 
 ### 1. Resolve inputs
 

@@ -1,6 +1,6 @@
 # Pi Adapter
 
-This directory contains only Pi-specific settings, extensions, and subagent definitions. Portable
+This directory contains only Pi-specific settings, extensions, and prompt templates. Portable
 instructions, skills, MCP declarations, engineering doctrine, and project facts live elsewhere so Pi,
 Claude Code, and Codex receive the same policy.
 
@@ -10,7 +10,6 @@ Claude Code, and Codex receive the same policy.
 |---|---|
 | `settings.json` | Stable Pi defaults and exact package pins |
 | `extensions/` | Pi event-loop integrations that cannot be expressed portably |
-| `agents/` | Pi-subagents role definitions |
 | `prompts/` | Pi-only prompt templates |
 
 The sync layer supplies global instructions, personal/domain skills, the separate agentic-rules skills,
@@ -34,14 +33,11 @@ Herdr's generated `herdr-agent-state.ts` remains machine state and is ignored fr
 Do not put an ignore file inside `extensions/`: Pi honors it during discovery and would hide the Herdr
 integration itself.
 
-## Subagents
+## Delegation
 
-Files in `agents/` are read by `pi-subagents`. Tool lists are strict allowlists; remove names no installed
-package provides. Use project/global context inheritance deliberately, and prefer shared skills over
-embedding multi-step engineering procedures in role prompts.
-
-FirstMate is the cross-harness fleet supervisor. Pi subagents remain useful for small, in-session
-delegation; they are not a second project/worktree orchestrator.
+FirstMate is the cross-harness fleet supervisor. Pi's native subagent tools remain available when an
+interactive session explicitly chooses them, but this adapter no longer ships custom Pi subagent role
+prompts.
 
 ## Verification
 
@@ -57,7 +53,7 @@ intentional, or an open stdin can make the process hang.
 
 ## Package guidance and native discovery
 
-The shared orchestrator skill owns delegation policy and Treehouse owns worktrees. The
+Treehouse owns worktrees and FirstMate owns persistent fleet supervision when selected. The
 pi-subagents and pi-interactive-shell packages load their extensions but exclude bundled skills
 through Pi's documented package filters, because those guides introduce alternate supervision and
 worktree defaults. Read installed package help for mechanics when the chosen task needs them.
