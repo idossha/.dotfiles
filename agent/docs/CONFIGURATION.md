@@ -42,9 +42,11 @@ skills and MCP servers are preserved. Never commit the full Claude app-state fil
 FirstMate is configured outside sync because it lives in an external upstream checkout. The canonical
 crew-dispatch template is `agent/firstmate/crew-dispatch.json`; `agentctl fleet` and
 `install-agent-tools.sh --tools` copy it to FirstMate's local `config/crew-dispatch.json` beside
-`config/backend=herdr`, and `agentctl doctor` reports drift. The profile tells FirstMate to spend
-low-effort Luna/mini candidates on small bounded worker tasks, medium profiles by default, and stronger
-high-effort Codex profiles on large or ambiguous work.
+`config/backend=herdr`, and `agentctl doctor` reports drift. A Pi-backed `agentctl fleet` also runs
+`herdr integration install pi` and then checks `herdr integration status` before starting Pi, because a
+Herdr upgrade can change the agent-status bridge. The profile tells FirstMate to spend low-effort
+Luna/mini candidates on small bounded worker tasks, medium profiles by default, and stronger high-effort
+Codex profiles on large or ambiguous work.
 
 Claude MCP user scope was checked against
 [the official scope reference](https://code.claude.com/docs/en/mcp#mcp-installation-scopes)
@@ -66,6 +68,35 @@ on 2026-09-04. Codex discovery and schema references are in [../codex/README.md]
 
 MCP network health, account authentication, provider model availability, skill activation quality,
 and end-to-end FirstMate/no-mistakes delivery are separate from offline configuration checks.
+
+## AXI helper policy
+
+The active AXI catalog at `https://axi.md/` names agent-ergonomic CLI wrappers for GitHub, browser
+automation, human review and quota visibility. This platform adopts only the helpers that match standing
+workflows:
+
+| Helper | Use in this platform | Boundary |
+|---|---|---|
+| `gh-axi` | GitHub issues, PRs, workflow runs, releases and API calls. | Prefer over raw `gh` for agent-facing reads/writes; remote mutation authority is still the current session boundary. |
+| `chrome-devtools-axi` | Exploratory browser automation and live-page inspection. | Does not replace Playwright tests, hidden-app quiet checks or CI gates. |
+| `lavish-axi` | Local HTML artifacts for plans, comparisons and dense review. | Hosted sharing is opt-in only. |
+| `quota-axi` | Local quota/usage visibility before routing work to a strong model or FirstMate worker. | Data-only; it does not choose the worker by itself. |
+
+`agent/tools.env` pins the reviewed versions and `install-agent-tools.sh --tools` installs them globally
+through npm. `agentctl doctor` reports absent or mismatched helpers without making them a hard platform
+failure. Do not add `mem-axi` or other memory AXIs here; `idosleep` is the memory owner.
+
+## Fast Herdr/FirstMate troubleshooting
+
+- `command not found`: open a fresh terminal and confirm `export PATH="$HOME/.local/bin:$PATH"` is in
+  the shell configuration.
+- Herdr does not show Pi's agent status: run `herdr integration install pi`, then
+  `herdr integration status`, and restart Pi afterward.
+- Pi did not load FirstMate extensions: start Pi from the FirstMate checkout selected by
+  `AGENTCTL_FIRSTMATE_DIR` (default `~/00_development/agent-tools/firstmate`), run `/trust`, approve the
+  project, quit, and relaunch with `agent/scripts/agentctl fleet --harness pi`.
+- FirstMate reports a missing tool: let FirstMate print the exact install command, review that command,
+  approve it, then ask it to rerun session startup.
 
 Claude's [official skill discovery reference](https://code.claude.com/docs/en/skills#where-skills-live)
 documents per-skill symlinks and separate plugin namespaces (checked 2026-09-04). This local setup uses

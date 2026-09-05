@@ -35,13 +35,17 @@ integration itself.
 
 ## Delegation
 
-FirstMate is the cross-harness fleet supervisor. Pi's native subagent tools remain available when an
-interactive session explicitly chooses them, but this adapter no longer ships custom Pi subagent role
-prompts.
+FirstMate is the cross-harness fleet supervisor. `agentctl fleet --harness pi` refreshes Herdr's Pi
+integration before starting Pi from the FirstMate checkout. If Pi does not load the FirstMate extensions,
+run `/trust` in that Pi session, approve the project, quit, and restart through `agentctl fleet`.
+Pi's native subagent tools remain available when an interactive session explicitly chooses them, but this
+adapter no longer ships custom Pi subagent role prompts.
 
 ## Verification
 
 ```bash
+herdr integration install pi
+herdr integration status
 node agent/scripts/pi-resources.mjs
 agent/scripts/agentctl doctor
 agent/tests/run.sh

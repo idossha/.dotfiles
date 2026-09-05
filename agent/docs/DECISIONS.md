@@ -196,3 +196,8 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   `claude/templates` and `pi/agents` as optional adapter directories and retires old generated symlinks
   when their sources are absent; tests assert the optional-link behavior instead of restoring deleted
   content.
+
+## 2026-09-05 — Herdr refresh and AXI helper workflow (§§2, 3, 5, 8)
+
+- 2026-09-05 — **Pi-backed FirstMate refreshes Herdr's Pi bridge before launch** — Herdr updates can change the Pi agent-status integration, and a stale bridge makes Herdr lose Pi lifecycle state. `agentctl fleet --harness pi` and `install-agent-tools.sh` now run `herdr integration install pi` and check status before Pi starts; the fast troubleshooting path records `/trust`, restart, and missing-tool recovery.
+- 2026-09-05 — **Adopt only workflow-matched AXI helpers** — `axi.md` recommends agent-ergonomic CLI wrappers with token-efficient output and contextual next steps. This platform adopts `gh-axi` for GitHub operations, `chrome-devtools-axi` for browser exploration, `lavish-axi` for local review artifacts, and `quota-axi` for local quota visibility. Broad cloud/database/package AXIs remain project-local choices, `cyber-mux` is rejected because Herdr owns terminal multiplexing, and memory AXIs are rejected because `idosleep` owns memory.

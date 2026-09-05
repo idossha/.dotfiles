@@ -35,6 +35,8 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    configured Herdr backend already acquires Treehouse worktrees. Dotfiles seed FirstMate's local
    crew-dispatch profile so worker model and effort choices scale by task size: lightweight low-effort
    candidates for small bounded work, and stronger high-effort candidates for large or ambiguous work.
+   A Pi-backed fleet launch refreshes Herdr's Pi integration before starting Pi so agent status remains
+   visible after a Herdr update.
 4. **GNHF is the bounded unattended-loop runner.** Dotfiles acquire a retained Treehouse lease and
    require iteration limits, no usage-limit waiting by default, and a reviewed execution-mode adapter;
    upstream permission-bypass defaults are not inherited. The source must be clean and committed; the
@@ -101,6 +103,9 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    before launching the selected primary harness.
 2. **Commands compose instead of hiding upstream tools.** `agentctl` prints the resolved command in
    dry-run mode and preserves upstream logs and recovery instructions.
+   GitHub inspection defaults to `gh-axi` when available; browser exploration defaults to
+   `chrome-devtools-axi`; dense human review uses `lavish-axi`; routing diagnostics use `quota-axi`.
+   Project tests and delivery gates remain the source of truth.
 3. **Fast project switching is name-based.** A small project registry maps stable names to repository
    paths and optional visualization commands; paths are not duplicated across shell aliases and harness files.
 4. **Fast worktree switching uses Treehouse's native selector.** `treehouse status` supplies stable
@@ -119,8 +124,9 @@ The platform gate is command-based:
 - Each shell script passes its own `bash -n <file>` invocation; JSON and TOML parse; project aliases resolve to existing directories.
 - A dry-run test proves GNHF acquires Treehouse isolation without its own worktree flag, receives a finite
   cap, and leaves no push enabled; no-mistakes remains opt-in.
-- FirstMate fleet and installer dry-runs print the managed `crew-dispatch.json` setup, and the CLI fixture
-  test proves a real fleet launch writes the same bytes into the external checkout's local config.
+- FirstMate fleet and installer dry-runs print the managed `crew-dispatch.json` setup and the Pi integration
+  refresh. The CLI fixture test proves a real fleet launch writes the same bytes into the external checkout's
+  local config and refreshes Herdr's Pi integration before starting Pi.
 - `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
   back with independent JSON/TOML parsers; tests neither source the user's shell profile nor access
   real homes, vaults, remotes or visible apps.
@@ -170,6 +176,7 @@ an essential constraint is stated.
 | Node.js | 20+ for Pi discovery and its fixture checks | Native RPC adapter uses built-in modules only |
 | PyYAML and tomli-w | `agent/requirements.txt` | Real YAML parsing and TOML serialization; handwritten parsers and skipped checks rejected |
 | Treehouse, GNHF, no-mistakes, FirstMate | `agent/tools.env` | One pin source for installation and doctor prevents two independent upgrade lists |
+| AXI helper CLIs: gh-axi, chrome-devtools-axi, lavish-axi, quota-axi | `agent/tools.env` | Agent-ergonomic shell helpers are pinned by the same installer surface; absent helpers are optional, mismatched installed helpers are reported |
 | Pi packages | `agent/pi/settings.json` | Adapter-specific exact package references |
 | Canonical MCP packages | `agent/mcps/mcp-servers.json` | Exact versions of the locally exercised servers |
 | Harness binaries, Claude plugins, any future unpinned MCP packages | Doctor's explicit floating inventory | Provider-managed updates remain visible; future compatibility is verified, never promised |

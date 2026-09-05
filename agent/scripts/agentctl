@@ -85,6 +85,26 @@ ensure_firstmate_config() {
   install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
 }
 
+herdr_pi_integration_current() {
+  local status
+  status="$(herdr integration status 2>&1)" || return 1
+  printf '%s\n' "$status" | grep -qE '^pi: +current([[:space:]]|$)'
+}
+
+ensure_herdr_pi_integration() {
+  if [ "$DRY_RUN" -eq 1 ]; then
+    print_command herdr integration install pi
+    print_command herdr integration status
+    return 0
+  fi
+  require_command herdr
+  herdr integration install pi || return 1
+  if ! herdr_pi_integration_current; then
+    printf 'agentctl: Herdr Pi integration is not current after refresh; run `herdr integration status` and restart Pi.\n' >&2
+    return 1
+  fi
+}
+
 validate_registry() {
   [ -f "$PROJECTS_FILE" ] || die 2 "project registry not found: $PROJECTS_FILE"
   "$AGENT_PYTHON" - "$PROJECTS_FILE" <<'PY' || exit 2
@@ -172,6 +192,23 @@ tool_version() {
   return 1
 }
 
+axi_helper_status() {
+  local tool="$1" expected="$2" actual
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    printf '  [optional] %-14s not installed (reviewed %s; run install-agent-tools.sh --tools)\n' "$tool" "$expected"
+    return 0
+  fi
+  if ! actual="$("$tool" --version 2>/dev/null | head -1 | tr -d '[:space:]')" || [ -z "$actual" ]; then
+    printf '  [warn] %-14s version probe unavailable (reviewed %s)\n' "$tool" "$expected"
+    return 0
+  fi
+  if [ "$actual" = "$expected" ]; then
+    printf '  [ok]   %-14s %s\n' "$tool" "$actual"
+  else
+    printf '  [warn] %-14s expected %s; found %s (run install-agent-tools.sh --tools)\n' "$tool" "$expected" "$actual"
+  fi
+}
+
 start_command() {
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -213,7 +250,16 @@ doctor() {
   fi
 
   echo "Runtime tools:"
-  tool_version herdr --version || failed=1
+  if tool_version herdr --version; then
+    if herdr_pi_integration_current; then
+      printf '  [ok]   herdr-pi      integration current\n'
+    else
+      printf '  [fail] herdr-pi      run: herdr integration install pi && herdr integration status\n'
+      failed=1
+    fi
+  else
+    failed=1
+  fi
   for harness in pi claude codex; do
     if command -v "$harness" >/dev/null 2>&1; then
       tool_version "$harness" --version || failed=1
@@ -267,6 +313,12 @@ doctor() {
   else
     printf '  [optional] firstmate  checkout absent: %s\n' "$FIRSTMATE_DIR"
   fi
+
+  echo "AXI helpers:"
+  axi_helper_status gh-axi "$GH_AXI_VERSION"
+  axi_helper_status chrome-devtools-axi "$CHROME_DEVTOOLS_AXI_VERSION"
+  axi_helper_status lavish-axi "$LAVISH_AXI_VERSION"
+  axi_helper_status quota-axi "$QUOTA_AXI_VERSION"
 
   if [ "$failed" -ne 0 ]; then
     echo "Run agent/scripts/install-agent-tools.sh --tools, then re-run doctor." >&2
@@ -364,6 +416,9 @@ fleet_command() {
   case "$harness" in pi|claude|codex) ;; *) die 2 "unsupported FirstMate harness: $harness" ;; esac
   if [ "$DRY_RUN" -eq 0 ]; then
     [ -d "$FIRSTMATE_DIR/.git" ] || die 3 "FirstMate checkout missing: $FIRSTMATE_DIR (run install-agent-tools.sh --tools)"
+  fi
+  if [ "$harness" = pi ]; then
+    ensure_herdr_pi_integration || return 1
   fi
   ensure_firstmate_config
   if [ "$DRY_RUN" -eq 0 ]; then require_command "$harness"; fi

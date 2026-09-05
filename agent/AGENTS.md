@@ -5,12 +5,12 @@ then the nearest project `AGENTS.md` for project facts.
 
 ## Commands
 
-- `agent/scripts/agentctl doctor` — inspect links, versions, integrations, and floating dependencies (read-only).
+- `agent/scripts/agentctl doctor` — inspect links, versions, Herdr/Pi integration status, AXI helpers, and floating dependencies (read-only).
 - `agent/scripts/agentctl start` — launch or attach the Herdr interface.
 - `agent/scripts/sync-agent-config.sh --check` — validate generated harness configuration without changing it.
 - `agent/scripts/agentctl project <name> --dry-run` — show the resolved Herdr project-switching command.
 - `treehouse status` — list this repository's pooled worktrees; `treehouse enter <name>` jumps into one.
-- `agent/scripts/agentctl fleet --harness pi --dry-run` — show the FirstMate-on-Herdr launch command and managed dispatch setup.
+- `agent/scripts/agentctl fleet --harness pi --dry-run` — show the FirstMate-on-Herdr launch command, Pi integration refresh, and managed dispatch setup.
 - `agent/scripts/agentctl overnight <name> --max-iterations <n> --dry-run` — show a bounded GNHF run in a Treehouse lease.
 - `agent/scripts/agentctl ship <name> --dry-run` — show the project-opted-in no-mistakes delivery gate.
 - `agent/tests/run.sh` — run fixture-driven platform checks (temporary state only; no GUI or network).
@@ -28,7 +28,7 @@ that FirstMate, GNHF, no-mistakes, a GUI, or a remote operation succeeded.
 | Architecture, decisions, and open work | `agent/docs/` |
 | Personal and domain procedures | `agent/skills/` |
 | Cross-project engineering procedures | `agentic-rules` skills in `/Users/idohaber/00_development/agentic-rules` |
-| MCP declarations and harness adapters | `agent/mcps/`, `agent/claude/`, `agent/pi/`, `agent/codex/` |
+| MCP declarations, harness adapters, and AXI helper pins | `agent/mcps/`, `agent/claude/`, `agent/pi/`, `agent/codex/`, `agent/tools.env` |
 | Projects and operator commands | `agent/projects.json`, `agent/scripts/agentctl` |
 | Worktree allocation and lifecycle | [Treehouse](https://github.com/kunchenguid/treehouse), `agent/treehouse/README.md` |
 | Session multiplexing | `agent/herdr/` |
@@ -94,6 +94,7 @@ two copies drift and different harnesses then follow different rules.
   or adapters. Do not patch their live home-directory files.
 - Herdr owns terminal visibility only. Open Treehouse paths in Herdr when a task needs a pane, but do not
   use `herdr worktree create`, harness-native worktree tools, or raw `git worktree` commands for agent work.
+  After a Herdr update, run `herdr integration install pi` and restart Pi if agent status disappears.
 - After landing canonical configuration changes, run `agent/scripts/agentctl sync` from that checkout; use
   `agent/scripts/sync-agent-config.sh --check` in tests and reviews so verification cannot mutate live
   configuration.

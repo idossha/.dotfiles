@@ -41,10 +41,10 @@ agent/scripts/agentctl ship dotfiles --dry-run
 
 `agentctl start` is the normal entry point. It launches or attaches the Herdr interface and does not
 implicitly start a model harness. Use `agentctl fleet --harness pi` when you explicitly want the
-FirstMate supervisor backed by Herdr. `fleet` also reapplies the managed FirstMate
-`config/crew-dispatch.json` from [`firstmate/crew-dispatch.json`](firstmate/crew-dispatch.json), so
-small worker tasks route to low-effort Luna/mini profiles while larger ambiguous work routes to stronger
-high-effort profiles.
+FirstMate supervisor backed by Herdr. `fleet` refreshes `herdr integration install pi`, checks Herdr's Pi
+integration status, and reapplies the managed FirstMate `config/crew-dispatch.json` from
+[`firstmate/crew-dispatch.json`](firstmate/crew-dispatch.json), so small worker tasks route to low-effort
+Luna/mini profiles while larger ambiguous work routes to stronger high-effort profiles.
 
 Project switching is name-based. `project` enters or creates the repository's Herdr workspace; `fleet`
 starts the optional FirstMate supervisor on Herdr; visualization commands are explicit and do not launch
@@ -57,6 +57,13 @@ opens the selected slot in a subshell. To move the current shell instead, use
 [`treehouse/README.md`](treehouse/README.md) for lifecycle and Herdr handoff details.
 
 Use `--dry-run` before any mutating or GUI-opening command to inspect the exact upstream command.
+
+Fast troubleshooting: if a command is missing, open a fresh terminal and confirm
+`export PATH="$HOME/.local/bin:$PATH"` is in the shell configuration. If Herdr stops showing Pi agent
+status, run `herdr integration install pi && herdr integration status` and restart Pi. If Pi does not load
+FirstMate from `agentctl fleet`, run `/trust` in the Pi session launched from the FirstMate checkout,
+quit, and relaunch. If FirstMate reports a missing tool, review the exact install command it prints before
+approving it.
 
 ## Configuration Boundary
 
@@ -77,5 +84,18 @@ The first two commands are nonmutating checks. The final command renders or link
 configuration.
 
 External tools remain opt-in. `scripts/install-agent-tools.sh --tools` installs the pinned Treehouse,
-GNHF, and no-mistakes releases and clones FirstMate into its own checkout; dotfiles configure its Herdr
-backend and token-aware crew-dispatch profile, but do not vendor FirstMate's policy, state, or skills.
+GNHF, no-mistakes, and AXI helper CLIs, then clones FirstMate into its own checkout; dotfiles configure
+its Herdr backend and token-aware crew-dispatch profile, but do not vendor FirstMate's policy, state, or
+skills.
+
+## AXI helper workflow
+
+Use AXI CLIs where they reduce agent turns without replacing project gates:
+
+- `gh-axi` for GitHub issues, PRs, workflow runs, releases, and API reads/writes.
+- `chrome-devtools-axi` for exploratory browser automation and live page inspection; keep Playwright and
+  hidden-app tests as the repeatable test authority.
+- `lavish-axi` for reviewable local HTML artifacts when a terminal answer would be too dense.
+- `quota-axi` for local quota/usage checks before selecting an expensive worker profile.
+
+Do not adopt AXI memory tools here: `idosleep` owns capture, recall, and consolidation.

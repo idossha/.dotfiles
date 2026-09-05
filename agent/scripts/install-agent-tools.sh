@@ -12,13 +12,14 @@
 #      agent/pi/settings.json. Pi 0.73 does not auto-install packages listed in
 #      global settings at startup (that arrived in 0.82), so a fresh machine
 #      needs this. Already-installed pins are skipped.
-#   2. herdr integrations - `herdr integration install` for pi, claude and
-#      codex, skipping the ones `herdr integration status` reports installed.
+#   2. herdr integrations - refresh `herdr integration install pi` every run,
+#      then install claude/codex only when `herdr integration status` is not current.
 #
 # Optional:
 #   --tools                 Install the pinned adopted tools: Treehouse, GNHF,
-#                           no-mistakes, and an external FirstMate checkout with
-#                           Herdr backend plus token-aware dispatch config.
+#                           no-mistakes, AXI helper CLIs, and an external
+#                           FirstMate checkout with Herdr backend plus
+#                           token-aware dispatch config.
 #   --dry-run               Print mutating commands without running them.
 #   --refresh-herdr-skill   Only regenerate agent/skills/herdr/SKILL.md from
 #                           `herdr --skill`. That skill is vendored from the
@@ -91,7 +92,7 @@ write_firstmate_runtime_config() {
 }
 
 usage() {
-  sed -n '3,27p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '3,28p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 parse_args() {
@@ -192,8 +193,17 @@ install_herdr_integrations() {
   status="$(herdr integration status 2>/dev/null || true)"
 
   for target in pi claude codex; do
-    if printf '%s\n' "$status" | grep -qE "^${target}: +installed"; then
-      skipped "herdr integration $target (already installed)"
+    if [ "$target" = pi ]; then
+      if run_mutation herdr integration install pi; then
+        did "herdr integration pi (refreshed after Herdr updates)"
+      else
+        echo "  [fail] herdr integration pi" >&2
+        return 1
+      fi
+      continue
+    fi
+    if printf '%s\n' "$status" | grep -qE "^${target}: +(current|installed)([[:space:]]|$)"; then
+      skipped "herdr integration $target (already current)"
       continue
     fi
     if run_mutation herdr integration install "$target"; then
@@ -330,6 +340,36 @@ install_no_mistakes() {
   did "no-mistakes@$NO_MISTAKES_VERSION${installed:+ (was $installed)}"
 }
 
+install_axi_helpers() {
+  echo "AXI helpers:"
+
+  if ! command -v npm >/dev/null 2>&1; then
+    skipped "AXI helpers: 'npm' is not on PATH"
+    return 0
+  fi
+
+  local package version installed
+  while IFS=' ' read -r package version; do
+    [ -n "$package" ] || continue
+    installed="$(npm_global_version "$package" || true)"
+    if [ "$installed" = "$version" ]; then
+      skipped "$package@$version (already installed)"
+      continue
+    fi
+    if run_mutation npm install -g "$package@$version"; then
+      did "$package@$version${installed:+ (was $installed)}"
+    else
+      echo "  [fail] $package@$version" >&2
+      return 1
+    fi
+  done <<EOF
+gh-axi $GH_AXI_VERSION
+chrome-devtools-axi $CHROME_DEVTOOLS_AXI_VERSION
+lavish-axi $LAVISH_AXI_VERSION
+quota-axi $QUOTA_AXI_VERSION
+EOF
+}
+
 install_firstmate() {
   echo "FirstMate:"
   if ! command -v git >/dev/null 2>&1; then
@@ -445,6 +485,8 @@ main() {
     install_gnhf
     echo
     install_no_mistakes
+    echo
+    install_axi_helpers
     echo
     install_firstmate
   fi

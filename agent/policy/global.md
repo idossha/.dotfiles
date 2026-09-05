@@ -19,6 +19,9 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   router, CLI, or store under dotfiles.
 - Project facts that must guide every agent or be reviewed with code belong in project Markdown;
   architecture decisions belong in `docs/DECISIONS.md`.
+- Prefer AXI helper CLIs when available: `gh-axi` for GitHub reads/writes, `chrome-devtools-axi` for
+  browser exploration, `lavish-axi` for rich review artifacts, and `quota-axi` for local quota checks.
+  Do not add an AXI memory tool; `idosleep` owns memory.
 - Keep conversational output to a minimal outcome, evidence, and next action. When an explanation
   needs a diagram, comparison, plan, dense table, or extended walkthrough, create a local Lavish HTML
   artifact and reply with only a short synopsis plus its path; long chat output is hard to scan and annotate.

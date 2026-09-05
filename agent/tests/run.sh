@@ -73,9 +73,11 @@ fi
 run_capture "$AGENT_PYTHON" -c '
 from pathlib import Path
 import sys
-assert chr(36) + "HOME/.dotfiles/agent/scripts:" in Path(sys.argv[1]).read_text()
+source = Path(sys.argv[1]).read_text()
+assert "export PATH=\"$HOME/.local/bin:$PATH\"" in source
+assert chr(36) + "HOME/.dotfiles/agent/scripts:" in source
 ' "$agent_dir/../zsh/.zshrc"
-expect_status 0 "canonical zshrc exposes the installed agentctl path"
+expect_status 0 "canonical zshrc exposes .local/bin and agentctl paths"
 
 fixture_count=$(find "$fixtures" -type f -name 'projects.*.json' | wc -l | tr -d ' ')
 if [ "$fixture_count" -ne 3 ]; then
@@ -130,6 +132,8 @@ mkdir -p "$scratch/firstmate/.git"
 run_capture env AGENTCTL_FIRSTMATE_DIR="$scratch/firstmate" PATH="$test_path" \
   "$agentctl" fleet --harness pi --dry-run
 expect_status 0 "FirstMate fleet dry-run accepts the Pi harness"
+expect_contains "herdr integration install pi" "FirstMate Pi dry-run refreshes Herdr's Pi integration"
+expect_contains "herdr integration status" "FirstMate Pi dry-run checks Herdr integration status"
 expect_contains "FM_BACKEND=herdr" "FirstMate is explicitly configured for Herdr"
 expect_contains "crew-dispatch.json" "FirstMate dry-run applies token-aware dispatch profiles"
 expect_contains "pi" "FirstMate dry-run preserves the selected harness"
@@ -267,6 +271,11 @@ expect_status 0 "tool installer dry-run accepts the Treehouse integration"
 expect_contains "treehouse-v2.3.0-" "tool installer selects the exact Treehouse release archive"
 expect_contains "kunchenguid/treehouse/releases/download/v2.3.0/checksums.txt" \
   "tool installer verifies Treehouse against the published checksum list"
+expect_contains "herdr integration install pi" "tool installer refreshes Herdr's Pi integration"
+expect_contains "gh-axi@" "tool installer includes pinned AXI GitHub helper"
+expect_contains "chrome-devtools-axi@" "tool installer includes pinned AXI browser helper"
+expect_contains "lavish-axi@" "tool installer includes pinned AXI review helper"
+expect_contains "quota-axi@" "tool installer includes pinned AXI quota helper"
 expect_contains "crew-dispatch.json" "tool installer seeds FirstMate token-aware dispatch profiles"
 
 run_capture "$AGENT_PYTHON" -c '

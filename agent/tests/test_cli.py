@@ -82,6 +82,9 @@ class ExecutionTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
     def test_fleet_launch_writes_firstmate_dispatch_config(self):
+        self.executable("herdr", "if [ \"$1 $2 $3\" = \"integration install pi\" ]; then exit 0; fi\n"
+                                 "if [ \"$1 $2\" = \"integration status\" ]; then echo 'pi: current (v8)'; exit 0; fi\n"
+                                 "exit 23\n")
         self.executable("pi", "exit 0\n")
         result = self.invoke("fleet", "--harness", "pi")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

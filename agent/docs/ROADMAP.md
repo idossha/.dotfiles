@@ -10,6 +10,8 @@
 - Explicit user-selected Codex workspace sandbox without approval prompts, preserved by synchronization.
 - Token-aware FirstMate crew dispatch seeded from dotfiles so small worker tasks use lightweight
   low-effort profiles and large/ambiguous tasks use stronger high-effort profiles.
+- Pinned AXI helper CLIs for GitHub operations, browser exploration, Lavish review artifacts and quota
+  visibility.
 - A global `agentctl start` entry point that opens Herdr without implicitly launching a model harness.
 
 ## What is next
@@ -24,6 +26,7 @@
 - [x] Add configuration ownership, discovery drift, and interpreter regressions.
 - [x] Complete the 2026-09-04 coherence audit and its hosted CI gate; the decision log keeps the retained summary after the detailed audit artifacts were retired.
 - [x] Run a bounded GNHF assessment and review its committed report; the resolution records its exact end status.
-- [ ] Run one multi-project Herdr trial, one FirstMate fleet task, and one no-mistakes delivery trial
+- [ ] Run one multi-project Herdr trial, one FirstMate fleet task, one AXI-assisted GitHub/browser review,
+  and one no-mistakes delivery trial
   before declaring the broader platform gate closed.
 - [ ] Exercise representative skill activation across the three harnesses, including two distinct manuscripts.
