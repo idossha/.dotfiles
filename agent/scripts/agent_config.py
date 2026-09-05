@@ -197,7 +197,6 @@ class Layout:
             d / ".pi/agent/AGENTS.md": global_policy,
             d / ".codex/AGENTS.md": global_policy,
             d / ".agents/mcp.json": a / "mcps/mcp-servers.json",
-            d / ".config/herdr/config.toml": a / "herdr/config.toml",
         }
         optional_claude_templates = a / "claude/templates"
         if optional_claude_templates.exists():
@@ -230,8 +229,6 @@ class Layout:
             "pi": (read_config(a / "pi/settings.json"), d / ".pi/agent/settings.json",
                    self.local / "pi-settings.local.json"),
             "codex": (codex, d / ".codex/config.toml", self.local / "codex-config.local.toml"),
-            "gnhf": (read_config(a / "gnhf/config.yml"), d / ".gnhf/config.yml",
-                     self.local / "gnhf-config.local.yml"),
         }
 
 
@@ -250,7 +247,6 @@ def validate(layout: Layout) -> None:
     }.items():
         if set(policies[name][0]) & fields:
             raise ConfigError(f"{name}: runtime state remains in tracked policy")
-    read_config(layout.agent / "herdr/config.toml")
     for _, _, overlay in policies.values():
         if overlay.exists():
             read_config(overlay)
@@ -357,8 +353,22 @@ def sync(layout: Layout) -> None:
     ))
     atomic_write(saved_path, "\n".join(extras) + "\n")
     atomic_write(rules_path, "\n".join(policy_lines + [""] + extras) + "\n")
+    # Retire destinations this platform managed before but no longer owns, so a removed
+    # integration leaves no orphaned link or generated file behind.
+    current = {str(target) for target in links} | {str(destination) for _, _, _, destination, _ in renders}
+    for stale in prior.get("managed_destinations", []):
+        if stale in current:
+            continue
+        path = Path(stale)
+        if path.is_symlink():
+            path.unlink()
+            print(f"  [retired] {path}")
+        elif path.is_file():
+            path.unlink()
+            print(f"  [retired] {path}")
     dump_config(layout.manifest, {
         "mcp_servers": sorted(mcp), "skills": sorted(inventory), "codex_rule_lines": policy_lines,
+        "managed_destinations": sorted(current),
     })
     print("  [ok] installed links, shared MCP servers and local approvals")
 
@@ -427,26 +437,11 @@ def floating_dependencies(layout: Layout) -> None:
             print(f"  [floating] Claude plugin: {name} (provider-managed snapshot)")
 
 
-def check_gnhf(layout: Layout, selected: str) -> None:
-    path = layout.destination / ".gnhf/config.yml"
-    if not path.is_file():
-        raise ConfigError("GNHF configuration is absent; run agentctl sync")
-    live = read_config(path)
-    agent = selected or live.get("agent")
-    expected = read_config(layout.agent / "gnhf/config.yml").get("agentArgsOverride", {}).get(agent)
-    if expected is None:
-        raise ConfigError(f"GNHF {agent}: add a reviewed execution-mode adapter before unattended use")
-    if live.get("agentArgsOverride", {}).get(agent) != expected:
-        raise ConfigError(f"GNHF {agent}: execution flags differ from the reviewed adapter; run agentctl sync")
-    print(f"  [ok] GNHF {agent}: explicit execution mode")
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--check-installed", action="store_true")
     parser.add_argument("--inventory", action="store_true")
-    parser.add_argument("--check-gnhf", metavar="AGENT")
     parser.add_argument("--agent-dir", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--destination", type=Path,
                         default=Path(os.environ.get("AGENT_CONFIG_HOME", Path.home())))
@@ -455,9 +450,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     layout = Layout(args.agent_dir.resolve(), args.destination.resolve(), args.playbook.resolve())
     try:
-        if args.check_gnhf is not None:
-            check_gnhf(layout, args.check_gnhf)
-        elif args.inventory:
+        if args.inventory:
             validate(layout)
             floating_dependencies(layout)
         elif args.check_installed:

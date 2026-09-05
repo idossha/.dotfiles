@@ -5,6 +5,21 @@ Notable changes to the dotfiles are recorded here using the
 
 ## [Unreleased]
 
+### Removed
+
+- **The fleet supervisor, session multiplexer, unattended-loop runner and pooled worktree provider are
+  gone** — the platform no longer installs, configures or launches them, and `agentctl start`, `project`,
+  `fleet` and `overnight` are removed with them. Agents now work in the checkout they were launched in and
+  do not create worktrees. Delivery is unchanged for projects that opted in: those carrying
+  `.no-mistakes.yaml` still ship through `agentctl ship`, and every other project uses ordinary pull
+  requests. Nothing red is pushed or merged. Existing checkouts keep their history; if a pooled worktree
+  is still on disk, land or discard its work and remove it by hand.
+
+### Added
+
+- **A short statement of how the agents are meant to work** — `agent/docs/PHILOSOPHY.md` records the
+  rule for choosing between a skill, a CLI and an MCP server, and the failure each platform rule prevents.
+
 ### Fixed
 
 - **MCP server versions remain stable between sessions** — all three shared servers use exact versions

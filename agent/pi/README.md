@@ -25,28 +25,18 @@ settings: Pi writes those values at runtime and would dirty the dotfiles reposit
 Package references are exact pins. Installation is explicit through `agent/scripts/install-agent-tools.sh`;
 syncing configuration does not execute downloaded code.
 
-Local extensions should exist only when Pi's event loop is required. Treehouse owns worktree allocation;
-session creation, health checks, upstream installs, FirstMate, bounded GNHF, and no-mistakes launches
-belong in `agentctl` so every harness can use the same surface.
-
-Herdr's generated `herdr-agent-state.ts` remains machine state and is ignored from `agent/pi/.gitignore`.
-Do not put an ignore file inside `extensions/`: Pi honors it during discovery and would hide the Herdr
-integration itself.
+Local extensions should exist only when Pi's event loop is required. Health checks, upstream installs,
+and no-mistakes launches belong in `agentctl` so every harness can use the same surface.
 
 ## Delegation
 
-FirstMate is the cross-harness fleet supervisor. `agentctl fleet --harness pi` refreshes Herdr's Pi
-integration before starting Pi from the FirstMate checkout and seeds FirstMate with the managed
-`no-mistakes +yolo` project defaults from `agent/projects.json`. If Pi does not load the FirstMate
-extensions, run `/trust` in that Pi session, approve the project, quit, and restart through
-`agentctl fleet`. Pi's native subagent tools remain available when an interactive session explicitly
-chooses them, but this adapter no longer ships custom Pi subagent role prompts.
+Pi's native subagent tools remain available when an interactive session explicitly chooses them, but this
+adapter ships no custom Pi subagent role prompts. Agents work in the checkout they were launched in and do
+not create worktrees.
 
 ## Verification
 
 ```bash
-herdr integration install pi
-herdr integration status
 node agent/scripts/pi-resources.mjs
 agent/scripts/agentctl doctor
 agent/tests/run.sh
@@ -58,10 +48,9 @@ intentional, or an open stdin can make the process hang.
 
 ## Package guidance and native discovery
 
-Treehouse owns worktrees and FirstMate owns persistent fleet supervision when selected. The
-pi-subagents and pi-interactive-shell packages load their extensions but exclude bundled skills
+The pi-subagents and pi-interactive-shell packages load their extensions but exclude bundled skills
 through Pi's documented package filters, because those guides introduce alternate supervision and
-worktree defaults. Read installed package help for mechanics when the chosen task needs them.
+worktree defaults that contradict the one-checkout policy. Read installed package help for mechanics when the chosen task needs them.
 
 `node agent/scripts/pi-resources.mjs` probes the local CLI through offline RPC without a model
 prompt or TUI. It reports available commands/skills and their source paths, not complete extension

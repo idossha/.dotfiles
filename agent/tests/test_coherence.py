@@ -41,6 +41,31 @@ class GuardTests(unittest.TestCase):
         for path in paths:
             self.assertTrue((root / path).is_file(), path)
 
+    def test_duplicated_axi_pin_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "agent/scripts").mkdir(parents=True)
+            (root / "agent/AGENTS.md").write_text("Read agent/docs/ARCHITECTURE.md")
+            (root / "CLAUDE.md").write_text("@AGENTS.md")
+            (root / "AGENTS.md").symlink_to("agent/AGENTS.md")
+            clean = 'source "$AGENT_DIR/tools.env"\n'
+            for name in ("agentctl", "install-agent-tools.sh"):
+                (root / "agent/scripts" / name).write_text(clean)
+            self.assertEqual(source_issues(root), [])
+            (root / "agent/scripts/agentctl").write_text(clean + 'GH_AXI_VERSION="0.1.35"\n')
+            self.assertTrue(any("duplicated adopted-tool version" in issue
+                                for issue in source_issues(root)))
+
+    def test_retired_frozen_entries_keep_their_number_without_a_path(self):
+        contract = (
+            "## 7. Frozen interfaces\n\n"
+            "1. `agent/scripts/agentctl` - the operator CLI.\n"
+            "2. retired (2026-09-05) - `agent/retired/config.yml` no longer exists.\n"
+            "3. `agent/tools.env` - shared pins.\n\n"
+            "## 8. Next\n"
+        )
+        self.assertEqual(frozen_paths(contract), {"agent/scripts/agentctl", "agent/tools.env"})
+
     def test_absolute_map_and_claude_copy_are_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -64,7 +89,7 @@ class GuardTests(unittest.TestCase):
             "agent/skills/mne-python/SKILL.md": "CLAUDE_SKILL_DIR",
             "agent/skills/mcp-authoring/SKILL.md": "~/.dotfiles/agent/mcps/mcp-servers.json",
             "agent/skills/telemetry-triage/SKILL.md": "v2.3.1",
-            "agent/scripts/agentctl": 'GNHF_VERSION="0.0.0"',
+            "agent/scripts/agentctl": 'NO_MISTAKES_VERSION="0.0.0"',
             "agent/scripts/install-agent-tools.sh": "no shared pins",
             "agent/skills/git-collaboration/SKILL.md": "Co-authored-by:",
             "agent/skills/write-skill/SKILL.md": "Facts about the codebase belong in CLAUDE.md",

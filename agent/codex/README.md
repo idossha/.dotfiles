@@ -21,7 +21,7 @@ at the user's explicit request. App and MCP tool overrides use `auto`. Explicit 
 and managed requirements can still override these defaults. Resume a saved conversation by its exact
 ID after changing startup configuration; do not terminate active work merely to reload settings.
 Use `codex exec --help` for current headless flags. An unattended mode is not authority to disable
-sandboxing; the GNHF adapter supplies an explicit execution mode.
+sandboxing; the session's granted permissions remain the boundary.
 
 Discovery and schema references, checked 2026-09-04:
 [OpenAI skills](https://learn.chatgpt.com/docs/build-skills),

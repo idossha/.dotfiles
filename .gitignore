@@ -8,7 +8,6 @@ agent/local/*.local.rules
 # Local execution and review state is never portable memory.
 agent/.venv/
 agent/local/*.local.yml
-.gnhf/
 .no-mistakes/
 .lavish/
 .claude/settings.local.json

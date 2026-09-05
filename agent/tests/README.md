@@ -2,7 +2,7 @@
 
 `run.sh` is the platform gate for [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) §6. It runs
 CLI fixtures plus the Python regression suite against temporary state; it does not load the operator's
-shell profile, home configuration, vault, Herdr server, GUI, network, or remotes.
+shell profile, home configuration, vault, GUI, network, or remotes.
 
 ## What each fixture is for
 
@@ -15,9 +15,8 @@ shell profile, home configuration, vault, Herdr server, GUI, network, or remotes
 The runner asserts that it found all three registry fixtures and checks dry-run output without
 executing upstream tools. Fakes record actual CLI arguments and working directories and return failing
 statuses. A synthetic linked Git directory shares only a temporary repository's metadata; it proves
-repository identity checks without allocating real worktrees. `start` enters Herdr; `fleet` explicitly
-selects FirstMate and its harness while seeding managed no-mistakes +yolo project defaults. `ship`
-prints the no-mistakes AXI gate and guarded GitHub auto-merge plan.
+repository identity checks without allocating real worktrees. `ship` prints the no-mistakes AXI gate and
+guarded GitHub auto-merge plan, and refuses a project that has not opted in.
 
 `test_config.py` uses authored policy/runtime fixtures and independent JSON/TOML readers to prove
 state preservation, precedence, idempotence, discovery cleanup, rejected malformed shapes, and absence

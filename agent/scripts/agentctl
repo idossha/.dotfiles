@@ -7,15 +7,10 @@ AGENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 PROJECTS_FILE="${AGENTCTL_PROJECTS_FILE:-$AGENT_DIR/projects.json}"
 SYNC_SCRIPT="${AGENTCTL_SYNC_SCRIPT:-$SCRIPT_DIR/sync-agent-config.sh}"
-AGENT_TOOLS_DIR="${AGENT_TOOLS_DIR:-$HOME/00_development/agent-tools}"
-FIRSTMATE_DIR="${AGENTCTL_FIRSTMATE_DIR:-$AGENT_TOOLS_DIR/firstmate}"
-FIRSTMATE_DISPATCH_TEMPLATE="$AGENT_DIR/firstmate/crew-dispatch.json"
-FIRSTMATE_PROJECTS_SCRIPT="$SCRIPT_DIR/firstmate-projects.py"
 # shellcheck source=../tools.env
 source "$AGENT_DIR/tools.env"
 # shellcheck source=python-runtime.sh
 source "$SCRIPT_DIR/python-runtime.sh"
-DEFAULT_MAX_ITERATIONS=10
 
 DRY_RUN=0
 
@@ -24,18 +19,10 @@ usage() {
 Usage: agentctl [--dry-run] <command> [options]
 
 Commands:
-  start
-      Launch or attach the Herdr interface. This is the normal entry point.
   doctor
-      Check the shared registry, harnesses, Herdr, and adopted upstream tools.
+      Check the shared registry, harness versions, adopted tools and installed links.
   sync
       Synchronize canonical agent configuration into each harness.
-  project <alias> [--visualization <name>]
-      Focus a named Herdr workspace, create it if absent, or explicitly open a registered view.
-  fleet [--harness pi|claude|codex]
-      Start a FirstMate primary with Herdr and the managed token-aware dispatch profile.
-  overnight <alias> [--max-iterations N] [--max-tokens N] [--agent NAME] -- <objective>
-      Acquire a durable Treehouse lease and run bounded GNHF there. Never pushes.
   ship <alias> --intent <goal> [--base-branch main] [--no-automerge]
       Run the no-mistakes PR gate from a prepared feature branch, then schedule guarded auto-merge.
 
@@ -73,53 +60,6 @@ require_command() {
   command -v "$1" >/dev/null 2>&1 || die 4 "required command not found: $1"
 }
 
-ensure_firstmate_projects() {
-  [ -f "$FIRSTMATE_PROJECTS_SCRIPT" ] || die 3 "FirstMate project renderer missing: $FIRSTMATE_PROJECTS_SCRIPT"
-  local -a args=("$AGENT_PYTHON" "$FIRSTMATE_PROJECTS_SCRIPT" --projects "$PROJECTS_FILE" --firstmate "$FIRSTMATE_DIR")
-  [ "$DRY_RUN" -eq 0 ] || args+=(--dry-run)
-  "${args[@]}"
-}
-
-firstmate_projects_current() {
-  [ -f "$FIRSTMATE_PROJECTS_SCRIPT" ] || return 1
-  "$AGENT_PYTHON" "$FIRSTMATE_PROJECTS_SCRIPT" --projects "$PROJECTS_FILE" --firstmate "$FIRSTMATE_DIR" --check >/dev/null
-}
-
-ensure_firstmate_config() {
-  [ -f "$FIRSTMATE_DISPATCH_TEMPLATE" ] || die 3 "FirstMate dispatch template missing: $FIRSTMATE_DISPATCH_TEMPLATE"
-  if [ "$DRY_RUN" -eq 1 ]; then
-    print_command mkdir -p "$FIRSTMATE_DIR/config"
-    printf 'DRY-RUN: write %q with value herdr\n' "$FIRSTMATE_DIR/config/backend"
-    print_command install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
-    ensure_firstmate_projects
-    return 0
-  fi
-  mkdir -p "$FIRSTMATE_DIR/config"
-  printf 'herdr\n' > "$FIRSTMATE_DIR/config/backend"
-  install -m 0644 "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json"
-  ensure_firstmate_projects
-}
-
-herdr_pi_integration_current() {
-  local status
-  status="$(herdr integration status 2>&1)" || return 1
-  printf '%s\n' "$status" | grep -qE '^pi: +current([[:space:]]|$)'
-}
-
-ensure_herdr_pi_integration() {
-  if [ "$DRY_RUN" -eq 1 ]; then
-    print_command herdr integration install pi
-    print_command herdr integration status
-    return 0
-  fi
-  require_command herdr
-  herdr integration install pi || return 1
-  if ! herdr_pi_integration_current; then
-    printf 'agentctl: Herdr Pi integration is not current after refresh; run `herdr integration status` and restart Pi.\n' >&2
-    return 1
-  fi
-}
-
 validate_registry() {
   [ -f "$PROJECTS_FILE" ] || die 2 "project registry not found: $PROJECTS_FILE"
   "$AGENT_PYTHON" - "$PROJECTS_FILE" <<'PY' || exit 2
@@ -141,7 +81,7 @@ for alias, project in registry["projects"].items():
         print("agentctl: every project must have a non-empty alias and object value", file=sys.stderr)
         raise SystemExit(1)
     if any(c.isspace() or c in "[]" for c in alias):
-        print(f"agentctl: project alias {alias!r} cannot be rendered in FirstMate data/projects.md", file=sys.stderr)
+        print(f"agentctl: project alias {alias!r} must not contain whitespace or brackets", file=sys.stderr)
         raise SystemExit(1)
     if not isinstance(project.get("path"), str) or not isinstance(project.get("label"), str):
         print(f"agentctl: project {alias!r} needs string path and label fields", file=sys.stderr)
@@ -184,32 +124,23 @@ PY
 }
 
 project_field() {
-  local alias="$1" field="$2" view="${3:-}"
-  "$AGENT_PYTHON" - "$PROJECTS_FILE" "$alias" "$field" "$view" <<'PY'
+  local alias="$1" field="$2"
+  "$AGENT_PYTHON" - "$PROJECTS_FILE" "$alias" "$field" <<'PY'
 import json
 import sys
 
-registry_path, alias, field, view = sys.argv[1:]
+registry_path, alias, field = sys.argv[1:]
 projects = json.load(open(registry_path))["projects"]
 if alias not in projects:
     print(f"agentctl: unknown project alias: {alias}", file=sys.stderr)
     raise SystemExit(2)
-project = projects[alias]
-if field == "view":
-    command = project.get("visualizations", {}).get(view)
-    if command is None:
-        print(f"agentctl: project {alias!r} has no visualization {view!r}", file=sys.stderr)
-        raise SystemExit(2)
-    print("\n".join(command))
-else:
-    print(project[field])
+print(projects[alias][field])
 PY
 }
 
 resolve_project() {
   local alias="$1"
   PROJECT_PATH="$(project_field "$alias" path)"
-  PROJECT_LABEL="$(project_field "$alias" label)"
   [ -d "$PROJECT_PATH" ] || die 3 "project path does not exist for $alias: $PROJECT_PATH"
 }
 
@@ -263,26 +194,6 @@ axi_helper_status() {
   fi
 }
 
-start_command() {
-  while [ $# -gt 0 ]; do
-    case "$1" in
-      --dry-run) DRY_RUN=1 ;;
-      *) die 2 "unknown start option: $1" ;;
-    esac
-    shift
-  done
-  require_command herdr
-  if [ "$DRY_RUN" -eq 1 ]; then
-    print_command herdr
-  elif [ "${HERDR_ENV:-}" = 1 ]; then
-    # Already inside the interface: nesting another client would obscure the
-    # current session. The command is deliberately idempotent here.
-    printf 'Already inside Herdr.\n'
-  else
-    run_command herdr
-  fi
-}
-
 doctor() {
   local failed=0 alias path actual
   echo "Configuration:"
@@ -304,16 +215,6 @@ doctor() {
   fi
 
   echo "Runtime tools:"
-  if tool_version herdr --version; then
-    if herdr_pi_integration_current; then
-      printf '  [ok]   herdr-pi      integration current\n'
-    else
-      printf '  [fail] herdr-pi      run: herdr integration install pi && herdr integration status\n'
-      failed=1
-    fi
-  else
-    failed=1
-  fi
   for harness in pi claude codex; do
     if command -v "$harness" >/dev/null 2>&1; then
       tool_version "$harness" --version || failed=1
@@ -324,25 +225,6 @@ doctor() {
   tool_version jq --version || failed=1
 
   echo "Adopted integrations:"
-  if command -v treehouse >/dev/null 2>&1; then
-    actual="$(treehouse --version 2>&1)" || { printf "  [fail] treehouse version probe failed\n"; return 1; }
-    actual="$(printf %s "$actual" | tr -d '[:space:]')"
-    if [ "$actual" = "v$TREEHOUSE_VERSION" ]; then
-      printf '  [ok]   treehouse      %s\n' "$actual"
-    else
-      printf '  [fail] treehouse      expected v%s; found %s\n' "$TREEHOUSE_VERSION" "${actual:-unknown}"
-      failed=1
-    fi
-  else
-    printf '  [fail] treehouse      not found (expected v%s)\n' "$TREEHOUSE_VERSION"
-    failed=1
-  fi
-  if command -v gnhf >/dev/null 2>&1; then
-    actual="$(gnhf --version 2>&1)" || { printf "  [fail] gnhf version probe failed\n"; return 1; }
-    case "$actual" in "$GNHF_VERSION") printf '  [ok]   gnhf           %s\n' "$actual" ;; *) printf '  [fail] gnhf           expected %s; found %s\n' "$GNHF_VERSION" "$actual"; failed=1 ;; esac
-  else
-    printf '  [optional] gnhf       not installed (reviewed %s)\n' "$GNHF_VERSION"
-  fi
   if command -v no-mistakes >/dev/null 2>&1; then
     if actual="$(no-mistakes version 2>/dev/null)"; then
       actual="$(printf '%s\n' "$actual" | head -1)"
@@ -353,20 +235,6 @@ doctor() {
     case "$actual" in *"$NO_MISTAKES_VERSION"*) printf '  [ok]   no-mistakes    %s\n' "$actual" ;; *) printf '  [fail] no-mistakes    expected %s; found %s\n' "$NO_MISTAKES_VERSION" "$actual"; failed=1 ;; esac
   else
     printf '  [optional] no-mistakes not installed (reviewed %s)\n' "$NO_MISTAKES_VERSION"
-  fi
-  if [ -e "$FIRSTMATE_DIR/.git" ]; then
-    actual="$(git -C "$FIRSTMATE_DIR" rev-parse HEAD 2>/dev/null || true)"
-    if [ "$actual" = "$FIRSTMATE_COMMIT" ] \
-      && [ "$(tr -d '[:space:]' < "$FIRSTMATE_DIR/config/backend" 2>/dev/null || true)" = herdr ] \
-      && cmp -s "$FIRSTMATE_DISPATCH_TEMPLATE" "$FIRSTMATE_DIR/config/crew-dispatch.json" \
-      && firstmate_projects_current; then
-      printf '  [ok]   firstmate      %s (Herdr backend, token-aware dispatch, no-mistakes +yolo projects)\n' "$actual"
-    else
-      printf '  [fail] firstmate      expected %s with config/backend=herdr, managed config/crew-dispatch.json, and managed data/projects.md; found %s\n' "$FIRSTMATE_COMMIT" "${actual:-unknown}"
-      failed=1
-    fi
-  else
-    printf '  [optional] firstmate  checkout absent: %s\n' "$FIRSTMATE_DIR"
   fi
 
   echo "AXI helpers:"
@@ -384,173 +252,6 @@ doctor() {
 sync_config() {
   [ -x "$SYNC_SCRIPT" ] || die 3 "sync script is not executable: $SYNC_SCRIPT"
   run_command "$SYNC_SCRIPT"
-}
-
-project_command() {
-  [ $# -ge 1 ] || die 2 "project requires an alias"
-  local alias="$1" visualization=""
-  shift
-  while [ $# -gt 0 ]; do
-    case "$1" in
-      --dry-run) DRY_RUN=1 ;;
-      --visualization) [ $# -ge 2 ] || die 2 "--visualization requires a name"; visualization="$2"; shift ;;
-      *) die 2 "unknown project option: $1" ;;
-    esac
-    shift
-  done
-  validate_registry
-  resolve_project "$alias"
-  if [ -n "$visualization" ]; then
-    local view_output
-    local -a view_command=()
-    view_output="$(project_field "$alias" view "$visualization")"
-    while IFS= read -r argument; do view_command+=("$argument"); done <<< "$view_output"
-    if [ "$DRY_RUN" -eq 0 ]; then require_command "${view_command[0]}"; fi
-    if [ "$DRY_RUN" -eq 1 ]; then
-      printf 'DRY-RUN: cd %q &&' "$PROJECT_PATH"
-      printf ' %q' "${view_command[@]}"
-      printf '\n'
-    else
-      (cd "$PROJECT_PATH" && "${view_command[@]}") || return 1
-    fi
-    return
-  fi
-  if [ "$DRY_RUN" -eq 0 ]; then require_command herdr; fi
-  if [ "$DRY_RUN" -eq 1 ]; then
-    run_command herdr workspace create --cwd "$PROJECT_PATH" --label "$PROJECT_LABEL" --focus
-    return
-  fi
-
-  local workspaces workspace_id
-  workspaces="$(herdr workspace list)" || return 1
-  workspace_id="$("$AGENT_PYTHON" -c '
-import json, sys
-
-target_path, target_label, payload = sys.argv[1:]
-document = json.loads(payload)
-matches = []
-
-def visit(value):
-    if isinstance(value, dict):
-        workspace_id = value.get("workspace_id")
-        label = value.get("label") or value.get("name")
-        cwd = value.get("cwd") or value.get("root") or value.get("path")
-        if workspace_id and (cwd == target_path or (cwd is None and label == target_label)):
-            matches.append(str(workspace_id))
-        for child in value.values():
-            visit(child)
-    elif isinstance(value, list):
-        for child in value:
-            visit(child)
-
-visit(document)
-unique = list(dict.fromkeys(matches))
-if len(unique) > 1:
-    print(f"agentctl: multiple Herdr workspaces match {target_label!r}", file=sys.stderr)
-    raise SystemExit(1)
-if unique:
-    print(unique[0])
-' "$PROJECT_PATH" "$PROJECT_LABEL" "$workspaces")"
-  if [ -n "$workspace_id" ]; then
-    run_command herdr workspace focus "$workspace_id"
-  else
-    run_command herdr workspace create --cwd "$PROJECT_PATH" --label "$PROJECT_LABEL" --focus
-  fi
-}
-
-fleet_command() {
-  local harness=pi
-  while [ $# -gt 0 ]; do
-    case "$1" in
-      --dry-run) DRY_RUN=1 ;;
-      --harness) [ $# -ge 2 ] || die 2 "--harness requires a name"; harness="$2"; shift ;;
-      *) die 2 "unknown fleet option: $1" ;;
-    esac
-    shift
-  done
-  case "$harness" in pi|claude|codex) ;; *) die 2 "unsupported FirstMate harness: $harness" ;; esac
-  if [ "$DRY_RUN" -eq 0 ]; then
-    [ -d "$FIRSTMATE_DIR/.git" ] || die 3 "FirstMate checkout missing: $FIRSTMATE_DIR (run install-agent-tools.sh --tools)"
-  fi
-  if [ "$harness" = pi ]; then
-    ensure_herdr_pi_integration || return 1
-  fi
-  ensure_firstmate_config
-  if [ "$DRY_RUN" -eq 0 ]; then require_command "$harness"; fi
-  if [ "$DRY_RUN" -eq 1 ]; then
-    printf 'DRY-RUN: cd %q && FM_BACKEND=herdr %q\n' "$FIRSTMATE_DIR" "$harness"
-  else
-    (cd "$FIRSTMATE_DIR" && FM_BACKEND=herdr "$harness") || return 1
-  fi
-}
-
-overnight_command() {
-  [ $# -ge 1 ] || die 2 "overnight requires a project alias"
-  local alias="$1" max_iterations="$DEFAULT_MAX_ITERATIONS" max_tokens="" agent="" objective=""
-  shift
-  while [ $# -gt 0 ]; do
-    case "$1" in
-      --dry-run) DRY_RUN=1 ;;
-      --max-iterations) [ $# -ge 2 ] || die 2 "--max-iterations requires a value"; max_iterations="$2"; shift ;;
-      --max-tokens) [ $# -ge 2 ] || die 2 "--max-tokens requires a value"; max_tokens="$2"; shift ;;
-      --agent) [ $# -ge 2 ] || die 2 "--agent requires a name"; agent="$2"; shift ;;
-      --) shift; objective="$*"; break ;;
-      -*) die 2 "unsupported overnight option: $1" ;;
-      *) objective="${objective:+$objective }$1" ;;
-    esac
-    shift
-  done
-  [[ "$max_iterations" =~ ^[1-9][0-9]*$ ]] || die 2 "--max-iterations must be a positive integer"
-  [ -z "$max_tokens" ] || [[ "$max_tokens" =~ ^[1-9][0-9]*$ ]] || die 2 "--max-tokens must be a positive integer"
-  [ -n "$objective" ] || die 2 "overnight requires a non-empty objective"
-  validate_registry
-  resolve_project "$alias"
-  local source_head
-  source_head="$(git -C "$PROJECT_PATH" rev-parse --verify HEAD 2>/dev/null)" || die 3 "GNHF requires a committed Git repository: $PROJECT_PATH"
-  [ -z "$(git -C "$PROJECT_PATH" status --porcelain)" ] || die 3 "overnight requires a clean source checkout; commit the intended starting state first"
-  local lease_holder="agentctl-overnight:$alias:$$"
-  local -a command=(gnhf --max-iterations "$max_iterations" --max-rate-limit-wait 0)
-  [ -z "$max_tokens" ] || command+=(--max-tokens "$max_tokens")
-  [ -z "$agent" ] || command+=(--agent "$agent")
-  command+=("$objective")
-  if [ "$DRY_RUN" -eq 1 ]; then
-    printf 'DRY-RUN: cd %q && treehouse get --lease --lease-holder %q --json\n' "$PROJECT_PATH" "$lease_holder"
-    printf 'DRY-RUN: git -C %q merge --ff-only %q\n' '<treehouse-worktree>' "$source_head"
-    printf 'DRY-RUN: cd %q &&' '<treehouse-worktree>'
-    printf ' %q' "${command[@]}"
-    printf '\n'
-    return 0
-  fi
-
-  require_command treehouse
-  require_command jq
-  require_command gnhf
-  [ "$(gnhf --version)" = "$GNHF_VERSION" ] || die 3 "GNHF version differs from the reviewed pin; run doctor"
-  # Execution permissions are explicit in the managed GNHF adapter (§2.4).
-  "$AGENT_PYTHON" "$SCRIPT_DIR/agent_config.py" --check-gnhf "$agent" || die 3 "GNHF execution mode is missing or unsafe; sync configuration first"
-  local allocation lease_fields worktree lease_id project_root worktree_root status=0
-  allocation="$(cd "$PROJECT_PATH" && treehouse get --lease --lease-holder "$lease_holder" --json)" || \
-    die 1 "Treehouse could not allocate an overnight worktree"
-  lease_fields="$(printf '%s' "$allocation" | jq -er '[.path, .lease_id] | @tsv')" || \
-    die 1 "Treehouse returned an unreadable lease; inspect 'treehouse status' in $PROJECT_PATH"
-  IFS=$'\t' read -r worktree lease_id <<< "$lease_fields"
-  [ -d "$worktree" ] || die 1 "Treehouse reported a missing worktree: $worktree"
-  project_root="$(cd "$PROJECT_PATH" && pwd -P)"
-  worktree_root="$(cd "$worktree" && pwd -P)"
-  [ "$worktree_root" != "$project_root" ] || die 3 "Treehouse returned the primary checkout instead of an isolated worktree"
-
-  printf 'Treehouse lease retained: %s\n' "$worktree_root"
-  printf 'Return it after the work is landed: (cd %q && treehouse return %q --if-lease-id %q)\n' \
-    "$PROJECT_PATH" "$worktree_root" "$lease_id"
-  local project_common worktree_common
-  project_common="$(git -C "$PROJECT_PATH" rev-parse --path-format=absolute --git-common-dir)"
-  worktree_common="$(git -C "$worktree_root" rev-parse --path-format=absolute --git-common-dir)" || die 3 "Treehouse returned a non-repository"
-  [ "$project_common" = "$worktree_common" ] || die 3 "Treehouse returned a different repository"
-  [ -z "$(git -C "$worktree_root" status --porcelain)" ] || die 3 "Treehouse returned a dirty worktree"
-  # Treehouse starts at its configured base; preserve the requested project's actual revision.
-  git -C "$worktree_root" merge --ff-only "$source_head" || die 3 "source revision cannot fast-forward the lease; inspect the retained worktree"
-  (cd "$worktree_root" && "${command[@]}" < /dev/null) || status=1
-  return "$status"
 }
 
 ship_command() {
@@ -574,7 +275,7 @@ ship_command() {
   case "$delivery_mode" in
     no-mistakes) ;;
     direct-PR|local-only|no-mistakes-prod-only)
-      die 3 "ship does not execute delivery.mode=$delivery_mode; use FirstMate for this registered project mode" ;;
+      die 3 "ship does not execute delivery.mode=$delivery_mode; deliver this registered project by hand" ;;
     *) die 2 "project $alias has invalid delivery.mode: $delivery_mode" ;;
   esac
   [ "$delivery_automerge" = true ] || automerge=0
@@ -643,12 +344,8 @@ main() {
   local subcommand="$1"
   shift
   case "$subcommand" in
-    start) start_command "$@" ;;
     doctor) [ $# -eq 0 ] || die 2 "doctor accepts no arguments"; doctor ;;
     sync) while [ $# -gt 0 ]; do case "$1" in --dry-run) DRY_RUN=1 ;; *) die 2 "unknown sync option: $1" ;; esac; shift; done; sync_config ;;
-    project) project_command "$@" ;;
-    fleet) fleet_command "$@" ;;
-    overnight) overnight_command "$@" ;;
     ship) ship_command "$@" ;;
     -h|--help|help) usage ;;
     *) die 2 "unknown command: $subcommand" ;;

@@ -15,7 +15,6 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 CLI = ROOT / "agent/scripts/agentctl"
-FIRSTMATE_PROJECTS = ROOT / "agent/scripts/firstmate-projects.py"
 
 
 class ExecutionTests(unittest.TestCase):
@@ -38,12 +37,10 @@ class ExecutionTests(unittest.TestCase):
                           "$(touch should-not-exist)", "backtick" + chr(96)]
         self.set_registry(self.arguments)
         self.env = dict(os.environ, PATH=str(self.bin) + os.pathsep + os.environ["PATH"],
-                        AGENTCTL_PROJECTS_FILE=str(self.registry), AGENT_PYTHON=sys.executable, HERDR_ENV="0",
+                        AGENTCTL_PROJECTS_FILE=str(self.registry), AGENT_PYTHON=sys.executable,
                         AGENT_CONFIG_HOME=str(self.root / "config-home"),
                         AGENTIC_RULES_DIR=str(self.root / "missing-playbook"),
-                        AGENTCTL_FIRSTMATE_DIR=str(self.root / "firstmate"),
                         FIXTURE_ARGV=str(self.root / "argv.json"))
-        (self.root / "firstmate/.git").mkdir(parents=True)
 
     def set_registry(self, arguments):
         self.registry.write_text(json.dumps({"schema_version": 1, "projects": {"fixture": {
@@ -60,21 +57,9 @@ class ExecutionTests(unittest.TestCase):
         return subprocess.run([str(CLI), *arguments], env=self.env, cwd=self.root,
                               text=True, capture_output=True)
 
-    def test_visualization_preserves_exact_argument_values(self):
-        path = self.bin / "fixture-view"
-        path.write_text("#!" + sys.executable + "\nimport json,os,sys\n"
-                        "from pathlib import Path\n"
-                        "Path(os.environ['FIXTURE_ARGV']).write_text(json.dumps(sys.argv[1:]))\n")
-        path.chmod(0o755)
-        result = self.invoke("project", "fixture", "--visualization", "view")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(json.loads((self.root / "argv.json").read_text()), self.arguments)
-        self.assertFalse((self.project / "should-not-exist").exists())
-
-    def test_newline_argument_is_rejected_before_execution(self):
+    def test_newline_in_the_registry_is_rejected_before_execution(self):
         self.set_registry(["one\ntwo"])
-        self.executable("fixture-view", "exit 99\n")
-        result = self.invoke("project", "fixture", "--visualization", "view")
+        result = self.invoke("ship", "fixture", "--intent", "fixture goal", "--dry-run")
         self.assertEqual(result.returncode, 2)
         self.assertIn("control characters", result.stderr)
 
@@ -82,57 +67,31 @@ class ExecutionTests(unittest.TestCase):
         registry = json.loads(self.registry.read_text())
         registry["projects"]["fixture"]["delivery"] = {"mode": []}
         self.registry.write_text(json.dumps(registry))
-        result = self.invoke("project", "fixture", "--dry-run")
+        result = self.invoke("ship", "fixture", "--intent", "fixture goal", "--dry-run")
         self.assertEqual(result.returncode, 2)
         self.assertIn("delivery.mode is invalid", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
 
-    def test_firstmate_renderer_preserves_private_entries_when_markers_are_invalid(self):
-        target = self.root / "firstmate/data/projects.md"
-        target.parent.mkdir(parents=True)
-        invalid_contents = (
-            "private before\n<!-- BEGIN agentctl managed FirstMate projects -->\nprivate after\n",
-            "private before\n<!-- END agentctl managed FirstMate projects -->\nprivate after\n",
-            "<!-- BEGIN agentctl managed FirstMate projects -->\n"
-            "<!-- BEGIN agentctl managed FirstMate projects -->\n"
-            "<!-- END agentctl managed FirstMate projects -->\nprivate after\n",
-        )
-        for content in invalid_contents:
-            with self.subTest(content=content):
-                target.write_text(content)
-                result = subprocess.run(
-                    [sys.executable, str(FIRSTMATE_PROJECTS), "--projects", str(self.registry),
-                     "--firstmate", str(self.root / "firstmate")],
-                    text=True, capture_output=True,
-                )
-                self.assertEqual(result.returncode, 2)
-                self.assertIn("managed block", result.stderr)
-                self.assertEqual(target.read_text(), content)
-
-    def test_upstream_failures_map_to_one_for_each_execution_path(self):
-        for tool in ("herdr", "gh-axi", "pi", "no-mistakes", "fixture-view"):
+    def test_upstream_failure_maps_to_the_documented_command_failure_exit(self):
+        for tool in ("gh-axi", "no-mistakes"):
             self.executable(tool, "exit 23\n")
-        for arguments in (["start"], ["fleet", "--harness", "pi"], ["ship", "fixture", "--intent", "fixture goal"],
-                          ["project", "fixture"], ["project", "fixture", "--visualization", "view"]):
-            with self.subTest(command=arguments):
-                result = self.invoke(*arguments)
-                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        result = self.invoke("ship", "fixture", "--intent", "fixture goal")
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
-    def test_fleet_launch_writes_firstmate_dispatch_config(self):
-        self.executable("herdr", "if [ \"$1 $2 $3\" = \"integration install pi\" ]; then exit 0; fi\n"
-                                 "if [ \"$1 $2\" = \"integration status\" ]; then echo 'pi: current (v8)'; exit 0; fi\n"
-                                 "exit 23\n")
-        self.executable("pi", "exit 0\n")
-        result = self.invoke("fleet", "--harness", "pi")
+    def test_retired_commands_are_usage_errors(self):
+        for command in ("start", "project", "fleet", "overnight"):
+            with self.subTest(command=command):
+                result = self.invoke(command, "fixture")
+                self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+                self.assertIn("unknown command", result.stderr)
+
+    def test_sync_dry_run_prints_the_command_without_touching_a_home(self):
+        self.executable("fixture-sync", "printf '%s\\n' \"$0 $*\" > \"$FIXTURE_ARGV\"\n")
+        self.env["AGENTCTL_SYNC_SCRIPT"] = str(self.bin / "fixture-sync")
+        result = self.invoke("sync", "--dry-run")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        config = self.root / "firstmate/config"
-        self.assertEqual((config / "backend").read_text(), "herdr\n")
-        self.assertEqual(
-            (config / "crew-dispatch.json").read_text(),
-            (ROOT / "agent/firstmate/crew-dispatch.json").read_text(),
-        )
-        projects = self.root / "firstmate/data/projects.md"
-        self.assertIn("- fixture [no-mistakes +yolo]", projects.read_text())
+        self.assertIn("DRY-RUN:", result.stdout)
+        self.assertFalse((self.root / "argv.json").exists())
 
     def test_ship_runs_no_mistakes_then_schedules_guarded_auto_merge(self):
         self.executable("no-mistakes", "case \"$1 $2\" in\n"
@@ -147,7 +106,7 @@ class ExecutionTests(unittest.TestCase):
                          str(self.bin / "gh-axi") + " pr merge 42 --squash --delete-branch --auto")
 
     def test_doctor_rejects_a_version_probe_that_prints_then_fails(self):
-        for tool in ("herdr", "treehouse", "gnhf", "no-mistakes", "pi", "claude", "codex", "jq"):
+        for tool in ("no-mistakes", "pi", "claude", "codex", "jq"):
             self.executable(tool, "echo 'fixture version'; exit 23\n")
         self.executable("fixture-sync", "exit 0\n")
         self.env["AGENTCTL_SYNC_SCRIPT"] = str(self.bin / "fixture-sync")

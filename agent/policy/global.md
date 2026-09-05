@@ -15,6 +15,10 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 - Put reusable agent instructions, MCP definitions, and skills under
   `~/.dotfiles/agent/`.
 - Vault path: `/Users/idohaber/00_development/vault/`.
+- How the platform is shaped and why: `~/.dotfiles/agent/docs/PHILOSOPHY.md` (skills teach, CLIs act,
+  MCP exposes).
+- Agents work in the checkout they were launched in and do not create worktrees; a second checkout
+  splits ownership of a branch between processes that cannot see each other.
 - Agent memory capture, recall, and consolidation belong to `idosleep`; do not add a second memory
   router, CLI, or store under dotfiles.
 - Project facts that must guide every agent or be reviewed with code belong in project Markdown;
@@ -22,9 +26,9 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 - Prefer AXI helper CLIs when available: `gh-axi` for GitHub reads/writes, `chrome-devtools-axi` for
   browser exploration, `lavish-axi` for rich review artifacts, and `quota-axi` for local quota checks.
   Do not add an AXI memory tool; `idosleep` owns memory.
-- Default ship tasks in registered projects to isolated Treehouse worktrees, no-mistakes review/fix/test
-  PRs, and guarded automatic merge when the PR is green and in scope. Red, destructive, irreversible,
-  security-sensitive, or out-of-scope work still escalates.
+- Registered projects that carry `.no-mistakes.yaml` ship through `agentctl ship`; others use ordinary
+  PRs. Never push or merge red work. Guarded automatic merge applies only to green, in-scope PRs; red,
+  destructive, irreversible, security-sensitive, or out-of-scope work still escalates.
 - Keep conversational output to a minimal outcome, evidence, and next action. When an explanation
   needs a diagram, comparison, plan, dense table, or extended walkthrough, create a local Lavish HTML
   artifact and reply with only a short synopsis plus its path; long chat output is hard to scan and annotate.
@@ -48,11 +52,6 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   numbers, not pictures; GUI and e2e tests run against a hidden app and never take the
   screen; AGENTS.md is canonical and CLAUDE.md imports it; commits carry no AI co-author
   trailers; a release script stops at the local tag and never pushes.
-- Herdr owns visible sessions; [Treehouse](https://github.com/kunchenguid/treehouse) owns every
-  agent worktree. Standalone automation acquires a durable Treehouse lease; FirstMate uses its guarded
-  Treehouse owner lifecycle. Never substitute Herdr, a harness-native worktree tool, or raw `git worktree`,
-  and never force-return unlanded work without explicit discard authority. Unattended loops carry a cost
-  or iteration cap.
 
 ## Boundaries
 

@@ -34,9 +34,7 @@
       "TaskCreate(*)",
       "EnterWorktree(*)",
       "ExitWorktree(*)",
-      "Bash(git worktree add:*)",
-      "Bash(herdr worktree create:*)",
-      "Bash(gnhf --worktree:*)"
+      "Bash(git worktree add:*)"
     ],
     "defaultMode": "auto"
   },
@@ -53,16 +51,6 @@
               "hook",
               "SessionStart"
             ],
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash '/Users/idohaber/.claude/hooks/herdr-agent-state.sh' session",
             "timeout": 10
           }
         ]

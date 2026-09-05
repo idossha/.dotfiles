@@ -206,3 +206,28 @@ The two remaining package skills (intercom and MCP scripting) describe transport
 
 - 2026-09-05 — **Known projects default to FirstMate `no-mistakes +yolo`** — the user granted standing merge authority for work that has passed the proper testing/no-mistakes review pipeline. Encoding that posture in `agent/projects.json` and rendering it into FirstMate's private `data/projects.md` was chosen over hand-editing FirstMate state because `agentctl doctor` can report drift and future project additions inherit the same default. The `+yolo` authority is bounded to green, in-scope PRs; red, destructive, irreversible, security-sensitive, and out-of-scope work still escalates.
 - 2026-09-05 — **Dotfiles opts into no-mistakes for delivery to `main`** — adding root `.no-mistakes.yaml` gives this repository a reviewed lint/test baseline (`agent/tests/run.sh` plus shell syntax) instead of relying on an ad hoc local merge. `agentctl ship` now drives the no-mistakes AXI PR path from a clean feature branch and uses `gh-axi pr merge --auto` for guarded GitHub auto-merge scheduling. Directly fast-forwarding `main` from the feature branch was rejected because it bypasses PR review, CI evidence, and branch protection.
+
+## 2026-09-05 — Retire FirstMate, Herdr, GNHF and Treehouse; adopt PHILOSOPHY.md (§§2, 3, 5–8)
+
+- 2026-09-05 — **The platform drops the fleet supervisor, session multiplexer, unattended-loop runner and
+  worktree pool** — four upstream tools each owned part of a session, checkout or merge lifecycle, so no
+  single process could be named as the owner of a branch, and each one had to be pinned, installed,
+  documented and dry-run tested to stay honest. Keeping them behind flags was rejected because an unused
+  command still has to be tested and kept true, and its stale prose is trusted by the next agent; keeping
+  only the worktree pool was rejected because agents that allocate a second checkout split ownership of
+  the branch, its commits and its cleanup between processes that cannot see each other. The worktree
+  policy is now: agents work in the checkout they were launched in and do not create worktrees, with the
+  existing `git worktree add` and harness-native worktree denials retained as the mechanical guard.
+  Verification: `agent/tests/run.sh`, `agent/scripts/sync-agent-config.sh --check`,
+  `agent/scripts/agentctl doctor`, and a repository-wide grep for the retired tool names.
+- 2026-09-05 — **The operator surface is `agentctl doctor | sync | ship`** — `start`, `project`, `fleet`
+  and `overnight` existed only to launch the retired tools. Exit codes are unchanged. Frozen-list items 6,
+  11 and 12 are marked retired in place rather than renumbered, because §7 numbers are cited from commits,
+  tests and the coherence guard, and renumbering breaks those citations silently.
+- 2026-09-05 — **`agent/docs/PHILOSOPHY.md` states the mechanism-selection rule once** — skills teach,
+  CLIs act, MCP exposes, and each rule names the failure it prevents. It replaces the reasoning that was
+  spread across the retired tools' prose; putting it in AGENTS.md was rejected because the map has a line
+  budget and philosophy is read once, not every session.
+- 2026-09-05 — **`agent/MULTI-HARNESS-PLAN.md` is deleted** — it was already marked a historical design
+  record superseded by this contract, and its Herdr-created-worktree recommendations directly contradicted
+  the worktree policy above. A superseded plan left in the tree is read as instruction by the next agent.

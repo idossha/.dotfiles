@@ -1,109 +1,70 @@
 # Agent Instructions
 
-This is the portable map for the dotfiles agent platform. Read `agent/docs/ARCHITECTURE.md` for the contract,
-then the nearest project `AGENTS.md` for project facts.
+Portable map for the dotfiles agent platform. Read `agent/docs/ARCHITECTURE.md` for the contract and
+`agent/docs/PHILOSOPHY.md` for the shape of the platform, then the nearest project `AGENTS.md`.
 
 ## Commands
 
-- `agent/scripts/agentctl doctor` — inspect links, versions, Herdr/Pi integration status, AXI helpers, and floating dependencies (read-only).
-- `agent/scripts/agentctl start` — launch or attach the Herdr interface.
-- `agent/scripts/sync-agent-config.sh --check` — validate generated harness configuration without changing it.
-- `agent/scripts/agentctl project <name> --dry-run` — show the resolved Herdr project-switching command.
-- `treehouse status` — list this repository's pooled worktrees; `treehouse enter <name>` jumps into one.
-- `agent/scripts/agentctl fleet --harness pi --dry-run` — show the FirstMate-on-Herdr launch command, Pi integration refresh, managed dispatch setup, and managed no-mistakes +yolo project defaults.
-- `agent/scripts/agentctl overnight <name> --max-iterations <n> --dry-run` — show a bounded GNHF run in a Treehouse lease.
+- `agent/scripts/agentctl doctor` — inspect links, versions, AXI helpers, and floating dependencies (read-only).
+- `agent/scripts/agentctl sync` — render or link effective harness configuration (mutates the live home).
+- `agent/scripts/sync-agent-config.sh --check` — validate configuration without changing it.
 - `agent/scripts/agentctl ship <name> --intent <goal> --dry-run` — show the project-opted-in no-mistakes PR gate and guarded auto-merge plan.
 - `agent/tests/run.sh` — run fixture-driven platform checks (temporary state only; no GUI or network).
 - `for f in agent/scripts/*.sh agent/scripts/agentctl agent/tests/*.sh; do bash -n "$f" || exit 1; done` — parse shell entry points.
 
-Before claiming an agent-platform change is complete, run `agent/tests/run.sh` and
-`agent/scripts/agentctl doctor`. A dry-run is evidence of command construction only; it does not prove
-that FirstMate, GNHF, no-mistakes, a GUI, or a remote operation succeeded.
+Before claiming an agent-platform change complete, run `agent/tests/run.sh` and `agentctl doctor`. A
+dry-run proves command construction only, never that no-mistakes or a remote operation succeeded.
 
 ## Sources of Truth
 
 | Concern | Authoritative location |
 |---|---|
 | User policy / dotfiles project map | `agent/policy/global.md` / `agent/AGENTS.md` |
-| Architecture, decisions, and open work | `agent/docs/` |
+| Philosophy, architecture, decisions, open work | `agent/docs/` |
 | Personal and domain procedures | `agent/skills/` |
-| Cross-project engineering procedures | `agentic-rules` skills in `/Users/idohaber/00_development/agentic-rules` |
-| MCP declarations, harness adapters, and AXI helper pins | `agent/mcps/`, `agent/claude/`, `agent/pi/`, `agent/codex/`, `agent/tools.env` |
+| Cross-project engineering procedures | `/Users/idohaber/00_development/agentic-rules` skills |
+| MCP declarations, harness adapters, AXI pins | `agent/mcps/`, `agent/claude/`, `agent/pi/`, `agent/codex/`, `agent/tools.env` |
 | Projects and operator commands | `agent/projects.json`, `agent/scripts/agentctl` |
-| Worktree allocation and lifecycle | [Treehouse](https://github.com/kunchenguid/treehouse), `agent/treehouse/README.md` |
-| Session multiplexing | `agent/herdr/` |
 
-Project-specific commands, data, trust, deployment posture, and delivery configuration belong in the
-project. Agent memory capture, recall, and consolidation belong to `idosleep`; do not maintain a second
-memory router in dotfiles.
+Project commands, data, trust, and delivery configuration belong in the project. Agent memory belongs to
+`idosleep`; do not maintain a second memory router in dotfiles.
 
 ## Engineering Playbook
 
-Use the matching `agentic-rules` skill without waiting to be asked:
-
-- `project-docs` for the markdown roster; `agent-instructions` for AGENTS.md and CLAUDE.md.
-- `architecture-contract` for requirements, contracts, frozen interfaces, and decisions.
-- `testing-backend` for non-visual tests and guards; `testing-frontend-offscreen` for GUI/rendering tests.
-- `ci-guards` for workflows and self-testing guards; `docs-website` for a generated documentation site.
-- `changelog-release` for changelogs, commit messages, versions, tags, and releases.
-
-Read `agentic-rules/docs/PRINCIPLES.md` when those concerns overlap. Do not restate its procedures here:
-two copies drift and different harnesses then follow different rules.
+Use the matching `agentic-rules` skill without waiting to be asked: `project-docs`, `agent-instructions`,
+`architecture-contract`, `testing-backend`, `testing-frontend-offscreen`, `ci-guards`, `docs-website`,
+`changelog-release`. Read `agentic-rules/docs/PRINCIPLES.md` when they overlap; do not restate its
+procedures here, because two copies drift and each harness then follows a different rule.
 
 ## Operating Rules
 
 1. **Preserve user work and inspect status before changing git state** — destructive cleanup can erase
    edits owned by another person or agent.
-2. **Author portable policy once under `agent/` and keep harness adapters thin** — policy copied into
-   Claude, Codex, or Pi settings diverges as soon as only one copy changes.
-3. **Keep harness-written state in local overlays or generated destinations** — linking mutable runtime
-   fields into tracked files makes merely launching a harness dirty the repository.
-4. **Keep project facts in the project and secrets outside version control** — global context otherwise
-   leaks assumptions or credentials into unrelated repositories.
-5. **Author each skill once** — duplicate skill names can load twice or expose different instructions to
-   different harnesses; `~/.agents/skills` is generated by the sync script.
-6. **Use Treehouse for every agent-owned worktree** — pooled slots prevent concurrent writers from
-   colliding, while harness-native, Herdr-native, and raw `git worktree` creation split lifecycle ownership.
-   Standalone automation acquires `treehouse get --lease --lease-holder <task>`; an orchestrator such as
-   FirstMate may use its own guarded Treehouse owner lifecycle. This provider choice supersedes older
-   project templates and examples unless the user explicitly names an exception. Work only in the
-   reported path, return it only after landing, and never force-return unlanded work without explicit
-   discard authority.
-7. **Give unattended GNHF work an isolated Treehouse lease and a finite iteration or token cap** — an
-   unbounded loop can consume time and money or repeatedly damage the active checkout.
-8. **Default ship tasks to Treehouse, no-mistakes PRs and guarded green auto-merge** — the managed
-   FirstMate registry marks known projects `no-mistakes +yolo`: workers use isolated Treehouse slots,
-   no-mistakes owns review/fix/test/PR/CI, and FirstMate may merge only green, in-scope work. Red,
-   destructive, irreversible, security-sensitive or out-of-scope work still escalates.
-9. **Treat FirstMate as an optional supervisor, not a policy source** — importing its AGENTS.md or skills
-   would replace the shared doctrine with an upstream distro's assumptions.
-10. **Run GUI and end-to-end tests hidden and judge renderings analytically** — a visible suite steals
-    focus, and visual inspection is not repeatable evidence.
-11. **Use independent readers and generated reference values in backend tests** — a writer compared with
-    itself turns its own defect into the expected result.
-12. **Stop releases at a local tag and omit AI co-author trailers** — an automatic push can publish a bad
-    release, while generated attribution obscures repository authorship policy.
-13. **Keep chat terse and move explanation-heavy work into Lavish** — long terminal prose is difficult to
-    scan, annotate, and revisit; chat carries only the outcome, essential evidence, and next action.
-14. **Use defaults and narrow pre-approved commands before asking questions** — repeated optional prompts
-    interrupt flow, while mandatory authority and safety decisions remain visible to the user.
+2. **Work in the launched checkout** — agents work in the checkout they were launched in and do not
+   create worktrees; a second checkout splits ownership of a branch between processes that cannot see
+   each other.
+3. **Author portable policy once under `agent/`; keep harness adapters thin** — policy copied into
+   Claude, Codex, or Pi settings diverges as soon as one copy changes.
+4. **Keep project facts in the project, harness-written state in local overlays, secrets out of git** —
+   global context otherwise leaks credentials, and merely launching a harness dirties this repository.
+5. **Author each skill once** — duplicate names load twice or give harnesses different instructions;
+   `~/.agents/skills` is generated by the sync script.
+6. **Ship through the project's gate** — registered projects that carry `.no-mistakes.yaml` ship through
+   `agentctl ship`; others use ordinary PRs. Never push or merge red work: it becomes the published state.
+7. **Prove changes with commands** — GUI tests run hidden and judged analytically, backend expectations
+   come from an independent reader, releases stop at a local tag with no AI co-author trailers; otherwise
+   a suite steals focus, a writer hides its own defect, or a push publishes a bad release.
+8. **Keep chat terse, put long explanations in Lavish, prefer approved defaults to optional questions** —
+   dense terminal prose is hard to review and repeat prompts interrupt already-authorized work.
 
 ## Harness Notes
 
-- Claude Code imports this map through the generated global `CLAUDE.md`; Claude-only files hold only
-  hooks and settings that other harnesses cannot consume.
-- Codex and Pi consume the same global instructions, skills, and MCP declaration through generated links
-  or adapters. Do not patch their live home-directory files.
-- Herdr owns terminal visibility only. Open Treehouse paths in Herdr when a task needs a pane, but do not
-  use `herdr worktree create`, harness-native worktree tools, or raw `git worktree` commands for agent work.
-  After a Herdr update, run `herdr integration install pi` and restart Pi if agent status disappears.
-- After landing canonical configuration changes, run `agent/scripts/agentctl sync` from that checkout; use
-  `agent/scripts/sync-agent-config.sh --check` in tests and reviews so verification cannot mutate live
-  configuration.
+- Claude Code imports this map through the generated global `CLAUDE.md`; Codex and Pi read the same
+  policy, skills, and MCP declaration through generated links. Do not patch their live home files.
+- After canonical configuration changes land, run `agentctl sync` from that checkout; use
+  `sync-agent-config.sh --check` in tests and reviews so verification cannot mutate live configuration.
 
 ## Gotchas That Still Bite
 
-- **An ignore file inside Pi's extensions directory hides the Herdr extension from Pi discovery.** Keep
-  the generated integration ignored from `agent/pi/.gitignore`, not `extensions/.gitignore`.
 - **Pi print mode reads stdin until EOF.** Redirect scripted runs from `/dev/null` unless piped prompt
   content is intentional, or the process can hang indefinitely.

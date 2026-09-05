@@ -16,7 +16,9 @@ def frozen_paths(contract: str) -> set[str]:
     match = re.search(r"^## 7\. Frozen interfaces\n(.*?)(?=^## |\Z)", contract, re.M | re.S)
     if not match:
         raise ValueError("contract has no frozen-interface section")
-    paths = set(re.findall(r"^\d+\.\s+\x60([^\x60]+)\x60", match[1], re.M))
+    # A numbered entry marked retired keeps its position without naming a live frozen path.
+    lines = [line for line in match[1].splitlines() if "retired" not in line.lower()]
+    paths = set(re.findall(r"^\d+\.\s+\x60([^\x60]+)\x60", "\n".join(lines), re.M))
     if not paths:
         raise ValueError("contract has no frozen paths to check")
     return paths
@@ -52,7 +54,7 @@ def source_issues(root: Path) -> list[str]:
         source = (root / relative).read_text()
         if 'source "$AGENT_DIR/tools.env"' not in source:
             issues.append(f"{relative}: consume the shared tool pins")
-        if re.search(r"^(?:TREEHOUSE|GNHF|NO_MISTAKES)_\w+=[\"']?\d", source, re.M):
+        if re.search(r"^(?:NO_MISTAKES|\w*_?AXI)_\w+=[\"']?\d", source, re.M):
             issues.append(f"{relative}: duplicated adopted-tool version")
     paid_conflicts = {
         "agent/skills/manuscript-review/SKILL.md": ("43 = 32 active + 11 sham", "target = **left insula**"),

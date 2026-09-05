@@ -118,6 +118,29 @@ class OwnershipTests(unittest.TestCase):
         with (self.destination / ".codex/config.toml").open("rb") as handle:
             self.assertNotIn("context7", tomllib.load(handle)["mcp_servers"])
 
+    def test_sync_retires_a_destination_this_platform_no_longer_manages(self):
+        self.run_sync()
+        manifest = json.loads(self.layout.manifest.read_text())
+        self.assertIn(str(self.destination / ".agents/mcp.json"), manifest["managed_destinations"])
+        retired_link = self.destination / ".config/retired-tool/config.toml"
+        retired_link.parent.mkdir(parents=True)
+        retired_link.symlink_to(self.agent / "tools.env")
+        retired_file = self.destination / ".retired-tool/config.yml"
+        retired_file.parent.mkdir(parents=True)
+        retired_file.write_text("generated: true\n")
+        unrelated = self.destination / ".retired-tool/user-owned.yml"
+        unrelated.write_text("kept: true\n")
+        manifest["managed_destinations"] = sorted(
+            manifest["managed_destinations"] + [str(retired_link), str(retired_file)])
+        self.layout.manifest.write_text(json.dumps(manifest))
+        self.run_sync()
+        self.assertFalse(retired_link.is_symlink())
+        self.assertFalse(retired_file.exists())
+        self.assertTrue(unrelated.is_file())
+        self.assertEqual((self.agent / "tools.env").is_file(), True)
+        current = json.loads(self.layout.manifest.read_text())["managed_destinations"]
+        self.assertNotIn(str(retired_file), current)
+
     def test_repeat_sync_is_byte_identical_and_does_not_modify_sources(self):
         before = {path.relative_to(self.agent): path.read_bytes()
                   for path in self.agent.rglob("*") if path.is_file()}

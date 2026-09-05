@@ -28,8 +28,7 @@ hooks = true
 # Both below are reported `experimental`.
 # Keeps the machine awake for the length of a long unattended turn.
 prevent_idle_sleep = true
-# Reflows scrollback when the surrounding pane is resized — this matters because
-# Codex runs inside Herdr panes that get split and resized mid-session.
+# Reflows scrollback when the surrounding terminal pane is split or resized mid-session.
 terminal_resize_reflow = true
 
 # Clear earlier forced prompts so tools follow the user's automatic permission policy.

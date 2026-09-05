@@ -89,15 +89,15 @@ scratch=$(mktemp -d "${TMPDIR:-/tmp}/agentctl-tests.XXXXXX")
 trap 'rm -rf "$scratch"' EXIT HUP INT TERM
 repo="$scratch/project with spaces"
 mkdir -p "$repo" "$scratch/bin"
-git -C "$repo" init -q
+git -C "$repo" init -q -b main
 git -C "$repo" commit -q --allow-empty -m "fixture: initial revision"
 
 escaped_repo=$(printf '%s' "$repo" | sed 's/[&|]/\\&/g')
 sed "s|@PROJECT@|$escaped_repo|g" "$fixtures/projects.valid.json" > "$scratch/projects.json"
 
-# A dry-run must not execute either the visualization or an upstream orchestration tool.
+# A dry-run must not execute an upstream delivery tool.
 invocation_log="$scratch/invocations.log"
-for tool in fixture-editor herdr gh-axi gnhf no-mistakes pi treehouse; do
+for tool in gh-axi no-mistakes pi; do
   # shellcheck disable=SC2016 # The fake must expand these only if agentctl wrongly executes it.
   printf '#!/bin/sh\nprintf "%%s\\n" "$0 $*" >> "$AGENTCTL_TEST_LOG"\n' > "$scratch/bin/$tool"
   chmod +x "$scratch/bin/$tool"
@@ -105,73 +105,45 @@ done
 export AGENTCTL_TEST_LOG="$invocation_log"
 test_path="$scratch/bin:$PATH"
 
-run_capture env PATH="$test_path" "$agentctl" start --dry-run
-expect_status 0 "single entrypoint dry-run opens Herdr"
-expect_contains "DRY-RUN: herdr" "single entrypoint resolves directly to Herdr"
+run_capture env PATH="$test_path" "$agentctl" --help
+expect_status 0 "help is available without a registry"
+expect_contains "doctor" "help documents the doctor command"
+expect_contains "sync" "help documents the sync command"
+expect_contains "ship" "help documents the ship command"
+for retired in start project fleet overnight; do
+  run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
+    "$agentctl" "$retired" fixture --dry-run
+  expect_status 2 "retired command '$retired' is a usage error"
+done
+
+# sync is the only command allowed to write configuration, and --dry-run must write nothing.
+printf '#!/bin/sh\nprintf "%%s\\n" "$0 $*" >> "$AGENTCTL_TEST_LOG"\n' > "$scratch/bin/fixture-sync"
+chmod +x "$scratch/bin/fixture-sync"
+run_capture env PATH="$test_path" AGENTCTL_SYNC_SCRIPT="$scratch/bin/fixture-sync" \
+  "$agentctl" sync --dry-run
+expect_status 0 "sync dry-run resolves the canonical sync script"
+expect_contains "DRY-RUN:" "sync dry-run is visibly labelled"
 if [ ! -e "$invocation_log" ]; then
-  pass "entrypoint dry-run does not launch Herdr"
+  pass "sync dry-run executes no configuration write"
 else
-  fail "entrypoint dry-run does not launch Herdr"
+  fail "sync dry-run executes no configuration write"
 fi
 
-run_capture env PATH="$test_path" "$agentctl" start --harness pi --dry-run
-expect_status 2 "start rejects the former ambiguous harness option"
-
-run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
-  "$agentctl" project fixture --visualization editor --dry-run
-expect_status 0 "valid registry and visualization resolve"
-expect_contains "DRY-RUN:" "dry-run is visibly labelled"
-expect_contains "fixture-editor" "visualization stays an argv command"
-if [ ! -e "$invocation_log" ]; then
-  pass "dry-run executes no upstream command"
-else
-  fail "dry-run executes no upstream command"
-fi
-
-mkdir -p "$scratch/firstmate/.git"
-run_capture env AGENTCTL_FIRSTMATE_DIR="$scratch/firstmate" PATH="$test_path" \
-  "$agentctl" fleet --harness pi --dry-run
-expect_status 0 "FirstMate fleet dry-run accepts the Pi harness"
-expect_contains "herdr integration install pi" "FirstMate Pi dry-run refreshes Herdr's Pi integration"
-expect_contains "herdr integration status" "FirstMate Pi dry-run checks Herdr integration status"
-expect_contains "FM_BACKEND=herdr" "FirstMate is explicitly configured for Herdr"
-expect_contains "crew-dispatch.json" "FirstMate dry-run applies token-aware dispatch profiles"
-expect_contains "data/projects.md" "FirstMate dry-run seeds managed project delivery defaults"
-expect_contains "no-mistakes +yolo" "FirstMate dry-run defaults projects to no-mistakes with autonomous green merge"
-expect_contains "pi" "FirstMate dry-run preserves the selected harness"
-if [ ! -e "$invocation_log" ]; then
-  pass "fleet dry-run executes no harness"
-else
-  fail "fleet dry-run executes no harness"
-fi
+run_capture env PATH="$test_path" AGENTCTL_SYNC_SCRIPT="$scratch/bin/fixture-sync" \
+  "$agentctl" sync --unknown-option
+expect_status 2 "unknown sync option is a usage error"
 
 run_capture env AGENTCTL_PROJECTS_FILE="$fixtures/projects.invalid-shell-string.json" \
-  "$agentctl" project unsafe --dry-run
+  "$agentctl" ship unsafe --intent "fixture goal" --dry-run
 expect_status 2 "shell-string visualization is rejected as invalid registry"
 
 run_capture env AGENTCTL_PROJECTS_FILE="$fixtures/projects.empty.json" \
-  "$agentctl" project anything --dry-run
+  "$agentctl" ship anything --intent "fixture goal" --dry-run
 expect_status 2 "empty registry cannot pass vacuously"
 
 run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" \
-  "$agentctl" project missing --dry-run
+  "$agentctl" ship missing --intent "fixture goal" --dry-run
 expect_status 2 "unknown project alias is a usage/configuration error"
-
-run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
-  "$agentctl" overnight fixture --dry-run -- "bounded fixture task"
-expect_status 0 "overnight dry-run accepts an objective"
-expect_contains "treehouse get --lease" "overnight always requests a durable Treehouse lease"
-expect_not_contains "gnhf --worktree" "overnight does not delegate worktree creation to GNHF"
-expect_contains "--max-iterations" "overnight supplies a finite default cap"
-expect_contains "10" "overnight default cap is ten iterations"
-
-run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
-  "$agentctl" overnight fixture --max-iterations 0 --dry-run -- "invalid cap"
-expect_status 2 "zero iteration cap is rejected"
-
-run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
-  "$agentctl" overnight fixture --dry-run
-expect_status 2 "overnight run without an objective is rejected"
 
 run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
   "$agentctl" ship fixture --dry-run
@@ -184,66 +156,56 @@ expect_status 0 "project-local no-mistakes opt-in enables shipping dry-run"
 expect_contains "no-mistakes axi run" "shipping resolves the no-mistakes AXI delivery gate"
 expect_contains "gh-axi pr merge" "shipping schedules guarded GitHub auto-merge by default"
 
+run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
+  "$agentctl" ship fixture --no-automerge --dry-run
+expect_status 0 "shipping accepts an explicit no-automerge run"
+expect_not_contains "gh-axi pr merge" "no-automerge withholds the guarded merge step"
+
+if [ ! -e "$invocation_log" ]; then
+  pass "every ship dry-run executes no upstream command"
+else
+  fail "every ship dry-run executes no upstream command"
+fi
+
 git -C "$repo" add .no-mistakes.yaml
 git -C "$repo" commit -q -m "fixture: delivery opt-in"
 
-leased="$scratch/leased tree"
-mkdir -p "$leased"
-cp "$repo/.no-mistakes.yaml" "$leased/.no-mistakes.yaml"
-# Synthetic linked checkout metadata: shares only this temporary repository's Git directory.
-printf 'gitdir: %s/.git\n' "$repo" > "$leased/.git"
-leased_real="$(cd "$leased" && pwd -P)"
-cat > "$scratch/bin/treehouse" <<EOF
-#!/bin/sh
-printf '%s\n' "\$0 \$*" >> "\$AGENTCTL_TEST_LOG"
-case "\$1" in
-  --version) printf 'v2.3.0\n' ;;
-  get) printf '%s\n' '{"path":"$leased","lease_id":"fixture-lease"}' ;;
-esac
-EOF
-cat > "$scratch/bin/gnhf" <<'EOF'
-#!/bin/sh
-if [ "$1" = --version ]; then printf '0.1.49\n'; exit 0; fi
-printf '%s\n' "$PWD $0 $*" >> "$AGENTCTL_TEST_LOG"
-exit "${AGENTCTL_TEST_GNHF_STATUS:-0}"
-EOF
-chmod +x "$scratch/bin/treehouse" "$scratch/bin/gnhf"
-export AGENT_CONFIG_HOME="$scratch/config-home"
-mkdir -p "$AGENT_CONFIG_HOME/.gnhf"
-cp "$agent_dir/gnhf/config.yml" "$AGENT_CONFIG_HOME/.gnhf/config.yml"
-: > "$invocation_log"
+# ship must refuse a dirty or base-branch checkout before no-mistakes can start.
 run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
-  "$agentctl" overnight fixture --max-iterations 1 -- "retained fixture task"
-expect_status 0 "overnight runs from an allocated Treehouse lease"
-expect_contains "Treehouse lease retained: $leased_real" "overnight reports the retained worktree path"
-expect_contains "--if-lease-id fixture-lease" "overnight prints identity-bound return guidance"
-run_capture cat "$invocation_log"
-expect_contains "$leased_real" "GNHF execution records the leased worktree as its working directory"
-expect_not_contains "gnhf --worktree" "actual overnight execution does not ask GNHF to allocate another worktree"
-
-run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
-  AGENTCTL_TEST_GNHF_STATUS=7 "$agentctl" overnight fixture --max-iterations 1 -- "upstream failure"
-expect_status 1 "upstream GNHF failure maps to the documented command-failure exit"
-
+  "$agentctl" ship fixture --intent "fixture goal"
+expect_status 3 "ship refuses to run from the base branch"
+git -C "$repo" checkout -q -b feature
 printf 'uncommitted' > "$repo/dirty-fixture"
 run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
-  "$agentctl" overnight fixture --max-iterations 1 -- "dirty source"
-expect_status 3 "overnight rejects a dirty source instead of auditing an older revision"
+  "$agentctl" ship fixture --intent "fixture goal"
+expect_status 3 "ship refuses uncommitted work before the gate starts"
 rm "$repo/dirty-fixture"
 
 run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
-  "$agentctl" overnight fixture --max-iterations 1 --agent unreviewed-provider -- "new adapter"
-expect_status 3 "unreviewed GNHF execution mode cannot silently inherit upstream permission bypass"
+  "$agentctl" ship fixture
+expect_status 2 "ship without --intent cannot judge the change"
 
-# Keep ordinary system utilities available while ensuring GNHF itself cannot resolve.
+# Keep ordinary system utilities available while ensuring no-mistakes cannot resolve.
 missing_path="$scratch/missing-bin:/usr/bin:/bin"
 mkdir -p "$scratch/missing-bin"
-printf '#!/bin/sh\nexit 0\n' > "$scratch/missing-bin/treehouse"
-printf '#!/bin/sh\nexit 0\n' > "$scratch/missing-bin/jq"
-chmod +x "$scratch/missing-bin/treehouse" "$scratch/missing-bin/jq"
 run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$missing_path" \
-  "$agentctl" overnight fixture --max-iterations 1 -- "dependency check"
-expect_status 4 "missing GNHF dependency has the stable missing-tool exit code"
+  "$agentctl" ship fixture --intent "fixture goal"
+expect_status 4 "missing delivery dependency has the stable missing-tool exit code"
+
+# doctor is read-only: a failing sync check must surface, never be repaired silently.
+printf '#!/bin/sh\nprintf "%%s\\n" "$0 $*" >> "$AGENTCTL_TEST_LOG"\nexit 1\n' > "$scratch/bin/failing-sync"
+chmod +x "$scratch/bin/failing-sync"
+: > "$invocation_log"
+run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
+  AGENTCTL_SYNC_SCRIPT="$scratch/bin/failing-sync" AGENT_CONFIG_HOME="$scratch/doctor-home" \
+  AGENTIC_RULES_DIR="$scratch/missing-playbook" "$agentctl" doctor
+expect_status 1 "doctor reports a failed installed-configuration check"
+run_capture cat "$invocation_log"
+expect_contains "--check-installed" "doctor asks the sync script only for a check"
+
+run_capture env AGENTCTL_PROJECTS_FILE="$scratch/projects.json" PATH="$test_path" \
+  "$agentctl" doctor --repair
+expect_status 2 "doctor accepts no arguments"
 
 run_capture "$AGENT_PYTHON" -c '
 import json, sys
@@ -253,34 +215,20 @@ deny = settings["permissions"]["deny"]
 assert "EnterWorktree(*)" not in allow and "ExitWorktree(*)" not in allow
 assert "EnterWorktree(*)" in deny and "ExitWorktree(*)" in deny
 assert "Bash(git worktree add:*)" in deny
-assert "Bash(herdr worktree create:*)" in deny
-assert "Bash(gnhf --worktree:*)" in deny
 ' "$agent_dir/claude/settings.json"
 expect_status 0 "Claude native worktree allocation is denied in canonical settings"
 
-run_capture grep -F "Treehouse for every agent-owned worktree" "$agent_dir/AGENTS.md"
-expect_status 0 "portable instructions make Treehouse the worktree owner"
-
-run_capture grep -F "treehouse enter --print-path" "$agent_dir/treehouse/README.md"
-expect_status 0 "Treehouse guide documents native current-shell jumping"
+run_capture grep -F "Work in the launched checkout" "$agent_dir/AGENTS.md"
+expect_status 0 "portable instructions keep agents in the launched checkout"
 
 installer="$agent_dir/scripts/install-agent-tools.sh"
-# shellcheck disable=SC2016 # The fake must expand $1 only when the installer probes it.
-printf '#!/bin/sh\n[ "$1" = --version ] && printf "v0.0.0\\n"\n' > "$scratch/bin/treehouse"
-chmod +x "$scratch/bin/treehouse"
-run_capture env PATH="$test_path" AGENT_TOOLS_DIR="$scratch/agent-tools" \
-  AGENTCTL_FIRSTMATE_DIR="$scratch/agent-tools/firstmate" "$installer" --tools --dry-run
-expect_status 0 "tool installer dry-run accepts the Treehouse integration"
-expect_contains "treehouse-v2.3.0-" "tool installer selects the exact Treehouse release archive"
-expect_contains "kunchenguid/treehouse/releases/download/v2.3.0/checksums.txt" \
-  "tool installer verifies Treehouse against the published checksum list"
-expect_contains "herdr integration install pi" "tool installer refreshes Herdr's Pi integration"
+run_capture env PATH="$test_path" "$installer" --tools --dry-run
+expect_status 0 "tool installer dry-run resolves the adopted tools"
+expect_contains "no-mistakes" "tool installer includes the pinned delivery gate"
 expect_contains "gh-axi@" "tool installer includes pinned AXI GitHub helper"
 expect_contains "chrome-devtools-axi@" "tool installer includes pinned AXI browser helper"
 expect_contains "lavish-axi@" "tool installer includes pinned AXI review helper"
 expect_contains "quota-axi@" "tool installer includes pinned AXI quota helper"
-expect_contains "crew-dispatch.json" "tool installer seeds FirstMate token-aware dispatch profiles"
-expect_contains "data/projects.md" "tool installer seeds managed FirstMate project delivery defaults"
 
 run_capture "$AGENT_PYTHON" -c '
 import sys, unittest

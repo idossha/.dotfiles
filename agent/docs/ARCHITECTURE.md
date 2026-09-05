@@ -1,10 +1,9 @@
 # Agent Platform — Architecture Contract
 
-> The dotfiles agent platform gives one developer a shared policy, tool, and session layer across
-> Claude Code, Codex, and Pi, with Herdr providing visible multi-project multiplexing and Treehouse
-> providing every agent-owned worktree.
+> The dotfiles agent platform gives one developer a shared policy and tool layer across Claude Code,
+> Codex, and Pi, with one operator CLI and an optional project-local delivery gate.
 
-This file is the **contract**. Deviating from it requires editing this file in the same commit and
+[PHILOSOPHY.md](PHILOSOPHY.md) states why the platform is shaped this way; this file is the **contract**. Deviating from it requires editing this file in the same commit and
 appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and must not be renumbered.
 
 ## 1. Sources of truth
@@ -22,34 +21,19 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 
 ## 2. Runtime layers
 
-1. **Herdr is the terminal and session substrate.** One workspace represents one primary repository;
-   tabs and panes expose editors, agents, logs, and visualizations without using terminal position as
-   task identity. Herdr may open an existing worktree path but does not allocate or retire agent worktrees.
-2. **Treehouse is the sole worktree provider.** Every agent-owned project worktree is a managed
-   [Treehouse](https://github.com/kunchenguid/treehouse) pool slot. Standalone or detached automation
-   uses a durable lease, while an orchestrator may use its guarded Treehouse owner lifecycle. Harness-native
-   worktree tools, Herdr's create/remove commands, GNHF's worktree flag, and raw `git worktree` lifecycle
-   commands are not alternate allocators.
-3. **FirstMate is an optional fleet supervisor over Herdr.** It runs from its own upstream checkout
-   and state home; dotfiles configure and launch it but do not vendor its operating contract. Its
-   configured Herdr backend already acquires Treehouse worktrees. Dotfiles seed FirstMate's local
-   crew-dispatch profile so worker model and effort choices scale by task size: lightweight low-effort
-   candidates for small bounded work, and stronger high-effort candidates for large or ambiguous work.
-   Dotfiles also seed its private project registry from `agent/projects.json`; absent delivery fields
-   default to `no-mistakes +yolo`, meaning ship tasks use no-mistakes PR review/test gates and FirstMate
-   may merge green in-scope work without another confirmation. A Pi-backed fleet launch refreshes
-   Herdr's Pi integration before starting Pi so agent status remains visible after a Herdr update.
-4. **GNHF is the bounded unattended-loop runner.** Dotfiles acquire a retained Treehouse lease and
-   require iteration limits, no usage-limit waiting by default, and a reviewed execution-mode adapter;
-   upstream permission-bypass defaults are not inherited. The source must be clean and committed; the
-   lease must belong to the same repository and fast-forward to that source revision. GNHF owns
-   iteration commits and its rollback within that exclusive lease; the parent reviews the result.
-   Direct pushing is never the default. A token cap includes cached usage and can roll back an
-   unfinished iteration; the final run status, not process launch, establishes completion.
-5. **no-mistakes is the default registered-project delivery gate, still project-opted-in.** Known
-   projects default to the FirstMate `no-mistakes +yolo` posture, but each repository must carry its own
-   reviewed `.no-mistakes.yaml` before `agentctl ship` runs. Project config owns the concrete lint/test
-   commands; dotfiles provide discovery, launch, and guarded auto-merge scheduling for GitHub PRs.
+1. **Harness adapters are the runtime.** Claude Code, Codex, and Pi each run in the checkout the user
+   launched them in; dotfiles supply their policy, skills, and MCP declaration and nothing else. There is
+   no session multiplexer, fleet supervisor, or unattended loop runner in this platform.
+2. **Agents do not allocate worktrees.** Agents work in the checkout they were launched in and do not
+   create worktrees, because a second checkout splits ownership of a branch, its commits, and its cleanup
+   between processes that cannot see each other. Harness-native worktree tools and raw `git worktree`
+   lifecycle commands stay denied.
+3. *Retired 2026-09-05* (formerly the optional fleet supervisor over a session substrate).
+4. *Retired 2026-09-05* (formerly the bounded unattended-loop runner).
+5. **no-mistakes is the project-opted-in delivery gate.** Registered projects that carry a reviewed
+   `.no-mistakes.yaml` ship through `agentctl ship`; others use ordinary PRs, and red work is never pushed
+   or merged. Project config owns the concrete lint/test commands; dotfiles provide discovery, launch, and
+   guarded auto-merge scheduling for GitHub PRs.
 
 ## 3. Configuration ownership
 
@@ -77,17 +61,8 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    this prevents new sessions or a later sync from restoring routine permission prompts. Existing
    conversations retain their native session IDs during reload. Explicit invocation overrides and
    managed requirements remain effective; other harness adapters keep their own settings.
-8. **FirstMate worker dispatch policy is seeded from a tracked template.** `agent/firstmate/crew-dispatch.json`
-   is copied into the external checkout's gitignored `config/crew-dispatch.json` by the installer and by
-   `agentctl fleet`; this gives the user's standing permission to route small workers to cheaper
-   low-effort profiles while preserving stronger profiles for hard work. `agentctl doctor` reports drift,
-   and absent local files before setup reproduce FirstMate's previous static-harness behavior.
-9. **FirstMate project delivery posture is seeded from the project registry.** `agent/projects.json`
-   may set `delivery.mode`, `delivery.automerge`, and `delivery.description`; missing fields mean
-   `no-mistakes`, `true`, and the project label. The installer and `agentctl fleet` render those values
-   into a managed block in FirstMate's private `data/projects.md`, preserving unrelated private entries.
-   This is the user's standing `+yolo` merge authority only for green, in-scope PRs after no-mistakes and
-   CI; red, destructive, irreversible, security-sensitive, and out-of-scope work still escalates.
+8. *Retired 2026-09-05* (formerly the seeded worker model/effort dispatch template).
+9. *Retired 2026-09-05* (formerly the supervisor project-posture rendering from the registry).
 
 ## 4. Shared development doctrine
 
@@ -106,23 +81,21 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 
 ## 5. Operator surface
 
-1. **`agentctl` is the single human and agent entry point.** `agentctl start` launches or attaches
-   Herdr without implicitly starting a model harness; separate commands expose health checks,
-   synchronization, workspace entry, fleet launch, bounded overnight work, and delivery gates with
-   stable exit codes. `agentctl fleet` applies the managed FirstMate backend, crew-dispatch profile, and
-   no-mistakes +yolo project registry before launching the selected primary harness. `agentctl ship`
-   runs a repository's no-mistakes AXI PR gate from a clean feature branch and schedules a guarded
-   GitHub auto-merge unless disabled.
+1. **`agentctl` is the single human and agent entry point.** Its surface is
+   `agentctl doctor | sync | ship <name> --intent <goal> [--dry-run] [--no-automerge]`, with stable exit
+   codes. `doctor` is read-only, `sync` renders or links effective harness configuration from the landed
+   canonical checkout, and `ship` runs a repository's no-mistakes AXI PR gate from a clean feature branch
+   and schedules a guarded GitHub auto-merge unless disabled. A wrapper for every upstream tool was
+   rejected: an unused command still has to be tested and kept true.
 2. **Commands compose instead of hiding upstream tools.** `agentctl` prints the resolved command in
    dry-run mode and preserves upstream logs and recovery instructions.
    GitHub inspection defaults to `gh-axi` when available; browser exploration defaults to
    `chrome-devtools-axi`; dense human review uses `lavish-axi`; routing diagnostics use `quota-axi`.
    Project tests and delivery gates remain the source of truth.
-3. **Fast project switching is name-based.** A small project registry maps stable names to repository
-   paths and optional visualization commands; paths are not duplicated across shell aliases and harness files.
-4. **Fast worktree switching uses Treehouse's native selector.** `treehouse status` supplies stable
-   names or numbers, `treehouse enter <name>` opens a subshell, and
-   `cd "$(treehouse enter --print-path <name>)"` moves the current shell without another wrapper.
+3. **Project naming is registry-based.** `agent/projects.json` maps stable names to repository paths and
+   delivery posture, so paths are not duplicated across shell aliases and harness files.
+4. **Agents do not switch checkouts on their own.** The user launches a harness in the repository the
+   work belongs to; §2.2 forbids allocating another.
 5. **Chat is a synopsis surface and Lavish is the explanation surface.** Agents return the outcome,
    decisive evidence, and next action in chat; diagrams, comparisons, plans, dense tables, and extended
    walkthroughs are local Lavish artifacts so the user can inspect and annotate them.
@@ -134,12 +107,8 @@ The platform gate is command-based:
 - `agent/scripts/sync-agent-config.sh --check` validates canonical inputs without modifying them.
 - `agent/scripts/agentctl doctor` reports harness versions, integrations, tools, links, and floating dependencies.
 - Each shell script passes its own `bash -n <file>` invocation; JSON and TOML parse; project aliases resolve to existing directories.
-- A dry-run test proves GNHF acquires Treehouse isolation without its own worktree flag, receives a finite
-  cap, and leaves no push enabled; no-mistakes remains opt-in.
-- FirstMate fleet and installer dry-runs print the managed `crew-dispatch.json` setup, managed
-  `data/projects.md` delivery posture, and the Pi integration refresh. The CLI fixture test proves a real
-  fleet launch writes the same bytes into the external checkout's local config, renders the project
-  registry as no-mistakes +yolo, and refreshes Herdr's Pi integration before starting Pi.
+- A dry-run test proves `agentctl ship` stays opt-in: it refuses a project without a reviewed
+  `.no-mistakes.yaml` and prints the auto-merge decision rather than performing it.
 - `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
   back with independent JSON/TOML parsers; tests neither source the user's shell profile nor access
   real homes, vaults, remotes or visible apps.
@@ -155,13 +124,13 @@ Changing these requires this contract and `agent/docs/DECISIONS.md` in the same 
 3. `agent/mcps/mcp-servers.json` — the shared MCP declaration.
 4. `agent/scripts/sync-agent-config.sh` — tracked/generated/local ownership boundaries.
 5. `agent/scripts/agent_config.py` — configuration validation, rendering and discovery semantics.
-6. `agent/gnhf/config.yml` — unattended execution defaults.
+6. *Retired 2026-09-05* (formerly the unattended-loop runner's execution defaults).
 7. `agent/tools.env` — shared adopted-tool pins.
 8. `agent/scripts/check_coherence.py` — source and commit guard semantics.
 9. `.github/workflows/agent-platform.yml` — platform verification triggers and jobs.
 10. `agent/scripts/pi-resources.mjs` — native resource-discovery probe and evidence scope.
-11. `agent/firstmate/crew-dispatch.json` — FirstMate worker model/effort dispatch defaults.
-12. `agent/scripts/firstmate-projects.py` — FirstMate managed project-posture rendering semantics.
+11. *Retired 2026-09-05* (formerly the worker model/effort dispatch defaults).
+12. *Retired 2026-09-05* (formerly the managed project-posture rendering script).
 13. `.no-mistakes.yaml` — dotfiles delivery-gate commands and evidence policy.
 
 Additive fields are optional; when absent, they reproduce the previous behavior.
@@ -170,16 +139,16 @@ Additive fields are optional; when absent, they reproduce the previous behavior.
 
 **Portable means shared intent and verifiable adapters, not identical provider capabilities.**
 AGENTS.md routes policy; skills own procedures; CLI programs perform operations; MCP exposes structured
-capabilities; plugins distribute provider-compatible bundles. Orchestrators select and supervise work
-but do not grant authority. Provider-specific frontmatter is optional metadata, never the sole place
+capabilities; plugins distribute provider-compatible bundles ([PHILOSOPHY.md](PHILOSOPHY.md)). Tools and
+plugins do not grant authority. Provider-specific frontmatter is optional metadata, never the sole place
 an essential constraint is stated.
 
 | Concern | Sole procedural or state owner |
 |---|---|
 | Engineering contract, testing, CI and release procedures | External agentic-rules playbook |
 | Git collaboration and remote coordination | Active harness Git tools plus the external changelog-release playbook for commit/release grammar |
-| In-session delegation / persistent fleet / unattended iterations | Active harness / FirstMate / GNHF, one selected owner per task |
-| Worktrees / visible sessions | Treehouse / Herdr |
+| In-session delegation and unattended iterations | The active harness in its checkout, one explicit owner per task |
+| Worktrees and terminal sessions | The active harness in its checkout; agents do not create worktrees |
 | Test assertions and delivery commands | Each project; local checks and CI invoke the same scripts |
 | Agent memory capture, recall and consolidation | `idosleep` vault, hooks and MCP; project docs remain the reviewable source for project decisions |
 | Session logs and caches | Native runtime owner; no automatic second memory copy in dotfiles |
@@ -190,7 +159,7 @@ an essential constraint is stated.
 | Python | 3.11 minimum | Standard-library TOML reader; interpreter preflight prevents false validation on macOS's older Python |
 | Node.js | 20+ for Pi discovery and its fixture checks | Native RPC adapter uses built-in modules only |
 | PyYAML and tomli-w | `agent/requirements.txt` | Real YAML parsing and TOML serialization; handwritten parsers and skipped checks rejected |
-| Treehouse, GNHF, no-mistakes, FirstMate | `agent/tools.env` | One pin source for installation and doctor prevents two independent upgrade lists |
+| no-mistakes | `agent/tools.env` | One pin source for installation and doctor prevents two independent upgrade lists |
 | AXI helper CLIs: gh-axi, chrome-devtools-axi, lavish-axi, quota-axi | `agent/tools.env` | Agent-ergonomic shell helpers are pinned by the same installer surface; absent helpers are optional, mismatched installed helpers are reported |
 | Pi packages | `agent/pi/settings.json` | Adapter-specific exact package references |
 | Canonical MCP packages | `agent/mcps/mcp-servers.json` | Exact versions of the locally exercised servers |
@@ -199,7 +168,7 @@ an essential constraint is stated.
 The operator manual for §3 and upgrades is [CONFIGURATION.md](CONFIGURATION.md).
 After a provider upgrade, inspect its installed help/schema and discovery, run the platform gate and
 doctor, then exercise any changed adapter. Green fixtures do not prove model activation, remote
-service health, or a live fleet/delivery workflow.
+service health, or a live delivery workflow.
 
 ## 9. Continuous integration
 
