@@ -15,6 +15,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 CLI = ROOT / "agent/scripts/agentctl"
+FIRSTMATE_PROJECTS = ROOT / "agent/scripts/firstmate-projects.py"
 
 
 class ExecutionTests(unittest.TestCase):
@@ -76,6 +77,37 @@ class ExecutionTests(unittest.TestCase):
         result = self.invoke("project", "fixture", "--visualization", "view")
         self.assertEqual(result.returncode, 2)
         self.assertIn("control characters", result.stderr)
+
+    def test_non_string_delivery_mode_is_rejected_without_a_traceback(self):
+        registry = json.loads(self.registry.read_text())
+        registry["projects"]["fixture"]["delivery"] = {"mode": []}
+        self.registry.write_text(json.dumps(registry))
+        result = self.invoke("project", "fixture", "--dry-run")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("delivery.mode is invalid", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_firstmate_renderer_preserves_private_entries_when_markers_are_invalid(self):
+        target = self.root / "firstmate/data/projects.md"
+        target.parent.mkdir(parents=True)
+        invalid_contents = (
+            "private before\n<!-- BEGIN agentctl managed FirstMate projects -->\nprivate after\n",
+            "private before\n<!-- END agentctl managed FirstMate projects -->\nprivate after\n",
+            "<!-- BEGIN agentctl managed FirstMate projects -->\n"
+            "<!-- BEGIN agentctl managed FirstMate projects -->\n"
+            "<!-- END agentctl managed FirstMate projects -->\nprivate after\n",
+        )
+        for content in invalid_contents:
+            with self.subTest(content=content):
+                target.write_text(content)
+                result = subprocess.run(
+                    [sys.executable, str(FIRSTMATE_PROJECTS), "--projects", str(self.registry),
+                     "--firstmate", str(self.root / "firstmate")],
+                    text=True, capture_output=True,
+                )
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("managed block", result.stderr)
+                self.assertEqual(target.read_text(), content)
 
     def test_upstream_failures_map_to_one_for_each_execution_path(self):
         for tool in ("herdr", "gh-axi", "pi", "no-mistakes", "fixture-view"):

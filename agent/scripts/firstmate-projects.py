@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import sys
+import tempfile
 
 BEGIN = "<!-- BEGIN agentctl managed FirstMate projects -->"
 END = "<!-- END agentctl managed FirstMate projects -->"
@@ -86,24 +88,22 @@ def render_block(projects_file: Path) -> str:
 
 def without_existing_block(content: str) -> str:
     lines = content.splitlines()
-    output: list[str] = []
-    index = 0
-    removed = False
-    while index < len(lines):
-        if lines[index].strip() == BEGIN:
-            removed = True
-            index += 1
-            while index < len(lines) and lines[index].strip() != END:
-                index += 1
-            if index < len(lines):
-                index += 1
-            while index < len(lines) and lines[index] == "":
-                index += 1
-            continue
-        output.append(lines[index])
-        index += 1
-    if not removed:
+    begin_positions = [index for index, line in enumerate(lines) if line.strip() == BEGIN]
+    end_positions = [index for index, line in enumerate(lines) if line.strip() == END]
+    if len(begin_positions) > 1 or len(end_positions) > 1:
+        raise RegistryError("FirstMate projects registry has duplicate managed block markers")
+    if len(begin_positions) != len(end_positions):
+        raise RegistryError("FirstMate projects registry has an unbalanced managed block")
+    if not begin_positions:
         return content
+    begin = begin_positions[0]
+    end = end_positions[0]
+    if begin > end:
+        raise RegistryError("FirstMate projects registry has an unbalanced managed block")
+    index = end + 1
+    while index < len(lines) and lines[index] == "":
+        index += 1
+    output = [*lines[:begin], *lines[index:]]
     return "\n".join(output).strip("\n") + ("\n" if output else "")
 
 
@@ -114,6 +114,22 @@ def desired_content(projects_file: Path, target: Path) -> str:
     if remainder:
         return block + "\n\n" + remainder + "\n"
     return block + "\n"
+
+
+def replace_atomic(target: Path, content: str) -> None:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=target.parent, prefix=f".{target.name}.", delete=False
+        ) as handle:
+            handle.write(content)
+            temporary = Path(handle.name)
+        temporary.chmod(0o600)
+        os.replace(temporary, target)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -145,10 +161,8 @@ def main(argv: list[str] | None = None) -> int:
         print(render_block(args.projects), end="")
         return 0
 
-    target.parent.mkdir(parents=True, exist_ok=True)
     if not target.exists() or target.read_text() != desired:
-        target.write_text(desired)
-        target.chmod(0o600)
+        replace_atomic(target, desired)
     return 0
 
 

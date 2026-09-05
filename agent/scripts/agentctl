@@ -36,7 +36,7 @@ Commands:
       Start a FirstMate primary with Herdr and the managed token-aware dispatch profile.
   overnight <alias> [--max-iterations N] [--max-tokens N] [--agent NAME] -- <objective>
       Acquire a durable Treehouse lease and run bounded GNHF there. Never pushes.
-  ship <alias> --intent <goal> [--base-branch main] [--yes] [--no-automerge]
+  ship <alias> --intent <goal> [--base-branch main] [--no-automerge]
       Run the no-mistakes PR gate from a prepared feature branch, then schedule guarded auto-merge.
 
 Options:
@@ -162,7 +162,7 @@ for alias, project in registry["projects"].items():
         print(f"agentctl: project {alias!r} delivery must be an object", file=sys.stderr)
         raise SystemExit(1)
     mode = delivery.get("mode", "no-mistakes")
-    if mode not in {"no-mistakes", "direct-PR", "local-only", "no-mistakes-prod-only"}:
+    if not isinstance(mode, str) or mode not in {"no-mistakes", "direct-PR", "local-only", "no-mistakes-prod-only"}:
         print(f"agentctl: project {alias!r} delivery.mode is invalid", file=sys.stderr)
         raise SystemExit(1)
     automerge = delivery.get("automerge", True)
@@ -555,14 +555,13 @@ overnight_command() {
 
 ship_command() {
   [ $# -ge 1 ] || die 2 "ship requires a project alias"
-  local alias="$1" base_branch=main intent="" auto_yes=0 automerge=1 delivery_mode delivery_automerge
+  local alias="$1" base_branch=main intent="" automerge=1 delivery_mode delivery_automerge
   shift
   while [ $# -gt 0 ]; do
     case "$1" in
       --dry-run) DRY_RUN=1 ;;
       --base-branch) [ $# -ge 2 ] || die 2 "--base-branch requires a name"; base_branch="$2"; shift ;;
       --intent) [ $# -ge 2 ] || die 2 "--intent requires a goal"; intent="$2"; shift ;;
-      --yes) auto_yes=1 ;;
       --no-automerge) automerge=0 ;;
       *) die 2 "unknown ship option: $1" ;;
     esac
@@ -581,7 +580,6 @@ ship_command() {
   [ "$delivery_automerge" = true ] || automerge=0
   [ -f "$PROJECT_PATH/.no-mistakes.yaml" ] || die 3 "project has not opted in: create and review $PROJECT_PATH/.no-mistakes.yaml"
   local -a run_args=(no-mistakes axi run --base-branch "$base_branch" --intent "${intent:-<required-intent>}")
-  [ "$auto_yes" -eq 0 ] || run_args+=(--yes)
   if [ "$DRY_RUN" -eq 1 ]; then
     printf 'DRY-RUN: cd %q && no-mistakes init\n' "$PROJECT_PATH"
     printf 'DRY-RUN: cd %q &&' "$PROJECT_PATH"
