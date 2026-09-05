@@ -51,7 +51,10 @@ starts the optional FirstMate supervisor on Herdr; visualization commands are ex
 by default. Treehouse, not Herdr or a model harness, allocates every agent worktree. `overnight` acquires a
 durable Treehouse lease and requires a finite cap. `ship` requires a project-local no-mistakes opt-in,
 runs the no-mistakes PR gate against the stated intent, and schedules a guarded GitHub auto-merge by
-default after the pipeline produces a PR.
+default after the pipeline produces a PR. It operates on a clean feature branch already prepared in
+the primary checkout or a Treehouse worktree; FirstMate-managed shipping is the default path for
+allocating that Treehouse worktree. Registered direct-PR, local-only, and no-mistakes-prod-only modes
+are refused here and must be handled by FirstMate.
 
 Within a repository, `treehouse status` lists numbered/name-addressable slots and `treehouse enter 1`
 opens the selected slot in a subshell. To move the current shell instead, use

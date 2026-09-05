@@ -37,7 +37,7 @@ Commands:
   overnight <alias> [--max-iterations N] [--max-tokens N] [--agent NAME] -- <objective>
       Acquire a durable Treehouse lease and run bounded GNHF there. Never pushes.
   ship <alias> --intent <goal> [--base-branch main] [--yes] [--no-automerge]
-      Run the project-local no-mistakes PR gate, then schedule a guarded GitHub auto-merge.
+      Run the no-mistakes PR gate from a prepared feature branch, then schedule guarded auto-merge.
 
 Options:
   --dry-run   Print shell-escaped commands prefixed with "DRY-RUN:" and execute nothing.
@@ -169,12 +169,12 @@ for alias, project in registry["projects"].items():
     if not isinstance(automerge, bool):
         print(f"agentctl: project {alias!r} delivery.automerge must be boolean", file=sys.stderr)
         raise SystemExit(1)
-    description = delivery.get("description", "")
-    if description is None:
-        description = ""
+    description = delivery.get("description", project["label"])
     if not isinstance(description, str):
         print(f"agentctl: project {alias!r} delivery.description must be a string", file=sys.stderr)
         raise SystemExit(1)
+    if not description:
+        description = project["label"]
     values = [alias, project["path"], project["label"], *views.keys(),
               *(arg for argv in views.values() for arg in argv), mode, description]
     if any(any(ord(c) < 32 for c in value) for value in values):
@@ -211,6 +211,24 @@ resolve_project() {
   PROJECT_PATH="$(project_field "$alias" path)"
   PROJECT_LABEL="$(project_field "$alias" label)"
   [ -d "$PROJECT_PATH" ] || die 3 "project path does not exist for $alias: $PROJECT_PATH"
+}
+
+project_delivery() {
+  local alias="$1" field="$2"
+  "$AGENT_PYTHON" - "$PROJECTS_FILE" "$alias" "$field" <<'PY'
+import json
+import sys
+
+registry_path, alias, field = sys.argv[1:]
+project = json.load(open(registry_path))["projects"][alias]
+delivery = project.get("delivery", {})
+if field == "mode":
+    print(delivery.get("mode", "no-mistakes"))
+elif field == "automerge":
+    print("true" if delivery.get("automerge", True) else "false")
+else:
+    raise SystemExit(2)
+PY
 }
 
 tool_version() {
@@ -537,7 +555,7 @@ overnight_command() {
 
 ship_command() {
   [ $# -ge 1 ] || die 2 "ship requires a project alias"
-  local alias="$1" base_branch=main intent="" auto_yes=0 automerge=1
+  local alias="$1" base_branch=main intent="" auto_yes=0 automerge=1 delivery_mode delivery_automerge
   shift
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -552,6 +570,15 @@ ship_command() {
   done
   validate_registry
   resolve_project "$alias"
+  delivery_mode="$(project_delivery "$alias" mode)"
+  delivery_automerge="$(project_delivery "$alias" automerge)"
+  case "$delivery_mode" in
+    no-mistakes) ;;
+    direct-PR|local-only|no-mistakes-prod-only)
+      die 3 "ship does not execute delivery.mode=$delivery_mode; use FirstMate for this registered project mode" ;;
+    *) die 2 "project $alias has invalid delivery.mode: $delivery_mode" ;;
+  esac
+  [ "$delivery_automerge" = true ] || automerge=0
   [ -f "$PROJECT_PATH/.no-mistakes.yaml" ] || die 3 "project has not opted in: create and review $PROJECT_PATH/.no-mistakes.yaml"
   local -a run_args=(no-mistakes axi run --base-branch "$base_branch" --intent "${intent:-<required-intent>}")
   [ "$auto_yes" -eq 0 ] || run_args+=(--yes)
@@ -578,7 +605,7 @@ ship_command() {
   (cd "$PROJECT_PATH" && no-mistakes init) || return 1
   local tmp pr_number
   tmp="$(mktemp "${TMPDIR:-/tmp}/agentctl-ship.XXXXXX")"
-  trap 'rm -f "$tmp"' RETURN
+  trap 'rm -f -- "${tmp:-}"; trap - RETURN' RETURN
   if ! (cd "$PROJECT_PATH" && "${run_args[@]}") 2>&1 | tee "$tmp"; then
     return 1
   fi

@@ -63,6 +63,8 @@ def project_lines(projects_file: Path) -> list[str]:
         if not isinstance(automerge, bool):
             raise RegistryError(f"project {alias!r} delivery.automerge must be a boolean")
         description = delivery.get("description", label)
+        if description == "":
+            description = label
         description = _string(description, f"project {alias!r} delivery.description")
         if "\n" in description or "\r" in description:
             raise RegistryError(f"project {alias!r} delivery.description must fit on one line")

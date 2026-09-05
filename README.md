@@ -131,7 +131,7 @@ Reusable agentic-coding configuration lives under `agent/`:
 - `agent/skills/` — canonical skills
 - `agent/mcps/mcp-servers.json` — canonical MCP server definitions
 - `agent/claude/` — durable Claude settings, statusline, and templates
-- `agent/memory/global.md` — global user-level agent memory
+- `agent/policy/global.md` — global user-level agent policy; idosleep owns memory capture and recall
 - `agent/AGENTS.md` — portable agent instructions
 
 Claude Code, Codex and Pi use shared policy and procedures with generated harness adapters.
