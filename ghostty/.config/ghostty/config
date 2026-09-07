@@ -4,7 +4,10 @@ theme = Carbonfox
 
 font-size = 14 
 mouse-hide-while-typing = true 
-window-decoration = false 
+# Keep macOS window decorations so the window keeps its rounded corners, but
+# hide the titlebar. `window-decoration = false` would square the corners.
+window-decoration = auto
+macos-titlebar-style = hidden
 
 # keybind = global:cmd+/=toggle_quick_terminal 
 macos-option-as-alt = true 
