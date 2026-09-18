@@ -11,6 +11,7 @@ Claude Code, and Codex receive the same policy.
 | `settings.json` | Stable Pi defaults and exact package pins |
 | `extensions/` | Pi event-loop integrations that cannot be expressed portably |
 | `prompts/` | Pi-only prompt templates |
+| `interactive-shell.json` | pi-interactive-shell overrides; moves its focus key off `alt+shift+f`, which pi-side-chat also claims |
 
 The sync layer supplies global instructions, personal/domain skills, the separate agentic-rules skills,
 and MCP servers from `agent/mcps/mcp-servers.json`. Runtime fields come from untracked overlays or

@@ -201,7 +201,7 @@ class Layout:
         optional_claude_templates = a / "claude/templates"
         if optional_claude_templates.exists():
             links[d / ".claude/templates"] = optional_claude_templates
-        for name in ("extensions", "agents", "prompts"):
+        for name in ("extensions", "agents", "prompts", "interactive-shell.json"):
             source = a / "pi" / name
             if source.exists():
                 links[d / ".pi/agent" / name] = source
