@@ -16,7 +16,8 @@ files, or persist anything.
 The figures are the published benchmark medians (5 everyday tasks: email
 validator, debounce, CSV sum, countdown timer, rate limiter; three models:
 Haiku, Sonnet, Opus). They are measured, not computed from the current repo.
-Source: `benchmarks/` and the README.
+Source: the upstream benchmark snapshot identified in
+[the shared-skills provenance](../README.md#external-packages).
 
 ## Scoreboard
 

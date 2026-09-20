@@ -32,9 +32,9 @@ Level sticks until changed or session end.
 | **ponytail-gain** | `/ponytail-gain` | Measured-impact scoreboard: less code, less cost, more speed. |
 | **ponytail-help** | `/ponytail-help` | This card. |
 
-Codex uses `@ponytail`, `@ponytail-review`, and `@ponytail-help`; Claude Code
-and OpenCode use the slash-command forms above (OpenCode ships all six as
-slash commands).
+You can also request each skill in plain language: "ponytail", "review for
+over-engineering", "ponytail audit", "ponytail debt", "ponytail gain", or
+"ponytail help". Command syntax depends on the current harness.
 
 ## Deactivate
 

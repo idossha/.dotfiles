@@ -19,12 +19,10 @@ destination to its tracked policy source. A sync from an unlanded worktree would
 to temporary paths; sync the canonical checkout after landing.
 
 Use `agentctl doctor` after a harness update and `codex features list` to inspect feature support.
-New Codex sessions default to `approval_policy = "never"` and `sandbox_mode = "danger-full-access"`
-at the user's explicit request. App and MCP tool overrides use `auto`. Explicit invocation settings
-and managed requirements can still override these defaults. Resume a saved conversation by its exact
-ID after changing startup configuration; do not terminate active work merely to reload settings.
-Use `codex exec --help` for current headless flags. These full-access defaults are explicitly user-selected;
-the session's granted permissions remain the boundary.
+The user-selected permission defaults and override boundaries are defined in
+[ARCHITECTURE.md §3.7](../docs/ARCHITECTURE.md#3-configuration-ownership).
+Resume a saved conversation by its exact ID after changing startup configuration; do not terminate
+active work merely to reload settings. Use `codex exec --help` for current headless flags.
 
 Discovery and schema references, checked 2026-09-04:
 [OpenAI skills](https://learn.chatgpt.com/docs/build-skills),

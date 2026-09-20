@@ -122,10 +122,11 @@ The platform gate is command-based:
 - `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
   back with independent JSON/TOML parsers; tests neither source the user's shell profile nor access
   real homes, vaults, remotes or visible apps.
-- Codex default gates compare parsed canonical and installed TOML against §3.7 and verify that
-  `~/.codex/AGENTS.md` resolves to global policy containing §3.10's orchestration default. Workers
-  execute bounded scopes without recursively adopting the primary role. These checks prove
-  configuration and instruction delivery, not guaranteed runtime availability or responsiveness.
+- Acceptance for Codex defaults requires comparing parsed canonical and installed TOML against §3.7
+  and inspecting the linked global policy for §3.10's primary/worker distinction. The installed check
+  in `agent/scripts/agent_config.py` detects configuration and link drift; it does not independently
+  assert the intended default values or orchestration wording. These checks prove configuration and
+  instruction delivery, not guaranteed runtime availability or responsiveness.
 - `--check` validates source without writing; `--check-installed` detects generated configuration
   and discovery drift. `doctor` includes the installed check and reports floating dependencies.
 
