@@ -72,11 +72,11 @@ Ponytail's six Markdown skills (`ponytail`, `ponytail-review`, `ponytail-audit`,
 `ponytail-debt`, `ponytail-gain`, `ponytail-help`) are vendored from
 [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail/tree/e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156),
 version 4.10.0, commit `e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156`.
-The upstream skill files are unchanged; their MIT license is retained in
+The upstream skill files are unchanged except for `ponytail-help/SKILL.md`, where
+the unsupported default-mode configuration and plugin-update sections were removed
+for this shared-skills-only installation. Their MIT license is retained in
 [`ponytail/LICENSE`](ponytail/LICENSE). They use the shared discovery links above;
-no plugin, lifecycle hooks, MCP server, or npm package is installed. The plugin
-auto-activation, default-mode configuration, and auto-update directions in upstream
-help do not apply to this installation. Updates require reviewing and replacing
+no plugin, lifecycle hooks, MCP server, or npm package is installed. Updates require reviewing and replacing
 this pinned snapshot, then syncing. The upstream gain card uses the older
 single-shot benchmark; consult the upstream README for its newer agentic results.
 The user's instructions and repository policies remain authoritative when a
