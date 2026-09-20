@@ -10,18 +10,19 @@ This directory contains Codex-specific policy; sync renders real files under `~/
 - Global instructions point to `agent/policy/global.md`; the project map is the repository's
   `AGENTS.md`. Personal and engineering skills are discovered through `~/.agents/skills`.
 
+The canonical delegation policy is [Codex orchestration default](../policy/global.md#codex-orchestration-default);
+`~/.codex/AGENTS.md` links directly to that policy file.
+
 Generated settings preserve unowned runtime fields, including new provider tables, model preferences,
 plugin state, hooks and project trust. Canonical keys win where both exist. Never link a mutable
 destination to its tracked policy source. A sync from an unlanded worktree would redirect live links
 to temporary paths; sync the canonical checkout after landing.
 
 Use `agentctl doctor` after a harness update and `codex features list` to inspect feature support.
-New Codex sessions default to `approval_policy = "never"` and `sandbox_mode = "workspace-write"`
-at the user's explicit request. App and MCP tool overrides use `auto`. Explicit invocation settings
-and managed requirements can still override these defaults. Resume a saved conversation by its exact
-ID after changing startup configuration; do not terminate active work merely to reload settings.
-Use `codex exec --help` for current headless flags. An unattended mode is not authority to disable
-sandboxing; the session's granted permissions remain the boundary.
+The user-selected permission defaults and override boundaries are defined in
+[ARCHITECTURE.md §3.7](../docs/ARCHITECTURE.md#3-configuration-ownership).
+Resume a saved conversation by its exact ID after changing startup configuration; do not terminate
+active work merely to reload settings. Use `codex exec --help` for current headless flags.
 
 Discovery and schema references, checked 2026-09-04:
 [OpenAI skills](https://learn.chatgpt.com/docs/build-skills),

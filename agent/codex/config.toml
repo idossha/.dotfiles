@@ -6,7 +6,7 @@
 
 # User-selected sandbox defaults (§3.7): avoid permission interruptions in new sessions.
 approval_policy = "never"
-sandbox_mode = "workspace-write"
+sandbox_mode = "danger-full-access"
 
 # AGENTS.md discovery walks every directory from the git project root down to cwd
 # and loads at most one file per directory, in the order

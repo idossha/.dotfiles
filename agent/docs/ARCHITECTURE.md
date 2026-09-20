@@ -56,13 +56,17 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    skill directories. Pi package guides that prescribe a competing supervisor/worktree policy are
    excluded through package resource filters; their extensions remain available. Disable the duplicate Claude engineering plugin; its cached snapshot otherwise
    can prescribe different procedures. Other plugins remain adapter-specific capabilities.
-7. **Codex defaults to the user's explicitly selected workspace permissions.** Canonical configuration sets
-   `approval_policy = "never"`, `sandbox_mode = "workspace-write"`, and automatic tool overrides;
+7. **Codex defaults to the user's explicitly selected full-access permissions.** Canonical configuration sets
+   `approval_policy = "never"`, `sandbox_mode = "danger-full-access"`, and automatic tool overrides;
    this prevents new sessions or a later sync from restoring routine permission prompts. Existing
    conversations retain their native session IDs during reload. Explicit invocation overrides and
    managed requirements remain effective; other harness adapters keep their own settings.
 8. *Retired 2026-09-05* (formerly the seeded worker model/effort dispatch template).
 9. *Retired 2026-09-05* (formerly the supervisor project-posture rendering from the registry).
+10. **The primary Codex agent delegates execution by default.** The single policy in
+    `agent/policy/global.md` quantifies assignments and gives workers bounded ownership, keeping the
+    user-facing agent available for coordination without restoring an external fleet supervisor.
+    An explicit user request for direct execution overrides this default for that assignment.
 
 ## 4. Shared development doctrine
 
@@ -78,6 +82,12 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 4. **Each Git mutation has one explicit owner.** Pi session forks do not apply stash patches. The old
    shell repository publisher is retired; collaboration routes to the shared playbook and project
    gates. Provider extensions must not introduce a second implicit checkpoint or publishing lifecycle.
+
+5. **Requirements amend existing canonical documents.** Current behavior and acceptance criteria belong
+   in this contract, rationale in `DECISIONS.md`, principles in `PHILOSOPHY.md`, open work in the
+   existing roadmap, and procedures in existing manuals. Do not create dated requirements, intent or
+   plan files for routine changes; parallel records drift. A new Markdown file needs a distinct
+   necessary purpose the existing roster cannot serve, or an explicit user request.
 
 ## 5. Operator surface
 
@@ -112,6 +122,11 @@ The platform gate is command-based:
 - `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
   back with independent JSON/TOML parsers; tests neither source the user's shell profile nor access
   real homes, vaults, remotes or visible apps.
+- Acceptance for Codex defaults requires comparing parsed canonical and installed TOML against §3.7
+  and inspecting the linked global policy for §3.10's primary/worker distinction. The installed check
+  in `agent/scripts/agent_config.py` detects configuration and link drift; it does not independently
+  assert the intended default values or orchestration wording. These checks prove configuration and
+  instruction delivery, not guaranteed runtime availability or responsiveness.
 - `--check` validates source without writing; `--check-installed` detects generated configuration
   and discovery drift. `doctor` includes the installed check and reports floating dependencies.
 
