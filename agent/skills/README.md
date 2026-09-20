@@ -68,6 +68,20 @@ Document-format skills (`pdf`, `pptx`, `xlsx`) are **not** kept here. Use the cu
 
 ## External packages
 
+Ponytail's six Markdown skills (`ponytail`, `ponytail-review`, `ponytail-audit`,
+`ponytail-debt`, `ponytail-gain`, `ponytail-help`) are vendored from
+[DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail/tree/e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156),
+version 4.10.0, commit `e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156`.
+The upstream skill files are unchanged; their MIT license is retained in
+[`ponytail/LICENSE`](ponytail/LICENSE). They use the shared discovery links above;
+no plugin, lifecycle hooks, MCP server, or npm package is installed. The plugin
+auto-activation, default-mode configuration, and auto-update directions in upstream
+help do not apply to this installation. Updates require reviewing and replacing
+this pinned snapshot, then syncing. The upstream gain card uses the older
+single-shot benchmark; consult the upstream README for its newer agentic results.
+The user's instructions and repository policies remain authoritative when a
+Ponytail suggestion differs from required scope or verification.
+
 The eight engineering skills live in the local `agentic-rules` clone selected by
 `AGENTIC_RULES_DIR` (default `~/00_development/agentic-rules`). They are linked, never copied into
 this directory. A missing clone is reported as unchecked by source validation and fails installed

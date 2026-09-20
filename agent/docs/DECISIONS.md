@@ -231,3 +231,11 @@ The two remaining package skills (intercom and MCP scripting) describe transport
 - 2026-09-05 — **`agent/MULTI-HARNESS-PLAN.md` is deleted** — it was already marked a historical design
   record superseded by this contract, and its Herdr-created-worktree recommendations directly contradicted
   the worktree policy above. A superseded plan left in the tree is read as instruction by the next agent.
+
+## 2026-09-20 — Ponytail skills use shared discovery (§3.6)
+
+- 2026-09-20 — **Vendor Ponytail 4.10.0 as six shared Markdown skills** — the user requested
+  installation for every agent. The reviewed upstream snapshot and MIT license live under
+  `agent/skills/`, and existing sync links expose it to Claude Code, Codex and Pi. Plugin hooks,
+  auto-updates and extra runtimes are unnecessary for skill discovery; the pinned source is recorded
+  in `agent/skills/README.md`. User and repository instructions retain precedence.
