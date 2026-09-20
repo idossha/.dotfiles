@@ -6,8 +6,9 @@ names the failure it prevents.
 
 ## Principles
 
-1. **One checkout, one agent, one explicit owner per git mutation.** Agents work in the checkout they
-   were launched in and do not create worktrees. Orchestrators and worktree pools split lifecycle
+1. **One checkout, one explicit owner per git mutation.** Agents work in the checkout they
+   were launched in and do not create worktrees. Native delegated workers receive bounded ownership;
+   the primary agent coordinates them. External supervisors and worktree pools split lifecycle
    ownership, so nobody can say which process is allowed to commit, merge, or delete the work.
 
 2. **AGENTS.md routes, a skill teaches a procedure, a CLI performs an operation, an MCP server exposes
@@ -33,6 +34,10 @@ names the failure it prevents.
 7. **Memory belongs to `idosleep`, project facts belong to the project, secrets belong outside git.** A
    second memory router splits recall across two stores; global project facts leak into unrelated
    repositories.
+
+   Project knowledge should be easy to find: extend the existing canonical document for its purpose
+   before creating another file. A task date is not a new documentation purpose; parallel requirements
+   records make the next agent reconcile copies instead of reading one current contract.
 
 8. **Registered projects that carry `.no-mistakes.yaml` ship through `agentctl ship`; others use ordinary
    PRs. Never push or merge red work.** Delivering without a review/test gate turns a broken change into

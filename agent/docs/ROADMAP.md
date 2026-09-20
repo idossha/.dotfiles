@@ -7,7 +7,8 @@
   explicit owner per Git mutation.
 - The external `agentic-rules` engineering playbook linked from one source into Claude, Pi and Codex.
 - Idempotent configuration validation and synchronization.
-- Explicit user-selected Codex workspace sandbox without approval prompts, preserved by synchronization.
+- [Codex defaults and orchestration](ARCHITECTURE.md): user-selected full access and delegated execution,
+  preserved by synchronization.
 - Pinned AXI helper CLIs for GitHub operations, browser exploration, Lavish review artifacts and quota
   visibility.
 - The `agentctl doctor | sync | ship` operator surface with a project-opted-in no-mistakes delivery gate.

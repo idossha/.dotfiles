@@ -159,6 +159,8 @@ The two remaining package skills (intercom and MCP scripting) describe transport
 
 ## 2026-09-04 — Codex retains the workspace sandbox without approval prompts (§3.7)
 
+**Superseded 2026-09-19** by the explicit full-access default below.
+
 - 2026-09-04 — **Codex uses `approval_policy = "never"` and `sandbox_mode = "workspace-write"`** —
   the user supplied these exact values after the YOLO request. Full filesystem access is superseded;
   commands outside the sandbox fail rather than requesting escalation. Canonical and generated TOML
@@ -231,6 +233,31 @@ The two remaining package skills (intercom and MCP scripting) describe transport
 - 2026-09-05 — **`agent/MULTI-HARNESS-PLAN.md` is deleted** — it was already marked a historical design
   record superseded by this contract, and its Herdr-created-worktree recommendations directly contradicted
   the worktree policy above. A superseded plan left in the tree is read as instruction by the next agent.
+
+## 2026-09-19 — Codex delegates execution and defaults to full access (§§3.7, 3.10)
+
+- 2026-09-19 — **Codex defaults to `approval_policy = "never"` and
+  `sandbox_mode = "danger-full-access"`** — the user explicitly requested persistent YOLO defaults,
+  superseding the 2026-09-04 workspace-sandbox choice. Keeping workspace-write would continue denying
+  authorized filesystem changes. Canonical configuration and sync own this choice; invocation overrides
+  and managed requirements remain effective.
+- 2026-09-19 — **The primary Codex agent quantifies assignments and delegates execution by default** —
+  bounded native workers keep the user-facing coordinator available for new assignments. A global
+  instruction was chosen over an optional skill so the default loads every session; an external fleet
+  supervisor was rejected because native delegation already supplies the needed capability. Explicit
+  direct-execution requests override the default per assignment. Intent and verification are consolidated in
+  [ARCHITECTURE.md §§3.7, 3.10 and 6](ARCHITECTURE.md) (reference relocated 2026-09-20).
+
+
+## 2026-09-20 — Requirements live in canonical documents (§4.5)
+
+- 2026-09-20 — **Update the existing contract, decision log, philosophy and manuals instead of adding
+  dated requirements files** — the shared architecture-contract skill required a new dated file for
+  each ask, creating a second record that drifted from canonical project docs. Global policy and the
+  canonical agentic-rules procedures now route changes to existing documents; new Markdown requires
+  a distinct necessary purpose or an explicit user request. The dated Codex-defaults file is removed
+  after consolidating its behavior in §§3.7/3.10 and its acceptance criteria in §6. This supersedes its
+  separate intent-record location, not the 2026-09-19 defaults or their rationale.
 
 ## 2026-09-20 — Ponytail skills use shared discovery (§3.6)
 
