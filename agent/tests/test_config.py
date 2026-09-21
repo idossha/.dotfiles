@@ -17,7 +17,7 @@ import tomllib
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from agent_config import Layout, check_mcp, installed_issues, skill_inventory, sync, unowned
+from agent_config import Layout, agent_inventory, check_mcp, installed_issues, skill_inventory, sync, unowned
 
 
 class OwnershipTests(unittest.TestCase):
@@ -53,6 +53,33 @@ class OwnershipTests(unittest.TestCase):
         settings = json.loads((self.destination / ".claude/settings.json").read_text())
         self.assertIs(settings["enabledPlugins"]["agentic-rules@agentic-rules"], False)
         self.assertFalse((self.destination / ".claude/skills").is_symlink())
+
+    def test_claude_subagents_link_per_file_and_retire_removed_ones(self):
+        self.run_sync()
+        agents_root = self.destination / ".claude/agents"
+        self.assertFalse(agents_root.is_symlink())
+        for name in ("researcher-opus", "builder-sonnet", "refactorer-opus"):
+            target = agents_root / f"{name}.md"
+            self.assertEqual(target.resolve(), (self.agent / "agents" / f"{name}.md").resolve())
+        self.assertFalse((agents_root / "README.md").exists())
+        (self.agent / "agents/builder-sonnet.md").unlink()
+        self.run_sync()
+        self.assertFalse((agents_root / "builder-sonnet.md").is_symlink())
+        self.assertEqual(installed_issues(self.layout), [])
+
+    def test_subagent_frontmatter_is_validated(self):
+        path = self.agent / "agents/builder-sonnet.md"
+        path.write_text("---\nname: builder-sonnet\ndescription: x\nmodel: haiku\n---\n")
+        with self.assertRaisesRegex(ValueError, "opus or sonnet"):
+            agent_inventory(self.agent / "agents")
+        path.write_text("---\nname: other\ndescription: x\nmodel: sonnet\n---\n")
+        with self.assertRaisesRegex(ValueError, "match its filename"):
+            agent_inventory(self.agent / "agents")
+        (self.agent / "skills/nope").mkdir()
+        path.write_text("---\nname: builder-sonnet\ndescription: x\nmodel: sonnet\nskills: [ponytail, nope]\n---\n")
+        installed = {child.name for child in (self.agent / "skills").iterdir() if child.is_dir()} - {"nope"}
+        with self.assertRaisesRegex(ValueError, "not installed: nope"):
+            agent_inventory(self.agent / "agents", installed)
 
     def test_missing_playbook_cannot_pass_installed_validation(self):
         self.run_sync()

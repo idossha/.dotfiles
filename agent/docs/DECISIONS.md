@@ -266,3 +266,11 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   `agent/skills/`, and existing sync links expose it to Claude Code, Codex and Pi. Plugin hooks,
   auto-updates and extra runtimes are unnecessary for skill discovery; the pinned source is recorded
   in `agent/skills/README.md`. User and repository instructions retain precedence.
+
+## 2026-09-21 — Tiered Claude Code subagents ship from dotfiles (§3.2)
+
+- 2026-09-21 — **Author research, build and refactor subagents once under `agent/agents/` in Opus and
+  Sonnet tiers** — the user asked for handoff-ready agents at two cost tiers, limited to Opus and Sonnet.
+  Sync links each file into `~/.claude/agents` and validates frontmatter, so the roster cannot drift from
+  the checkout or silently gain a Haiku or Fable tier. Only Claude Code reads this directory; Codex and Pi
+  keep their own delegation adapters.

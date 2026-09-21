@@ -41,7 +41,9 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    cursors, hook trust hashes, per-project trust, themes, and session state remain local or are merged
    from a gitignored overlay; otherwise launching a harness dirties the dotfiles repository.
 2. **One canonical declaration feeds every compatible harness.** MCP servers and portable skills are
-   declared once and rendered or linked by `agent/scripts/sync-agent-config.sh`.
+   declared once and rendered or linked by `agent/scripts/sync-agent-config.sh`. Claude Code subagents
+   are authored once under `agent/agents/` (one `<name>.md`, model `opus` or `sonnet`) and linked per
+   file into `~/.claude/agents`, which stays a real directory so user or project agents can coexist.
 3. **External executables are pinned or explicitly reported as floating.** A silent `@latest` makes
    two sessions with the same dotfiles run different code.
 4. **Canonical keys win over local state.** Generated JSON/TOML/YAML files retain unowned runtime

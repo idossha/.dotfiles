@@ -165,6 +165,38 @@ def skill_inventory(roots: list[Path]) -> dict[str, Path]:
     return inventory
 
 
+def agent_inventory(root: Path, skills: set[str] | None = None) -> dict[str, Path]:
+    """Claude Code subagents: one <name>.md per agent, frontmatter name matching the file stem."""
+    inventory = {}
+    if not root.is_dir():
+        return inventory
+    for path in sorted(root.glob("*.md")):
+        if path.name == "README.md":
+            continue
+        match = re.match(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|$)", path.read_text(), re.S)
+        if not match:
+            raise ConfigError(f"{path}: missing YAML frontmatter")
+        header = yaml.safe_load(match[1])
+        if not isinstance(header, dict) or header.get("name") != path.stem:
+            raise ConfigError(f"{path}: agent name must match its filename")
+        if not isinstance(header.get("description"), str) or not header["description"].strip():
+            raise ConfigError(f"{path}: missing agent description")
+        if header.get("model") not in {"opus", "sonnet"}:
+            raise ConfigError(f"{path}: model must be opus or sonnet")
+        preloaded = header.get("skills", [])
+        if not isinstance(preloaded, list) or not all(isinstance(item, str) for item in preloaded):
+            raise ConfigError(f"{path}: skills must be a list of skill names")
+        if skills is not None:
+            personal = {child.name for child in root.parent.joinpath("skills").iterdir() if child.is_dir()}
+            for unknown in sorted(set(preloaded) - skills):
+                # Personal skills are always present, so a miss is a typo. Playbook names may be
+                # absent when the external checkout is missing and are reported by doctor instead.
+                if unknown in personal:
+                    raise ConfigError(f"{path}: preloaded skill is not installed: {unknown}")
+        inventory[path.stem] = path
+    return inventory
+
+
 @dataclass(frozen=True)
 class Layout:
     agent: Path
@@ -208,6 +240,8 @@ class Layout:
         for name, source in inventory.items():
             links[d / ".agents/skills" / name] = source
             links[d / ".claude/skills" / name] = source
+        for name, source in agent_inventory(a / "agents", set(inventory)).items():
+            links[d / ".claude/agents" / f"{name}.md"] = source
         return links
 
     def policies(self) -> dict[str, tuple[dict, Path, Path]]:
@@ -312,6 +346,15 @@ def sync(layout: Layout) -> None:
             stale = generated / name
             if name not in inventory and stale.is_symlink():
                 stale.unlink()
+    agents = agent_inventory(layout.agent / "agents", set(inventory))
+    agents_root = layout.destination / ".claude/agents"
+    if agents_root.is_symlink():
+        agents_root.unlink()
+    agents_root.mkdir(parents=True, exist_ok=True)
+    for name in prior.get("agents", []):
+        stale = agents_root / f"{name}.md"
+        if name not in agents and stale.is_symlink():
+            stale.unlink()
     for target, source in links.items():
         link(source, target)
 
@@ -367,7 +410,8 @@ def sync(layout: Layout) -> None:
             path.unlink()
             print(f"  [retired] {path}")
     dump_config(layout.manifest, {
-        "mcp_servers": sorted(mcp), "skills": sorted(inventory), "codex_rule_lines": policy_lines,
+        "mcp_servers": sorted(mcp), "skills": sorted(inventory), "agents": sorted(agents),
+        "codex_rule_lines": policy_lines,
         "managed_destinations": sorted(current),
     })
     print("  [ok] installed links, shared MCP servers and local approvals")
@@ -377,7 +421,7 @@ def installed_issues(layout: Layout) -> list[str]:
     issues = []
     if not (layout.playbook / "skills").is_dir():
         issues.append("shared engineering playbook is missing; installed doctrine is incomplete")
-    for directory in (".agents/skills", ".claude/skills"):
+    for directory in (".agents/skills", ".claude/skills", ".claude/agents"):
         if (layout.destination / directory).is_symlink():
             issues.append(f"{directory}: discovery root must be a generated real directory")
     inventory = layout.inventory()
