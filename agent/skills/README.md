@@ -62,6 +62,7 @@ Workflows and playbooks:
 | `matlab` | Run MATLAB in batch mode from the terminal. |
 | `mcp-authoring` | Author and configure MCP servers. |
 | `suna` | Work on a SUNA manuscript project (figures, references, review comments, compliance). |
+| `idofig` | Make or fix a publication figure: producers draw panels, figure.json places them and their letters, style.json refines named parts. |
 | `write-skill` | Author or refactor a skill in this directory. |
 
 Document-format skills (`pdf`, `pptx`, `xlsx`) are **not** kept here. Use the current harness's bundled format capabilities when available; local copies can shadow provider updates.
