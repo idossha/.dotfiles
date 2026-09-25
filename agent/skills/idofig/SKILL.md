@@ -27,6 +27,8 @@ In a SUNA project also read SUNA's `FIGURES.md` (the `suna` skill says where).
 | one panel's letter position | `figure.json` `panels[].letter_offset_mm: [dx, dy]` | mm, y down | recompose |
 | a part's look (colour, width, font, text, visibility) | `panels/<p>/style.json` | pt … | panel redraw |
 | a text or legend part's position | `style.json` props `dx_mm`, `dy_mm` | mm, y down | panel redraw |
+| an axes, or a group of axes, with everything in it (rearranging within a panel; idofig ≥ 0.6) | `style.json` `dx_mm`, `dy_mm` on the axes name or a pattern (`*.regions`, `row1.brain.*`) | mm, y down | panel redraw |
+| gaps between axes / empty margin | `style.json` `layout` {hspace_mm, wspace_mm, pad_mm} / `trim`, `trim_mm` | mm | panel redraw |
 | tick marks of an axis | `style.json` on the axis part: `tickdir`, `ticklength`, `tickwidth` | pt | panel redraw |
 | marks over the figure (arrows, brackets, boxes, text) | `figure.json` `annotations` | mm, anchored to parts/data | recompose |
 
@@ -50,6 +52,17 @@ In a SUNA project also read SUNA's `FIGURES.md` (the `suna` skill says where).
    right file; never invent a journal number the journal does not state.
 5. **Reproducible:** `python figures/<id>/make.py` equals `idofig build`; same inputs, same
    bytes. Rebuild with `python -m idofig build [<fig>]`, then `idofig status --exit-code`.
+
+## Building a figure that stays editable
+
+One directory per figure; producers draw panels at printed size (`idf.panels`); NAME every
+axes (`idf.name`, dotted prefixes for groups: `row1.brain.view0…3`), every series (`label=`),
+every free text (`gid=`); `layout="constrained"` when spacing should stay adjustable,
+`layout=None` + `idf.axes_mm` when geometry must be exact; geometry in named constants.
+Refinement ladder — first rung that works: style.json restyle/nudge → `layout` spacing →
+`trim` → axes/group move → figure.json placement → split into panels → (optional, settled
+only) bake into the script's constants and delete the entries. Full guide: idofig
+`docs/producers.md`.
 
 ## Loop
 
