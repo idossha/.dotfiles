@@ -274,3 +274,15 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   Sync links each file into `~/.claude/agents` and validates frontmatter, so the roster cannot drift from
   the checkout or silently gain a Haiku or Fable tier. Only Claude Code reads this directory; Codex and Pi
   keep their own delegation adapters.
+
+## 2026-10-11 — Tools own the skills that describe them (§3.6)
+
+- 2026-10-11 — **Retire `agent/skills/idofig` and `agent/skills/suna`; idofig and SUNA install their own
+  pointer skills** — the user asked that each package carry its skill. Both copies here had drifted:
+  the `suna` file had opted out of the app's managed updates while the app shipped newer steps, and
+  the `idofig` file described APIs a project pinned to an older idofig does not have. idofig now ships
+  `docs/agents.md` (the former skill body) in its wheel, `idofig docs` locates it for the installed
+  version, and `idofig skill install` writes a pointer skill that refuses links and files it did not
+  write; the SUNA app heals its marked pointer skills, now `suna` and `suna-presentations` (moved
+  into SUNA's `resources/skills/` and updated to its current deck verbs).
+

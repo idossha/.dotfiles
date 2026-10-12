@@ -1,7 +1,7 @@
 # Unified Skills
 
-This directory is the canonical source for reusable agent skills. Claude Code, Pi and Codex discover the same personal skills through generated links;
-the contract in `agent/docs/ARCHITECTURE.md` defines ownership.
+This directory is the canonical source for dotfiles-owned reusable agent skills. Claude Code, Pi and Codex discover the same dotfiles-owned personal skills through generated links;
+the contract in `agent/docs/ARCHITECTURE.md` defines ownership, including tool-owned exceptions.
 
 ## Layout
 
@@ -31,10 +31,11 @@ what the skill does and when an agent should load it.
 From the assigned checkout, run `agent/scripts/sync-agent-config.sh --check`.
 After landing, run `agent/scripts/agentctl sync` from the primary checkout.
 
-Claude receives one link per personal and playbook skill in `~/.claude/skills`.
+Claude receives one link per dotfiles-owned personal and playbook skill in `~/.claude/skills`.
 Pi and Codex use the same sources through `~/.agents/skills`. Both discovery roots are real generated
-directories. The duplicate Claude agentic-rules plugin is disabled so an older snapshot cannot supply
-a different engineering procedure. Supporting references and scripts stay with their owning skill.
+directories; tool-owned pointer skills may also install there but are not linked from this directory.
+The duplicate Claude agentic-rules plugin is disabled so an older snapshot cannot supply a different
+engineering procedure. Supporting references and scripts stay with their owning skill.
 
 ## Inventory
 
@@ -61,11 +62,20 @@ Workflows and playbooks:
 | `manuscript-review` | Full soundness/consistency/literature review of a manuscript. |
 | `matlab` | Run MATLAB in batch mode from the terminal. |
 | `mcp-authoring` | Author and configure MCP servers. |
-| `suna` | Work on a SUNA manuscript project (figures, references, review comments, compliance). |
-| `idofig` | Make or fix a publication figure: producers draw panels, figure.json places them and their letters, style.json refines named parts. |
 | `write-skill` | Author or refactor a skill in this directory. |
 
 Document-format skills (`pdf`, `pptx`, `xlsx`) are **not** kept here. Use the current harness's bundled format capabilities when available; local copies can shadow provider updates.
+
+## Skills owned by their tools
+
+These are not kept here (ARCHITECTURE §3.6): each tool installs a pointer skill to the docs of its
+installed version, so the skill cannot drift from the tool.
+
+| Skill | Installed by |
+|---|---|
+| `idofig` | `idofig skill install` (from the project's or the user's idofig; `--project` for a project's `.claude/skills`) |
+| `suna` | the SUNA app (`~/SunaConfig` heal; remove its managed marker to opt out) |
+| `suna-presentations` | the SUNA app, beside `suna` |
 
 ## External packages
 

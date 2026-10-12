@@ -8,8 +8,8 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 
 ## 1. Sources of truth
 
-1. **`agent/` owns portable agent configuration.** Global instructions, personal skills, MCP
-   definitions, and harness adapters are authored once here; generated destinations are not edited.
+1. **`agent/` owns portable agent configuration.** Global instructions, dotfiles-owned personal skills,
+   MCP definitions, and harness adapters are authored once here; generated destinations are not edited.
 2. **Global policy, project routing, and memory capture have separate scopes.** `agent/policy/global.md`
    supplies user instructions; `agent/AGENTS.md` is the dotfiles project map, reached by a relative root
    link; `idosleep` owns agent memory capture, recall, and consolidation outside dotfiles. Claude imports
@@ -54,10 +54,15 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    receives generated TOML. Unsupported portable fields fail validation instead of disappearing.
    Previously managed entries are retired through a local ownership manifest; unrelated entries survive.
 6. **Skill discovery has one route per skill per harness.** Retire legacy managed Codex/Pi links;
-   preserve provider-bundled skills. All three local harnesses link to the same personal and playbook
-   skill directories. Pi package guides that prescribe a competing supervisor/worktree policy are
+   preserve provider-bundled and tool-installed skills. All three local harnesses link to the same
+   dotfiles-owned personal and playbook skill directories. Pi package guides that prescribe a competing supervisor/worktree policy are
    excluded through package resource filters; their extensions remain available. Disable the duplicate Claude engineering plugin; its cached snapshot otherwise
    can prescribe different procedures. Other plugins remain adapter-specific capabilities.
+   A skill that a tool ships for itself is owned by that tool, not authored here: idofig installs
+   `idofig` (`idofig skill install`) and the SUNA app installs `suna` and `suna-presentations`, each a
+   pointer to docs that ship with the installed version. Sync links only dotfiles/playbook skills and
+   retires its own stale symlinks; it preserves provider-bundled, tool-installed, and user-authored
+   skill entries, so each skill still has one route and cannot drift from the tool it describes.
 7. **Codex defaults to the user's explicitly selected full-access permissions.** Canonical configuration sets
    `approval_policy = "never"`, `sandbox_mode = "danger-full-access"`, and automatic tool overrides;
    this prevents new sessions or a later sync from restoring routine permission prompts. Existing

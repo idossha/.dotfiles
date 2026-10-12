@@ -8,7 +8,7 @@ This directory contains Codex-specific policy; sync renders real files under `~/
 - `rules/default.rules` supplies portable command approvals. Extra local approvals stay in the ignored
   overlay and generated destination.
 - Global instructions point to `agent/policy/global.md`; the project map is the repository's
-  `AGENTS.md`. Personal and engineering skills are discovered through `~/.agents/skills`.
+  `AGENTS.md`. Dotfiles-owned personal and engineering skills are discovered through `~/.agents/skills`.
 
 The canonical delegation policy is [Codex orchestration default](../policy/global.md#codex-orchestration-default);
 `~/.codex/AGENTS.md` links directly to that policy file.
