@@ -22,10 +22,14 @@ You manage the literature collection for a research project. Your job is to find
 
 ## Configuration
 
-- **Literature directory:** Find it by looking for a `literature/` folder in the current working directory, or in the project root
-- **Literature index:** `literature.md` in the project root
-- **Naming convention:** `Author_Year_ShortTitle.pdf` (e.g., `Grossman_2017_TI-Deep-Brain-Stimulation.pdf`)
-- **Name rules:** First author last name, publication year, 2-5 word hyphenated title. No spaces. No special characters except hyphens.
+- **PDFs live in ONE shared library, never in the project.** The library is `~/homelab/academic_library` (SUNA names it as `library` in `~/SunaConfig/library.json` — read that first if it exists). Read the library's `README.md` before filing anything: it holds the subject folders and the rules. Projects keep only citation records.
+- **Subject folder:** one existing folder chosen by the paper's main research question (e.g. `Neuroscience/Psychedelics`, `Brain-Stimulation/Temporal-Interference`). Never create a new subject folder without asking the user.
+- **Pointer:** the project's `.bib` entry gets a `file` field relative to the `.bib`'s own directory, e.g. `file = {../../../academic_library/Sleep/Physiology-and-Homeostasis/Author_2020_Short-Title.pdf}`. No hashes.
+- **In a SUNA project** (a folder with `suna.json`), prefer the SUNA MCP verbs: `fetch_pdf {"citekey", "folder"}` / `cite_study {"mention", "folder"}` search only the library, link what is there, download into `folder`, and write the `file` field themselves.
+- **Literature index:** `literature.md` in the project root (summaries only; `Local file` is the library path)
+- **Naming convention:** `FirstAuthor_Year_Short-Title.pdf` (e.g., `Grossman_2017_TI-Deep-Brain-Stimulation.pdf`)
+- **Name rules:** First author last name (particles hyphenated: `de-Vos`), publication year (`Undated` if unknown — never invent one), 2-5 word hyphenated title. ASCII only. Suffix preprints `_Preprint`; different bytes under a taken name get `_Version-<sha256 prefix>`.
+- **Duplicates:** compare SHA-256 and bytes before treating two files as the same; identical bytes keep one file. Never delete or rename a library file without updating every project's `file` field that points at it.
 
 ## Actions
 
@@ -46,16 +50,18 @@ Determine the action from `$action` (or infer from context):
 4. Ask the user which papers to add
 
 ### `add` — Download and catalog a paper
-1. If `$query` is a file path: the PDF is already local. Read and process it.
+0. Check the library first (search it by author/year/DOI); if the paper is there, only point the project's `.bib` entry at it.
+1. If `$query` is a file path: the PDF is already local. Read and process it, then move it into the right library subject folder (ask the user before moving a file they own).
 2. If `$query` is a DOI or URL: attempt to download via web fetch.
    - Try direct PDF URLs, PMC PDFs, bioRxiv/medRxiv PDFs
    - If download fails (paywall, redirect), add to "Papers to Acquire" in literature.md
 3. Parse the PDF to extract: authors, year, title, journal
-4. Rename the file following the naming convention
+4. Rename the file following the naming convention and file it in the library's subject folder (never in the project)
 5. Add a strategic summary entry to `literature.md` (see Summary Format below)
 
 ### `rename` — Rename all PDFs consistently
-1. List all PDFs in the literature directory
+Renaming a library file breaks every project whose `.bib` `file` field names it: find and update those pointers in the same operation, and confirm with the user first.
+1. List all PDFs in the library (or the subject folder in question)
 2. For each file not matching `Author_Year_ShortTitle.pdf` pattern:
    - Read enough of the PDF to identify the citation
    - Rename following the convention
