@@ -13,7 +13,7 @@ when_to_use: >-
   User says "add this paper" or "find papers on X" or "update literature".
 argument-hint: "[action] [query-or-path]"
 arguments: action query
-allowed-tools: Bash(ls *) Bash(mv *) Bash(rm *) Bash(stat *) Bash(file *) Bash(head *) Read Write Edit Glob Grep WebFetch WebSearch Agent
+allowed-tools: Bash(ls *) Bash(mv *) Bash(rm *) Bash(stat *) Bash(file *) Bash(head *) Bash(shasum -a 256 *) Bash(cmp -s *) Read Write Edit Glob Grep WebFetch WebSearch Agent
 ---
 
 # Librarian — Academic Literature Manager
@@ -81,10 +81,10 @@ Renaming a library file breaks every project whose `.bib` `file` field names it:
 4. Report findings to the user
 
 ### `status` — Report collection status
-1. Count PDFs in the shared library and compare against `literature.md` entries with `Local file` library paths
-2. List papers in `literature.md` without library paths
-3. List library PDFs without `literature.md` entries
-4. Report any naming inconsistencies
+1. Read this project's `literature.md` entries
+2. Check each `Local file` value is a library path and resolves to an existing PDF
+3. List project entries with missing, non-library, or unresolved paths
+4. Report naming inconsistencies only for referenced files
 
 ## Summary Format
 
