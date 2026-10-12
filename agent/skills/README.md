@@ -61,11 +61,20 @@ Workflows and playbooks:
 | `manuscript-review` | Full soundness/consistency/literature review of a manuscript. |
 | `matlab` | Run MATLAB in batch mode from the terminal. |
 | `mcp-authoring` | Author and configure MCP servers. |
-| `suna` | Work on a SUNA manuscript project (figures, references, review comments, compliance). |
-| `idofig` | Make or fix a publication figure: producers draw panels, figure.json places them and their letters, style.json refines named parts. |
 | `write-skill` | Author or refactor a skill in this directory. |
 
 Document-format skills (`pdf`, `pptx`, `xlsx`) are **not** kept here. Use the current harness's bundled format capabilities when available; local copies can shadow provider updates.
+
+## Skills owned by their tools
+
+These are not kept here (ARCHITECTURE §3.6): each tool installs a pointer skill to the docs of its
+installed version, so the skill cannot drift from the tool.
+
+| Skill | Installed by |
+|---|---|
+| `idofig` | `idofig skill install` (from the project's or the user's idofig; `--project` for a project's `.claude/skills`) |
+| `suna` | the SUNA app (`~/SunaConfig` heal; remove its managed marker to opt out) |
+| `suna-presentations` | the SUNA app, beside `suna` |
 
 ## External packages
 
