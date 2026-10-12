@@ -21,4 +21,4 @@ window-padding-balance = true
 # Every new Ghostty window attaches to (or creates) the tmux "main" session. The
 # first one after login starts the tmux server, which lets tmux-continuum restore
 # the last saved sessions automatically.
-command = /opt/homebrew/bin/tmux new-session -A -s main
+# command = /opt/homebrew/bin/tmux new-session -A -s main
