@@ -1,8 +1,8 @@
 ---
 name: librarian
 description: >-
-  Academic literature management for research papers. Searches local PDFs and
-  the web (OpenAlex, arXiv, Google Scholar), downloads open-access papers,
+  Academic literature management for research papers. Searches shared-library PDFs
+  and the web (OpenAlex, arXiv, Google Scholar), downloads open-access papers,
   renames files consistently (Author_Year_ShortTitle.pdf), and produces
   strategic summaries in literature.md oriented toward how each paper will be
   cited in the user's manuscript. Use when adding papers, reviewing literature
@@ -44,7 +44,7 @@ Determine the action from `$action` (or infer from context):
 3. For each candidate paper, report:
    - Full citation (authors, year, title, journal)
    - DOI or URL
-   - Whether it is already in the local collection
+   - Whether it is already in the shared library
    - Whether it is open-access (and thus downloadable)
    - A 1-sentence statement of relevance to the project
 4. Ask the user which papers to add
@@ -81,9 +81,9 @@ Renaming a library file breaks every project whose `.bib` `file` field names it:
 4. Report findings to the user
 
 ### `status` — Report collection status
-1. Count local PDFs and compare against literature.md entries
-2. List papers in literature.md without local files
-3. List local PDFs without literature.md entries
+1. Count PDFs in the shared library and compare against `literature.md` entries with `Local file` library paths
+2. List papers in `literature.md` without library paths
+3. List library PDFs without `literature.md` entries
 4. Report any naming inconsistencies
 
 ## Summary Format
@@ -94,7 +94,7 @@ Every entry in `literature.md` must follow this structure. Summaries are NOT gen
 ### Author et al. Year — Short Descriptive Title
 - **Citation:** Full author list, journal, volume, pages
 - **DOI:** DOI or URL
-- **Local file:** `filename.pdf` or N/A (reason)
+- **Local file:** Library path or N/A (reason), e.g. `~/homelab/academic_library/Subject/Folder/Author_Year_Short-Title.pdf`
 - **Use in our paper:** SECTION(S) — brief role description
 - **Key for us:** 3-5 sentences on what specifically we cite from this paper. Include key numbers, methods, or findings that we would reference. Frame in terms of OUR arguments, not the paper's own goals.
 - **Key numbers:** Specific statistics, effect sizes, sample sizes worth quoting
@@ -114,12 +114,12 @@ The "Key for us" section is the most important. It should answer: "If a future a
 
 After any action that modifies files:
 1. Verify all PDFs are real (file size > 10KB, starts with `%PDF`)
-2. Verify `literature.md` entries match actual files
+2. Verify `literature.md` entries match actual library files
 3. Report any discrepancies
 
 ## Output
 
 End every invocation with a brief status line:
 ```
-Library: X local PDFs | Y entries in literature.md | Z papers to acquire
+Library: X PDFs in shared library | Y entries in literature.md | Z papers to acquire
 ```
