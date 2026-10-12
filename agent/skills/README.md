@@ -1,7 +1,7 @@
 # Unified Skills
 
-This directory is the canonical source for reusable agent skills. Claude Code, Pi and Codex discover the same personal skills through generated links;
-the contract in `agent/docs/ARCHITECTURE.md` defines ownership.
+This directory is the canonical source for dotfiles-owned reusable agent skills. Claude Code, Pi and Codex discover the same dotfiles-owned personal skills through generated links;
+the contract in `agent/docs/ARCHITECTURE.md` defines ownership, including tool-owned exceptions.
 
 ## Layout
 
@@ -31,10 +31,11 @@ what the skill does and when an agent should load it.
 From the assigned checkout, run `agent/scripts/sync-agent-config.sh --check`.
 After landing, run `agent/scripts/agentctl sync` from the primary checkout.
 
-Claude receives one link per personal and playbook skill in `~/.claude/skills`.
+Claude receives one link per dotfiles-owned personal and playbook skill in `~/.claude/skills`.
 Pi and Codex use the same sources through `~/.agents/skills`. Both discovery roots are real generated
-directories. The duplicate Claude agentic-rules plugin is disabled so an older snapshot cannot supply
-a different engineering procedure. Supporting references and scripts stay with their owning skill.
+directories; tool-owned pointer skills may also install there but are not linked from this directory.
+The duplicate Claude agentic-rules plugin is disabled so an older snapshot cannot supply a different
+engineering procedure. Supporting references and scripts stay with their owning skill.
 
 ## Inventory
 

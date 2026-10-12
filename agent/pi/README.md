@@ -13,9 +13,9 @@ Claude Code, and Codex receive the same policy.
 | `prompts/` | Pi-only prompt templates |
 | `interactive-shell.json` | pi-interactive-shell overrides; moves its focus key off `alt+shift+f`, which pi-side-chat also claims |
 
-The sync layer supplies global instructions, personal/domain skills, the separate agentic-rules skills,
-and MCP servers from `agent/mcps/mcp-servers.json`. Runtime fields come from untracked overlays or
-generated effective settings.
+The sync layer supplies global instructions, dotfiles-owned personal/domain skills, the separate
+agentic-rules skills, and MCP servers from `agent/mcps/mcp-servers.json`. Runtime fields come from
+untracked overlays or generated effective settings.
 
 Do not add a second skills array or MCP declaration here: duplicate discovery can load conflicting tools
 and instructions. Do not store project trust, auth, themes, changelog cursors, or session state in tracked

@@ -16,8 +16,9 @@ names the failure it prevents.
    exactly one of them; the same rule in two places drifts, and the copy that is not read is the one with
    the stale instruction.
 
-3. **Author once under `agent/`, generate everywhere.** Harness files are thin adapters produced by
-   `agentctl sync`; policy hand-copied into Claude, Codex, or Pi diverges the moment one copy changes.
+3. **Author portable platform policy once under `agent/`, generate everywhere.** Harness files are thin
+   adapters produced by `agentctl sync`; policy hand-copied into Claude, Codex, or Pi diverges the moment
+   one copy changes. Tool-specific skills live with the tool that must keep them current.
 
 4. **Prefer a pinned CLI when a shell call suffices; prefer MCP when the agent needs typed, discoverable
    capability or the tool must run out of process.** An MCP server for a one-line shell call costs a
@@ -47,7 +48,7 @@ names the failure it prevents.
 
 | Need | Mechanism | Example |
 |---|---|---|
-| Domain knowledge or a repeatable procedure an agent should follow | Skill under `agent/skills/` or the `agentic-rules` playbook | `bids`, `architecture-contract` |
+| Domain knowledge or a repeatable procedure an agent should follow | Skill under `agent/skills/`, a tool-owned pointer skill, or the `agentic-rules` playbook | `bids`, `idofig`, `architecture-contract` |
 | Perform an operation deterministically from a shell | Pinned CLI | `agentctl`, `gh-axi`, `no-mistakes` |
 | Typed, discoverable, or out-of-process capability | MCP server in `agent/mcps/mcp-servers.json` | `context7`, `openalex`, `playwright` |
 | Route an agent to the right document or rule | `AGENTS.md` (this repository's map) | `agent/AGENTS.md` |

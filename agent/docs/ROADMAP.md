@@ -2,7 +2,7 @@
 
 ## What exists
 
-- Canonical shared policy, personal skills, MCP declarations, and three harness adapters under `agent/`.
+- Canonical shared policy, dotfiles-owned personal skills, MCP declarations, and three harness adapters under `agent/`.
 - [PHILOSOPHY.md](PHILOSOPHY.md): skills teach, CLIs act, MCP exposes; one checkout, one agent, one
   explicit owner per Git mutation.
 - The external `agentic-rules` engineering playbook linked from one source into Claude, Pi and Codex.

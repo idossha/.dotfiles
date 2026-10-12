@@ -9,10 +9,11 @@ Author one portable procedure and verify how each intended harness discovers it.
 
 ## Ownership
 
-Personal and domain skills belong in `agent/skills/<name>/` in the dotfiles checkout assigned to
-the task. Cross-project engineering procedures belong in the separate `agentic-rules` repository.
-When work is isolated, edit only the allocated worktree; an installed skill path can point at another
-checkout and is a reading location, not an editing instruction.
+Dotfiles-owned personal and domain skills belong in `agent/skills/<name>/` in the checkout assigned to
+the task. Tool-specific skills that describe one installed tool belong with that tool; keep only a short
+ownership pointer in `agent/skills/README.md`. Cross-project engineering procedures belong in the
+separate `agentic-rules` repository. When work is isolated, edit only the allocated worktree; an installed
+skill path can point at another checkout and is a reading location, not an editing instruction.
 
 Use the provider's bundled skill creator for provider-specific packaging when available. This skill
 owns the shared content and placement. Do not duplicate the creator's evolving schema or defaults here.

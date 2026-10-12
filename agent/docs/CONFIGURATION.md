@@ -29,14 +29,15 @@ at a lease that will later be returned.
 |---|---|
 | `policy/global.md` | Codex/Pi global AGENTS.md and Claude's imported AGENTS.md |
 | `AGENTS.md` | Relative repository-root project link only |
-| `skills/` and external playbook skills | One discovery route per harness; provider-bundled skills survive |
+| `skills/` and external playbook skills | One discovery route per harness; provider-bundled and tool-installed skills survive |
 | `claude/settings.json`, `pi/settings.json`, `codex/config.toml` | Real generated files; unknown local fields preserved, canonical keys authoritative |
 | `mcps/mcp-servers.json` | Claude user scope in local `~/.claude.json`, Pi JSON link, Codex generated TOML |
 | `codex/rules/default.rules` | Real generated policy plus local approvals |
 
 Ignored `agent/local/` overlays and their ownership manifest are machine state, not portable memory.
-Unknown real files displaced by links are backed up. Managed stale links are retired; unrelated
-skills and MCP servers are preserved. Never commit the full Claude app-state file.
+Unknown real files displaced by links are backed up. Managed stale links are retired; provider-bundled
+skills, tool-installed skills, unrelated user skills, and MCP servers are preserved. Never commit the full
+Claude app-state file.
 
 Claude MCP user scope was checked against
 [the official scope reference](https://code.claude.com/docs/en/mcp#mcp-installation-scopes)

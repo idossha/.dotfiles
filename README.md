@@ -128,7 +128,7 @@ whisper.cpp entirely on-device — no account, no network.
 
 Reusable agentic-coding configuration lives under `agent/`:
 
-- `agent/skills/` — canonical skills
+- `agent/skills/` — dotfiles-owned skills; tool-owned skill exceptions are in the agent contract
 - `agent/mcps/mcp-servers.json` — canonical MCP server definitions
 - `agent/claude/` — durable Claude settings, statusline, and templates
 - `agent/policy/global.md` — global user-level agent policy; idosleep owns memory capture and recall
