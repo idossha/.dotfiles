@@ -224,6 +224,23 @@ run = 'move-node-to-workspace 4'
 if.app-id = 'com.google.Chrome'
 run = 'move-node-to-workspace 4'
 
+# Anki: the main window floats centered on 7 at 57% x 84% of the monitor; Browse tiles behind it,
+# and short-lived dialogs float on top instead of splitting the layout every time a card is added.
+[[on-window-detected]]
+if.app-id = 'net.ankiweb.anki'
+if.window-title-regex-substring = ' - Anki$'
+run = ['layout floating', 'move-node-to-workspace 7',
+  'exec-and-forget ~/.config/aerospace/center-window.sh 7 Anki " - Anki" 0.57 0.84']
+
+[[on-window-detected]]
+if.app-id = 'net.ankiweb.anki'
+if.window-title-regex-substring = '^(Add|Edit Current|Preferences|Statistics|Options|Deck Options|Profiles|About|Import|Export|Find and Replace|Card Info|Current Card|Note Types|Fields for|Card Types for|Filtered Deck|Change Deck|Change Note Type|Reposition|Set Due Date|Check Database|Debug Console)'
+run = ['layout floating', 'move-node-to-workspace 7']
+
+[[on-window-detected]]
+if.app-id = 'net.ankiweb.anki'
+run = 'move-node-to-workspace 7'
+
 
 # ~~~~~~~~~~~ Floating Apps ~~~~~~~~~~~~~~~~~ #
 
