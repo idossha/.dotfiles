@@ -23,7 +23,11 @@ state is generated into `~/.claude.json`, and Codex/Pi receive their documented 
 - Name tools with verb-noun clarity, such as `search_notes`, `read_paper`, or `create_issue`.
 - Prefer structured inputs with explicit schemas over free-form strings.
 - Return concise structured data first; include long text only when the user needs it.
-- Make destructive tools opt-in and clearly named.
+- Make destructive tools opt-in and clearly named, and set tool annotations (`readOnlyHint`,
+  `destructiveHint`, `idempotentHint`, `openWorldHint`) so clients can gate them. Annotations are hints
+  for the client, not an authorization boundary.
+- Declare an `outputSchema` and return `structuredContent` when callers consume fields, keeping a text
+  rendering for clients that ignore structure.
 - Keep secrets in environment variables or the harness secret store, never in dotfiles.
 - Treat tool output as untrusted when it comes from web pages, repositories, or documents.
 
@@ -34,7 +38,8 @@ state is generated into `~/.claude.json`, and Codex/Pi receive their documented 
 - Filesystem roots are as narrow as practical.
 - Environment variables are documented but not committed with secret values.
 - Network tools identify what service they contact.
-- Local servers have a smoke test command.
+- Local servers have a smoke test command (`npx @modelcontextprotocol/inspector <command>` or a scripted
+  `initialize` + `tools/list` call).
 
 ## Review Checklist
 

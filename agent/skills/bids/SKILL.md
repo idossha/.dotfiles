@@ -1,6 +1,6 @@
 ---
 name: bids
-description: BIDS (Brain Imaging Data Structure) conventions for organizing neuroimaging datasets. Use when creating, reading, validating, or navigating BIDS-compliant directory trees, file names, metadata sidecars, or derivatives.
+description: BIDS (Brain Imaging Data Structure) conventions for neuroimaging datasets — directory layout, entity order in filenames, JSON sidecars and inheritance, TSV files, derivatives and validation. Use when creating, reading, validating, or navigating BIDS-compliant trees, filenames, sidecars, or derivatives. Not for volume I/O and coordinate transforms (neuroimaging) or MNE processing (mne-python).
 user-invocable: false
 ---
 
@@ -64,19 +64,14 @@ sub-<label>[_ses-<label>][_task-<label>][_acq-<label>][_run-<index>][_desc-<labe
 
 ### Entity Order (most common)
 
-| # | Entity | Key | Value Type | Example |
-|---|--------|-----|-----------|---------|
-| 1 | Subject | `sub-` | label | `sub-01` |
-| 2 | Session | `ses-` | label | `ses-pre` |
-| 3 | Task | `task-` | label | `task-rest` |
-| 4 | Acquisition | `acq-` | label | `acq-highres` |
-| 5 | Run | `run-` | index | `run-02` |
-| 6 | Echo | `echo-` | index | `echo-1` |
-| 7 | Part | `part-` | label | `part-mag` |
-| 8 | Description | `desc-` | label | `desc-preproc` |
-| 9 | Space | `space-` | label | `space-MNI152NLin2009cAsym` |
+Order is fixed by the spec's entity table. The common subset, in order:
 
-Full entity ordering is in the BIDS Entities Appendix.
+`sub` → `ses` → `task` → `acq` → `ce` → `rec` → `dir` → `run` → `echo` → `part` → `proc` → `space` →
+`recording` → `res` → `den` → `label` → `desc`
+
+`space-` precedes `desc-` (`sub-01_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz`). For any
+entity not listed, read the Entities Appendix of the spec version the dataset declares in
+`BIDSVersion` rather than guessing.
 
 ### Common Suffixes by Datatype
 
@@ -306,57 +301,33 @@ Follow SI; use CMIXF-12 notation for prefixes:
 
 ## Python: Building BIDS Paths
 
-When writing Python code for BIDS datasets:
+Do not hand-roll entity ordering. Use a library that encodes the spec:
 
 ```python
-from pathlib import Path
+from mne_bids import BIDSPath          # EEG/MEG/iEEG; also handles sidecars when writing
 
-def bids_path(root, sub, ses=None, datatype="eeg", suffix="eeg",
-              ext=".set", task=None, acq=None, run=None, desc=None,
-              space=None, derivative=None):
-    """Build a BIDS-compliant file path."""
-    sub = sub.removeprefix("sub-")
-    base = Path(root)
-    if derivative:
-        base = base / "derivatives" / derivative
-    base = base / f"sub-{sub}"
-    if ses:
-        ses = ses.removeprefix("ses-")
-        base = base / f"ses-{ses}"
-    base = base / datatype
+path = BIDSPath(root=root, subject="01", session="pre", task="rest",
+                datatype="eeg", suffix="eeg", extension=".edf")
+path.fpath                              # ordered, validated path
 
-    # Entities in spec-defined order
-    parts = [f"sub-{sub}"]
-    if ses:
-        parts.append(f"ses-{ses}")
-    if task:
-        parts.append(f"task-{task}")
-    if acq:
-        parts.append(f"acq-{acq}")
-    if run is not None:
-        parts.append(f"run-{run}")
-    if desc:
-        parts.append(f"desc-{desc}")
-    if space:
-        parts.append(f"space-{space}")
-    parts.append(suffix)
-
-    return base / ("_".join(parts) + ext)
+from bids import BIDSLayout             # pybids: query an existing dataset
+layout = BIDSLayout(root, derivatives=True)
+layout.get(subject="01", suffix="T1w", extension=".nii.gz", return_type="file")
 ```
+
+If a project already has a path helper, use it and check its entity order against the appendix.
 
 ## Validation
 
-Use the BIDS Validator to check compliance:
+Validate with the schema-based validator (v2):
+
 ```bash
-# npm
-npx bids-validator /path/to/dataset
-
-# Docker
-docker run -v /path/to/dataset:/data bids/validator /data
-
-# Python
-pip install bids-validator
+deno run -A jsr:@bids/validator /path/to/dataset          # canonical
+docker run --rm -v /path/to/dataset:/data:ro bids/validator /data
 ```
+
+The `bids-validator` Python package checks filenames only (`BIDSValidator().is_bids(relpath)`); it is
+not a dataset validation. Report the validator version and any warnings you chose to leave.
 
 Common validation pitfalls:
 - Empty datatype directories

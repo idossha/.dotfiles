@@ -43,28 +43,28 @@ Domain knowledge (auto-loaded when relevant):
 
 | Skill | Purpose |
 |---|---|
-| `bids` | BIDS dataset layout, filenames, sidecars, derivatives. |
-| `code-quality` | Production code standards: security, errors, complexity, naming, tests. |
+| `bids` | BIDS dataset layout, entity order, sidecars, derivatives, validation. |
 | `eeglab` | EEGLAB/MATLAB EEG processing reference. |
-| `engineering-discipline` | Scope, evidence, and verification discipline for code changes. |
+| `engineering-discipline` | Scope, evidence, and verification discipline for any code change. |
 | `mne-python` | MNE-Python workflows plus an API lookup helper script. |
-| `neuroimaging` | NIfTI/DICOM/SimpleITK/nibabel patterns. |
-| `python-production` | Python production patterns and anti-patterns. |
-| `scientific-computing` | NumPy/SciPy/matplotlib patterns for imaging and neuroscience. |
-| `security-review` | Security review checklist for code, tools, and configuration. |
+| `neuroimaging` | NIfTI/DICOM/SimpleITK/nibabel I/O, orientation, registration. |
+| `python-production` | Python 3.11+ idioms and the bugs they prevent. |
+| `scientific-computing` | NumPy/SciPy numerical correctness for neuroscience and imaging. |
+| `security-review` | Security review checklist for code, tools, skills, and configuration. |
 
 Workflows and playbooks:
 
 | Skill | Purpose |
 |---|---|
-| `grill-me` | Interview the user to stress-test a plan before implementing. |
 | `librarian` | Find, download, rename, and strategically summarize papers. |
-| `manuscript-review` | Full soundness/consistency/literature review of a manuscript. |
 | `matlab` | Run MATLAB in batch mode from the terminal. |
 | `mcp-authoring` | Author and configure MCP servers. |
 | `write-skill` | Author or refactor a skill in this directory. |
 
-Document-format skills (`pdf`, `pptx`, `xlsx`) are **not** kept here. Use the current harness's bundled format capabilities when available; local copies can shadow provider updates.
+Document-format skills (`pdf`, `pptx`, `xlsx`, `docx`) are **not** kept here. Use the current harness's
+bundled format capabilities when available; local copies can shadow provider updates. Word documents
+are read and annotated with the installed `docx-tools` CLI (`read`, `extract`, `inject`, `redline`);
+SUNA only exports DOCX.
 
 ## Skills owned by their tools
 
@@ -79,22 +79,20 @@ installed version, so the skill cannot drift from the tool.
 
 ## External packages
 
-Ponytail's six Markdown skills (`ponytail`, `ponytail-review`, `ponytail-audit`,
-`ponytail-debt`, `ponytail-gain`, `ponytail-help`) are vendored from
-[DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail/tree/e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156),
-version 4.10.0, commit `e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156`.
-The upstream skill files have two local documentation adaptations:
-`ponytail-help/SKILL.md` removes unsupported default-mode configuration and plugin-update
-sections for this shared-skills-only installation and replaces provider-specific command
-claims with the skills' plain-language triggers; `ponytail-gain/SKILL.md` routes its
-benchmark source reference here because the upstream benchmark files are not vendored.
-All other skill content is unchanged. Their MIT license is retained in
-[`ponytail/LICENSE`](ponytail/LICENSE). They use the shared discovery links above;
-no plugin, lifecycle hooks, MCP server, or npm package is installed. Updates require reviewing and replacing
-this pinned snapshot, then syncing. The upstream gain card uses the older
-single-shot benchmark; consult the upstream README for its newer agentic results.
-The user's instructions and repository policies remain authoritative when a
-Ponytail suggestion differs from required scope or verification.
+Third-party skill packages are declared in [`../skill-packages.json`](../skill-packages.json) and are
+not copied here. `agent/scripts/install-agent-tools.sh` clones each into
+`~/.local/share/agent-skills/<name>` or fast-forwards it to upstream's default branch, printing the
+incoming commits; `agentctl sync` then links the package's `skills/` directory like any other source,
+and `agentctl doctor` reports the revision as floating. Edit a package upstream, never in the clone.
+
+| Package | Skills | Upstream |
+|---|---|---|
+| `ponytail` | `ponytail`, `ponytail-review`, `ponytail-audit`, `ponytail-debt`, `ponytail-gain`, `ponytail-help` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) (MIT) |
+
+Only the Markdown skills are used: no plugin, lifecycle hooks, MCP server, or npm package is installed,
+so slash-command or plugin claims in Ponytail's help card may not apply in every harness. The user's
+instructions and repository policies remain authoritative when a Ponytail suggestion differs from
+required scope or verification.
 
 The eight engineering skills live in the local `agentic-rules` clone selected by
 `AGENTIC_RULES_DIR` (default `~/00_development/agentic-rules`). They are linked, never copied into

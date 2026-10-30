@@ -4,7 +4,8 @@ description: >-
   EEGLAB toolbox reference for EEG/MEG processing in MATLAB. Use when writing
   or modifying EEGLAB scripts, working with the EEG struct, ICA, clean_rawdata,
   ICLabel, pop_* functions, STUDY designs, or BIDS-EEG import. Covers the EEG
-  structure, preprocessing pipeline, plugin API, and function lookup.
+  structure, preprocessing pipeline, plugin API, and function lookup. Not for
+  MNE-Python (mne-python) or running MATLAB itself (matlab).
 user-invocable: false
 ---
 
@@ -240,7 +241,8 @@ STUDY = std_erpplot(STUDY, ALLEEG, 'channels', {ALLEEG(1).chanlocs.labels}, 'des
 
 ## Testing
 
-No centralized test suite. Manual validation:
+No centralized test suite. Validate headlessly through the matlab skill's batch runner, e.g.
+`"$MATLAB" -batch "addpath('<eeglab>'); eeglab nogui; <checks>"`:
 1. `eeglab nogui` loads without errors
 2. Load sample data: `EEG = pop_loadset('filename', 'eeglab_data.set', 'filepath', 'sample_data/')`
 3. Run the modified function

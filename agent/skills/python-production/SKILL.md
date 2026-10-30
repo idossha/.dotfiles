@@ -1,182 +1,56 @@
 ---
 name: python-production
-description: Python production code patterns and anti-patterns. Use when writing Python code.
+description: Python production idioms and the bugs they prevent — typing, dataclasses, pathlib, logging, subprocess, exceptions, packaging and tooling for Python 3.11+. Use when writing, reviewing or refactoring Python. Not for NumPy/SciPy numerics (scientific-computing), test design (testing-backend), or security review (security-review).
 user-invocable: false
 ---
 
-# Python Production Patterns
+# Python Production
 
-## Configuration: Dataclasses Over Dicts
+Follow the project's own `pyproject.toml`, linter and type-checker settings first. These defaults apply
+where the project is silent.
 
-- Use `@dataclass` with type annotations for structured config. Dicts hide bugs.
-  ```python
-  # BAD
-  config = {"host": "localhost", "port": 8080}
+## Project and tooling
 
-  # GOOD
-  @dataclass
-  class ServerConfig:
-      host: str
-      port: int = 8080
-  ```
-- Use `@dataclass(frozen=True)` for immutable configuration
-- For optional fields, use `Optional[T] = None`, not sentinel values
+- One `pyproject.toml`. Use the project's runner (`uv run`, `hatch`, a venv); do not install into the
+  system interpreter.
+- `ruff check` and `ruff format` when configured; run the type checker the project uses (`mypy`,
+  `pyright`) on changed modules.
+- Respect `requires-python`. On 3.10+ write `X | None` and `list[int]`; `Optional`/`List` only where an
+  older floor demands them.
 
-## Path Operations
+## Data and types
 
-- **Always use `pathlib.Path`**, never string concatenation:
-  ```python
-  # BAD
-  path = base_dir + "/" + subdir + "/" + filename
+- Structured values are `@dataclass` (`frozen=True` when immutable, `slots=True` when many instances),
+  not dicts passed around by key.
+- Fixed choices are `enum.Enum` (or `StrEnum`), not string constants.
+- Annotate public signatures; let the checker infer locals.
+- Never a mutable default argument: `def f(items: list[str] | None = None)` then
+  `items = [] if items is None else items`.
 
-  # GOOD
-  path = Path(base_dir) / subdir / filename
-  ```
-- Use `.resolve()` to get absolute paths, `.exists()` to check, `.mkdir(parents=True, exist_ok=True)` to create
+## Files and processes
 
-## Logging
+- `pathlib.Path` everywhere; `/` to join, `mkdir(parents=True, exist_ok=True)` to create, explicit
+  `encoding="utf-8"` on text I/O.
+- Resources live in `with` blocks. A lock is created once and shared — `with self._lock:`, never
+  `with threading.Lock():`, which locks nothing.
+- `subprocess.run([...], check=True, capture_output=True, text=True)` with an argument list. No
+  `shell=True` with interpolated input. Set `timeout=` for anything that can hang.
+- Write files atomically when a crash mid-write would corrupt state: write a temp file in the same
+  directory, then `os.replace`.
 
-- **One logger per module**: `logger = logging.getLogger(__name__)`
-- **Configure logging at entry points only** (main, CLI, app startup). Never call `basicConfig()` or add handlers in library code.
-- Use appropriate levels: `debug` for diagnostics, `info` for operational events, `warning` for recoverable issues, `error` for failures
-- Use lazy formatting: `logger.info("Processing %s", filename)` not `logger.info(f"Processing {filename}")`
+## Errors and logging
 
-## Resource Management
+- One project base exception; specific subclasses for conditions callers handle. Raise with context
+  (`raise ConfigError(...) from exc`).
+- Catch the narrowest exception you can act on. `except Exception: pass` is a bug.
+- `logger = logging.getLogger(__name__)` per module. Configure handlers only at entry points.
+- Log with lazy `%s` arguments (`logger.info("loaded %s", path)`); use f-strings everywhere else.
+- Never log secrets, tokens, or full config payloads.
 
-- **Always use context managers** for resources:
-  ```python
-  # Files
-  with open(path) as f:
-      data = f.read()
+## Modules
 
-  # Database connections
-  with db.connect() as conn:
-      conn.execute(query)
-
-  # Locks
-  with threading.Lock():
-      shared_state.update(value)
-  ```
-
-## Mutable Default Arguments
-
-- **Never use mutable defaults** — they persist across calls:
-  ```python
-  # BUG
-  def add_item(item, items=[]):
-      items.append(item)
-      return items
-
-  # CORRECT
-  def add_item(item, items=None):
-      if items is None:
-          items = []
-      items.append(item)
-      return items
-  ```
-
-## Module API Surface
-
-- Use `__all__` in `__init__.py` to control public exports:
-  ```python
-  __all__ = ["Analyzer", "run_analysis", "AnalysisConfig"]
-  ```
-- Only re-export what downstream users actually need
-- Keep `__init__.py` minimal — imports and `__all__`, no logic
-
-## Import Patterns
-
-- **Lazy imports only when measured startup time justifies it.** Don't guess — profile first.
-- Standard import order: stdlib, third-party, local (blank line between groups)
-- No wildcard imports (`from module import *`)
-
-## Subprocess Calls
-
-- Always use `subprocess.run()` with explicit args list:
-  ```python
-  # BAD
-  subprocess.run(f"cmd {user_input}", shell=True)
-
-  # GOOD
-  result = subprocess.run(
-      ["cmd", user_input],
-      capture_output=True,
-      text=True,
-      check=True,
-  )
-  ```
-- Use `check=True` to raise on non-zero exit codes (or handle returncode explicitly)
-
-## Exception Handling
-
-- **Define a project-level base exception**, inherit specific exceptions from it:
-  ```python
-  class AppError(Exception):
-      """Base exception for this project."""
-
-  class ConfigError(AppError):
-      """Invalid configuration."""
-
-  class DataLoadError(AppError):
-      """Failed to load data from source."""
-  ```
-- **Never bare `except:`** — always catch specific exceptions
-- **Don't silence exceptions** without logging:
-  ```python
-  # BAD
-  try:
-      process(data)
-  except Exception:
-      pass
-
-  # ACCEPTABLE (when you genuinely expect and handle the case)
-  try:
-      value = cache[key]
-  except KeyError:
-      value = compute_value(key)
-  ```
-
-## Design Principles
-
-- **Composition over inheritance**: inject dependencies, don't subclass for code reuse
-- **Functions over classes for stateless operations**: if your class has no `__init__` state and one method, it should be a function
-- **Use `enum.Enum` for fixed sets**, not string constants:
-  ```python
-  # BAD
-  mode = "read"  # typo-prone, no IDE completion
-
-  # GOOD
-  class Mode(enum.Enum):
-      READ = "read"
-      WRITE = "write"
-  ```
-
-## String Formatting
-
-- **f-strings** for simple interpolation: `f"Hello, {name}"`
-- **`.format()`** only when the template is stored separately
-- Never use `%` formatting in new code
-
-## Type Annotations
-
-- **Required on public API signatures** (functions, methods, class attributes exposed in `__all__`)
-- Don't over-annotate private helpers — type checkers can infer most local types
-- Use `from __future__ import annotations` for forward references (Python 3.9 compatibility)
-- Common patterns:
-  ```python
-  def load_config(path: Path) -> ServerConfig: ...
-  def find_items(query: str, limit: int = 10) -> list[Item]: ...
-  def process(data: dict[str, Any]) -> None: ...
-  ```
-
-## Module Entry Points
-
-- Always use the `__main__` guard in executable modules:
-  ```python
-  def main():
-      # entry point logic
-
-  if __name__ == "__main__":
-      main()
-  ```
-- This prevents side effects when the module is imported for testing
+- Imports grouped stdlib / third-party / local; no wildcard imports; absolute imports.
+- `__init__.py` holds re-exports and `__all__`, not logic.
+- Executables put work in `main()` under `if __name__ == "__main__":` so imports have no side effects.
+- A class with one method and no state is a function. Prefer composition to inheritance for reuse.
+- Defer heavy imports only when measured startup cost justifies it.

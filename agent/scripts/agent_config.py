@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 import tempfile
 import tomllib
@@ -211,12 +212,22 @@ class Layout:
     def manifest(self) -> Path:
         return self.local / "managed-state.local.json"
 
+    def packages(self) -> dict[str, Path]:
+        """Upstream skill packages: clones that install-agent-tools.sh keeps on their default branch."""
+        declared = read_config(self.agent / "skill-packages.json")
+        return {name: self.destination / ".local/share/agent-skills" / name for name in declared}
+
     def inventory(self) -> dict[str, Path]:
         roots = [self.agent / "skills"]
         if (self.playbook / "skills").is_dir():
             roots.append(self.playbook / "skills")
         else:
             print(f"  [note] external playbook not checked: {self.playbook}")
+        for name, clone in self.packages().items():
+            if (clone / "skills").is_dir():
+                roots.append(clone / "skills")
+            else:
+                print(f"  [note] skill package {name} not installed: {clone}")
         return skill_inventory(roots)
 
     def links(self, inventory: dict[str, Path]) -> dict[Path, Path]:
@@ -421,6 +432,9 @@ def installed_issues(layout: Layout) -> list[str]:
     issues = []
     if not (layout.playbook / "skills").is_dir():
         issues.append("shared engineering playbook is missing; installed doctrine is incomplete")
+    for name, clone in layout.packages().items():
+        if not (clone / "skills").is_dir():
+            issues.append(f"skill package {name} is missing; run install-agent-tools.sh")
     for directory in (".agents/skills", ".claude/skills", ".claude/agents"):
         if (layout.destination / directory).is_symlink():
             issues.append(f"{directory}: discovery root must be a generated real directory")
@@ -479,6 +493,11 @@ def floating_dependencies(layout: Layout) -> None:
     for name, enabled in read_config(layout.agent / "claude/settings.json").get("enabledPlugins", {}).items():
         if enabled:
             print(f"  [floating] Claude plugin: {name} (provider-managed snapshot)")
+    for name, clone in layout.packages().items():
+        if (clone / ".git").exists():
+            described = subprocess.run(["git", "-C", str(clone), "describe", "--tags", "--always"],
+                                       capture_output=True, text=True).stdout.strip()
+            print(f"  [floating] skill package {name}: {described or 'unknown revision'} (tracks upstream)")
 
 
 def main(argv: list[str] | None = None) -> int:

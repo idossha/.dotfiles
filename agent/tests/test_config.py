@@ -34,6 +34,10 @@ class OwnershipTests(unittest.TestCase):
         skill.parent.mkdir(parents=True)
         skill.write_text("---\nname: house-fixture\ndescription: Synthetic engineering procedure\n---\n")
         self.layout = Layout(self.agent, self.destination, playbook)
+        for name in self.layout.packages():
+            package = self.destination / ".local/share/agent-skills" / name / f"skills/{name}-fixture/SKILL.md"
+            package.parent.mkdir(parents=True)
+            package.write_text(f"---\nname: {name}-fixture\ndescription: Synthetic package skill\n---\n")
 
     def write_json(self, relative, value):
         path = self.destination / relative
@@ -80,6 +84,19 @@ class OwnershipTests(unittest.TestCase):
         installed = {child.name for child in (self.agent / "skills").iterdir() if child.is_dir()} - {"nope"}
         with self.assertRaisesRegex(ValueError, "not installed: nope"):
             agent_inventory(self.agent / "agents", installed)
+
+    def test_missing_skill_package_cannot_pass_installed_validation(self):
+        self.run_sync()
+        shutil.rmtree(self.destination / ".local/share/agent-skills/ponytail")
+        with redirect_stdout(io.StringIO()):
+            self.assertIn("skill package ponytail is missing; run install-agent-tools.sh",
+                          installed_issues(self.layout))
+
+    def test_skill_package_skills_share_discovery_links(self):
+        self.run_sync()
+        source = self.destination / ".local/share/agent-skills/ponytail/skills/ponytail-fixture"
+        for root in (".claude/skills", ".agents/skills"):
+            self.assertEqual((self.destination / root / "ponytail-fixture").resolve(), source.resolve())
 
     def test_missing_playbook_cannot_pass_installed_validation(self):
         self.run_sync()
@@ -213,7 +230,7 @@ class OwnershipTests(unittest.TestCase):
         self.assertFalse(agents.exists() or agents.is_symlink())
 
     def test_global_map_cannot_leak_dotfiles_project_rules(self):
-        self.destination.mkdir()
+        self.destination.mkdir(exist_ok=True)
         home_map = self.destination / "AGENTS.md"
         home_map.symlink_to(self.agent / "AGENTS.md")
         self.run_sync()

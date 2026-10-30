@@ -286,3 +286,16 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   write; the SUNA app heals its marked pointer skills, now `suna` and `suna-presentations` (moved
   into SUNA's `resources/skills/` and updated to its current deck verbs).
 
+## 2026-10-30 — Skill pass: track Ponytail upstream, retire overlapping skills (§3.6)
+
+- 2026-10-30 — **Ponytail is a tracked upstream skill package, not a vendored snapshot** — the pinned
+  4.10.0 copy had fallen behind upstream 5.3.3, and the user asked for it to stay current on its own.
+  `agent/skill-packages.json` declares the repository; the opt-in installer clones or fast-forwards it
+  and prints incoming commits, sync stays offline and links its `skills/`, and doctor reports the
+  revision as floating. This supersedes the 2026-09-20 vendoring and its two local help/gain edits.
+- 2026-10-30 — **Retire `manuscript-review` and `code-quality`** — manuscript work moved to SUNA, so a
+  second docx-based review route would drift (the `docx-tools` CLI stays as the Word reader because
+  SUNA only exports DOCX). `code-quality` repeated rules owned by `ponytail`, `security-review`,
+  `testing-backend` and `python-production`; its language-agnostic remainder moved into
+  `engineering-discipline`, and subagent profiles preload that instead.
+

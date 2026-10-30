@@ -12,6 +12,10 @@
 #      agent/pi/settings.json. Pi 0.73 does not auto-install packages listed in
 #      global settings at startup (that arrived in 0.82), so a fresh machine
 #      needs this. Already-installed pins are skipped.
+#   2. Skill packages - clone or fast-forward each upstream repository named in
+#      agent/skill-packages.json into ~/.local/share/agent-skills/<name>. These
+#      track upstream deliberately; incoming commits are printed and doctor
+#      reports the revision as floating. Run agentctl sync afterwards.
 #
 # Optional:
 #   --tools     Install the pinned adopted tools: no-mistakes and the AXI helper CLIs.
@@ -248,10 +252,49 @@ print_summary() {
   fi
 }
 
+# --- Skill packages ----------------------------------------------------------
+
+skill_packages() {
+  "$AGENT_PYTHON" - "$AGENT_DIR/skill-packages.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1]) as fh:
+    for name, url in json.load(fh).items():
+        print(name, url)
+PY
+}
+
+install_skill_packages() {
+  local root="${AGENT_CONFIG_HOME:-$HOME}/.local/share/agent-skills"
+  echo "Skill packages (declared in skill-packages.json, cloned under $root):"
+  local name url clone before
+  while read -r name url; do
+    [ -n "$name" ] || continue
+    clone="$root/$name"
+    if [ ! -d "$clone/.git" ]; then
+      run_mutation mkdir -p "$root"
+      run_mutation git clone --quiet "$url" "$clone"
+      did "$name (cloned from $url)"
+      continue
+    fi
+    before="$(git -C "$clone" rev-parse HEAD)"
+    run_mutation git -C "$clone" pull --quiet --ff-only
+    if [ "$DRY_RUN" -eq 0 ] && [ "$before" != "$(git -C "$clone" rev-parse HEAD)" ]; then
+      git -C "$clone" log --oneline "$before..HEAD" | sed 's/^/    /'
+      did "$name (updated to $(git -C "$clone" describe --tags --always))"
+    else
+      skipped "$name (up to date or dry run)"
+    fi
+  done < <(skill_packages)
+}
+
 main() {
   parse_args "$@"
 
   install_pi_packages
+  echo
+  install_skill_packages
 
   if [ "$WITH_TOOLS" -eq 1 ]; then
     echo

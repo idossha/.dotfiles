@@ -1,36 +1,35 @@
 ---
 name: engineering-discipline
-description: Practical engineering discipline for agentic coding. Use when planning or implementing code changes to keep edits simple, scoped, evidence-driven, and verified.
+description: Scope, evidence and verification discipline for any code change in any language — find the smallest coherent change, verify it with a command, report what was and was not proved. Use when planning, implementing or reporting a code change, or when handing one off. Not for over-engineering review (ponytail), security review (security-review), test design (testing-backend), or Python idioms (python-production).
 user-invocable: false
 ---
 
 # Engineering Discipline
 
-Use this skill to keep coding work concrete, small, and verifiable.
+## Loop
 
-## Operating Loop
-
-1. State the actual user outcome in one sentence.
-2. Inspect the relevant code before choosing an approach.
-3. Identify the smallest coherent change that achieves the outcome.
-4. Make assumptions explicit when they affect behavior, data, or user workflow.
-5. Edit only the files required for the task.
-6. Verify with the narrowest meaningful command first, then broader checks when risk warrants it.
-7. Report what changed, what was verified, and what remains uncertain.
+1. State the user outcome in one sentence and the evidence that will prove it.
+2. Read the code that will change and its callers before choosing an approach.
+3. Make the smallest coherent change. Touch only files the outcome needs; keep formatting churn out of
+   behavior changes.
+4. Verify with the narrowest command that would fail if the change were wrong, then broaden when the
+   blast radius warrants it. A command you did not run is not evidence.
+5. Report files changed, behavior changed, commands run with their result, and what stayed unproved.
 
 ## Defaults
 
-- Prefer boring, local, readable code over clever abstractions.
-- Preserve existing conventions, naming, error handling, and test style.
-- Avoid speculative generalization.
-- Do not mix formatting churn with behavior changes unless formatting is the task.
-- Do not silently change public APIs, file formats, migrations, or user-visible flows.
-- Treat missing tests, flaky commands, and unverifiable assumptions as facts to report.
+- Match the surrounding code: naming, error handling, comment density, test style. If the codebase
+  says `user_id`, do not introduce `userId`.
+- Validate at boundaries (user input, files, network, env, model and tool output); trust values your own
+  code already validated.
+- Fail fast and loudly. Catch the specific exception you can handle; never swallow one silently.
+- Comments say why, never what. A name that needs a "what" comment needs a better name.
+- Delete dead code and unused compatibility paths instead of preserving them.
+- Treat a missing test, a flaky command, or an unverifiable assumption as a finding to report, not a gap
+  to paper over.
 
-## Red Flags
+## Stop and re-plan when
 
-Stop and re-evaluate if the change touches unrelated modules, adds a new framework, expands scope, changes persistence/auth/security, or cannot be verified locally despite meaningful risk.
-
-## Final Answer Shape
-
-Include files changed, behavior changed, verification run, and known gaps.
+The change spreads into unrelated modules, adds a framework or dependency, alters a public API, file
+format, migration, persistence, auth or user-visible flow that the task did not name, or cannot be
+verified locally despite real risk. Say which, and what decision is needed.

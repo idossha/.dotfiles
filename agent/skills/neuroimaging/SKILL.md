@@ -1,6 +1,6 @@
 ---
 name: neuroimaging
-description: Medical neuroimaging patterns for NIfTI, DICOM, SimpleITK, and nibabel. Use when working with brain imaging data, registration, coordinate transforms, or volume I/O.
+description: Medical neuroimaging patterns for NIfTI, DICOM, SimpleITK, and nibabel — volume I/O, affines, RAS/LPS orientation, registration, resampling and DICOM series selection. Use when working with brain imaging volumes, registration, coordinate transforms, or electrode coordinates. Not for BIDS naming and sidecars (bids), generic array numerics (scientific-computing), or brain figure panels (idofig).
 user-invocable: false
 ---
 
@@ -13,7 +13,7 @@ Use this skill for medical and neuroscience image processing tasks involving vol
 - `nibabel` for NIfTI I/O, affines, and orientation.
 - `SimpleITK` for registration, transforms, resampling, and DICOM series.
 - BIDS / BIDS-iEEG for dataset naming and metadata conventions.
-- `numpy`, `scipy.ndimage`, and `matplotlib` for numerical operations and QC figures.
+- `numpy` and `scipy.ndimage` for numerical operations; idofig for figure panels.
 
 ## NIfTI I/O with nibabel
 
@@ -137,16 +137,19 @@ When crossing libraries: transpose arrays AND negate X,Y coordinates.
 direction = np.array(image.GetDirection()).reshape(3, 3)
 spacing = np.diag(image.GetSpacing())
 origin = np.array(image.GetOrigin())
-affine = np.eye(4)
-affine[:3, :3] = direction @ spacing
-affine[:3, 3] = origin
+lps = np.eye(4)
+lps[:3, :3] = direction @ spacing
+lps[:3, 3] = origin
+affine = np.diag([-1.0, -1.0, 1.0, 1.0]) @ lps     # LPS → RAS for nibabel
+data = sitk.GetArrayFromImage(image).T              # (z, y, x) → (i, j, k)
 ```
+Verify any conversion by round-tripping one landmark voxel through both libraries.
 
 ### Memory Management
 - NIfTI volumes: 256^3 float64 = ~134MB — use float32 when possible
-- nibabel loads lazily — `.get_fdata()` materializes
-- SimpleITK also lazy — `.Execute()` triggers computation
-- Always close matplotlib figures: `plt.close(fig)`
+- nibabel loads lazily — `.get_fdata()` materializes and caches; `np.asanyarray(img.dataobj)` keeps the
+  stored dtype without caching
+- SimpleITK reads eagerly; `ReadImage` and every filter allocate a full image
 
 ## DICOM Series Selection
 ```python

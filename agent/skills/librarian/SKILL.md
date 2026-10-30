@@ -13,7 +13,7 @@ when_to_use: >-
   User says "add this paper" or "find papers on X" or "update literature".
 argument-hint: "[action] [query-or-path]"
 arguments: action query
-allowed-tools: Bash(ls *) Bash(mv *) Bash(rm *) Bash(stat *) Bash(file *) Bash(head *) Bash(shasum -a 256 *) Bash(cmp -s *) Read Write Edit Glob Grep WebFetch WebSearch Agent
+allowed-tools: Bash(ls *) Bash(mv *) Bash(stat *) Bash(file *) Bash(head *) Bash(shasum -a 256 *) Bash(cmp -s *) Read Write Edit Glob Grep WebFetch WebSearch Agent
 ---
 
 # Librarian — Academic Literature Manager
@@ -29,7 +29,7 @@ You manage the literature collection for a research project. Your job is to find
 - **Literature index:** `literature.md` in the project root (summaries only; `Local file` is the library path)
 - **Naming convention:** `FirstAuthor_Year_Short-Title.pdf` (e.g., `Grossman_2017_TI-Deep-Brain-Stimulation.pdf`)
 - **Name rules:** First author last name (particles hyphenated: `de-Vos`), publication year (`Undated` if unknown — never invent one), 2-5 word hyphenated title. ASCII only. Suffix preprints `_Preprint`; different bytes under a taken name get `_Version-<sha256 prefix>`.
-- **Duplicates:** compare SHA-256 and bytes before treating two files as the same; identical bytes keep one file. Never delete or rename a library file without updating every project's `file` field that points at it.
+- **Duplicates:** compare SHA-256 and bytes before treating two files as the same; identical bytes keep one file, and removing the other copy needs the user's confirmation. Never delete or rename a library file without updating every project's `file` field that points at it.
 
 ## Actions
 

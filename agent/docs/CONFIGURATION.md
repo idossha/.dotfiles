@@ -29,7 +29,7 @@ at a lease that will later be returned.
 |---|---|
 | `policy/global.md` | Codex/Pi global AGENTS.md and Claude's imported AGENTS.md |
 | `AGENTS.md` | Relative repository-root project link only |
-| `skills/` and external playbook skills | One discovery route per harness; provider-bundled and tool-installed skills survive |
+| `skills/`, external playbook skills, and `skill-packages.json` clones | One discovery route per harness; provider-bundled and tool-installed skills survive |
 | `claude/settings.json`, `pi/settings.json`, `codex/config.toml` | Real generated files; unknown local fields preserved, canonical keys authoritative |
 | `mcps/mcp-servers.json` | Claude user scope in local `~/.claude.json`, Pi JSON link, Codex generated TOML |
 | `codex/rules/default.rules` | Real generated policy plus local approvals |

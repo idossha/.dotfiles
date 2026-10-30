@@ -1,101 +1,50 @@
 ---
 name: scientific-computing
-description: Scientific Python patterns for NumPy, SciPy, and matplotlib in medical imaging and neuroscience. Use when writing numerical code, signal processing, or scientific visualizations.
+description: Numerical correctness for NumPy and SciPy in neuroscience and imaging code — dtypes, NaNs, float comparison, filtering, spectra, randomness, units and memory. Use when writing or reviewing numerical, signal-processing or array code. Not for figure layout and publication plots (idofig), volume I/O and coordinate spaces (neuroimaging), or MNE objects (mne-python).
 user-invocable: false
 ---
 
-# Scientific Computing Patterns
+# Scientific Computing
 
-## NumPy for Medical Imaging
+Numbers that look plausible are the failure mode. Every change states shape, dtype, units and the
+assumption that would invalidate the result.
 
-### Volume Operations
+## Arrays
 
-```python
-import numpy as np
+- Write the expected shape next to non-obvious arrays (`# (n_channels, n_samples)`) and assert it at
+  function boundaries that receive outside data.
+- Know whether an operation returns a view or a copy. Slices are views; fancy indexing copies. Call
+  `.copy()` before mutating data a caller still owns.
+- Watch integer dtypes: `uint8`/`int16` image data overflows silently in arithmetic. Cast to `float32`
+  (large volumes) or `float64` (statistics, accumulation) first.
+- Vectorize over voxels and samples; loop over subjects or files. Profile before micro-optimizing.
+- Large arrays: `np.load(..., mmap_mode="r")`, `out=` for in-place ufuncs, avoid hidden temporaries.
 
-bone_mask = ct_data > 700
-electrode_mask = ct_data > 2500
+## Comparisons and missing data
 
-def window_level(data, window, level):
-    low = level - window / 2
-    high = level + window / 2
-    return np.clip((data - low) / (high - low), 0, 1)
+- Never `==` on floats: `np.isclose`/`np.allclose` with a stated `atol`/`rtol`.
+- Decide NaN policy explicitly: `np.nanmean` versus propagating NaN versus masking. A silent NaN in one
+  channel can poison a grand average.
+- Check for `inf` after divisions and logs (`np.log10(power)` on zero power).
 
-axial = data[:, :, z]
-coronal = data[:, y, :]
-sagittal = data[x, :, :]
-```
+## Signals
 
-### Coordinate Geometry
+- Filters: `scipy.signal.butter(..., output="sos")` with `sosfiltfilt` for zero-phase offline work;
+  `sosfilt` when causality matters. Normalize by Nyquist or pass `fs=`.
+- State band edges, order, sampling rate and padding; filtfilt edge effects contaminate the first and
+  last few cycles of the lowest frequency.
+- Spectra: `signal.welch` with explicit `nperseg`, `noverlap`, `window`, and the resulting frequency
+  resolution. Report whether values are power or amplitude and in which units (V²/Hz, dB).
+- Phase and envelope via `signal.hilbert` require a narrowband signal first.
 
-```python
-direction = entry - tip
-length = np.linalg.norm(direction)
-unit = direction / length
+## Reproducibility
 
-def interpolate_contacts(tip, entry, n_contacts, spacing_mm):
-    unit = (entry - tip) / np.linalg.norm(entry - tip)
-    return np.array([tip + i * spacing_mm * unit for i in range(n_contacts)])
-```
+- Randomness through `rng = np.random.default_rng(seed)` passed down, never global `np.random.seed`.
+- Record library versions and parameters next to outputs that feed a paper.
+- Batch plots use the `Agg` backend and `plt.close(fig)`; publication figures belong to idofig.
 
-### Anti-Patterns
+## Verification
 
-```python
-arr2 = arr1.copy()
-
-if np.isclose(val, 0.0, atol=1e-10):
-    ...
-
-result = func(data)
-```
-
-- Use copies deliberately.
-- Avoid exact float equality.
-- Avoid Python loops over voxels or samples when vectorization is clear.
-
-## SciPy for Neuroimaging
-
-```python
-from scipy import ndimage, signal
-
-smoothed = ndimage.gaussian_filter(volume, sigma=2.0)
-dilated = ndimage.binary_dilation(mask, iterations=2)
-labeled, n = ndimage.label(binary_mask)
-
-def bandpass(data, low, high, fs, order=4):
-    b, a = signal.butter(order, [low / (fs / 2), high / (fs / 2)], btype="band")
-    return signal.filtfilt(b, a, data, axis=-1)
-```
-
-- Use `filtfilt` for zero-phase filtering when appropriate.
-- State frequency bands and sampling rates.
-- Use Welch PSD and Hilbert transforms deliberately; report window sizes and assumptions.
-
-## Matplotlib for Batch QC
-
-```python
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-for ax, (name, bg, fg) in zip(axes, planes):
-    ax.imshow(bg.T, cmap="gray", origin="lower")
-    ax.imshow(fg.T, cmap="hot", alpha=0.4, origin="lower")
-    ax.set_title(name)
-    ax.axis("off")
-plt.tight_layout()
-plt.savefig(path, dpi=150, bbox_inches="tight")
-plt.close(fig)
-```
-
-Always close figures in batch jobs.
-
-## Performance Rules
-
-1. Vectorize array operations.
-2. Prefer `float32` for large volumes when precision allows.
-3. Use `out=` to avoid temporaries when useful.
-4. Memory-map large files when possible.
-5. Profile before optimizing.
-6. Set the Agg backend before importing pyplot in CLI workflows.
+Test numerics on synthetic signals with a known answer: a sine of known frequency and amplitude for a
+filter or spectrum, a volume with a known centroid for a geometry routine. The expected value comes from
+the math, not from running the code once.

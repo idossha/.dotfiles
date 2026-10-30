@@ -63,6 +63,9 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    pointer to docs that ship with the installed version. Sync links only dotfiles/playbook skills and
    retires its own stale symlinks; it preserves provider-bundled, tool-installed, and user-authored
    skill entries, so each skill still has one route and cannot drift from the tool it describes.
+   Third-party skill packages (`agent/skill-packages.json`) are clones under
+   `~/.local/share/agent-skills/<name>` that the opt-in installer fast-forwards; sync links their
+   `skills/` offline and doctor reports them as floating and fails installed validation when absent.
 7. **Codex defaults to the user's explicitly selected full-access permissions.** Canonical configuration sets
    `approval_policy = "never"`, `sandbox_mode = "danger-full-access"`, and automatic tool overrides;
    this prevents new sessions or a later sync from restoring routine permission prompts. Existing
@@ -185,7 +188,7 @@ an essential constraint is stated.
 | AXI helper CLIs: gh-axi, chrome-devtools-axi, lavish-axi, quota-axi | `agent/tools.env` | Agent-ergonomic shell helpers are pinned by the same installer surface; absent helpers are optional, mismatched installed helpers are reported |
 | Pi packages | `agent/pi/settings.json` | Adapter-specific exact package references |
 | Canonical MCP packages | `agent/mcps/mcp-servers.json` | Exact versions of the locally exercised servers |
-| Harness binaries, Claude plugins, any future unpinned MCP packages | Doctor's explicit floating inventory | Provider-managed updates remain visible; future compatibility is verified, never promised |
+| Harness binaries, Claude plugins, skill packages (`agent/skill-packages.json`), any future unpinned MCP packages | Doctor's explicit floating inventory | Provider-managed updates remain visible; future compatibility is verified, never promised |
 
 The operator manual for §3 and upgrades is [CONFIGURATION.md](CONFIGURATION.md).
 After a provider upgrade, inspect its installed help/schema and discovery, run the platform gate and
