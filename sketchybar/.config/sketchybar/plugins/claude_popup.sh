@@ -15,19 +15,36 @@ bar() {  # 10-cell meter
   printf '%s' "$out"
 }
 
+window() {  # window <name> <pct> <reset-epoch>
+  printf '  %-10s %3s%%  %s\n' "$1" "$2" "$(bar "$2")"
+  [ -n "$3" ] && printf '#  %-10s resets %s\n' "" "$(date -r "$3" '+%a %H:%M')"
+}
+
 rows() {
-  local five seven age
-  if ! read -r five seven age < <(claude_read); then
+  local plan; plan="$(claude_plan)"
+  if ! claude_read; then
+    [ -n "$plan" ] && printf '#plan %s\n' "$plan"
     echo "#no usage data yet"
     echo "#start a Claude Code session"
     return
   fi
+  local age=$CLAUDE_AGE
 
   echo "*Claude Code usage"
-  printf '  %-10s %3s%%  %s\n' "session" "$five"  "$(bar "$five")"
-  printf '#  %-10s resets %s\n' "" "$(date -r "$(jq -r '.five_hour.resets_at' "$CLAUDE_CACHE")" '+%a %H:%M')"
-  printf '  %-10s %3s%%  %s\n' "weekly"  "$seven" "$(bar "$seven")"
-  printf '#  %-10s resets %s\n' "" "$(date -r "$(jq -r '.seven_day.resets_at' "$CLAUDE_CACHE")" '+%a %H:%M')"
+  [ -n "$plan" ] && printf '  %-10s %s\n' "plan" "$plan"
+  if [ -n "$CLAUDE_FIVE$CLAUDE_SEVEN" ]; then
+    if [ -n "$CLAUDE_FIVE" ]; then window session "$CLAUDE_FIVE" "$CLAUDE_FIVE_RESET"
+    else printf '#  %-10s not reported\n' "session"
+    fi
+    if [ -n "$CLAUDE_SEVEN" ]; then window weekly "$CLAUDE_SEVEN" "$CLAUDE_SEVEN_RESET"
+    else printf '#  %-10s not reported\n' "weekly"
+    fi
+  fi
+  if [ -n "$CLAUDE_SPEND" ]; then
+    window spend "$CLAUDE_SPEND" "$CLAUDE_SPEND_RESET"
+    [ -n "$CLAUDE_SPEND_LIMIT" ] && printf '#  %-10s $%.2f of $%.2f %s\n' "" \
+      "$CLAUDE_SPEND_USED" "$CLAUDE_SPEND_LIMIT" "$CLAUDE_SPEND_PERIOD"
+  fi
 
   echo "#"
   if [ "$age" -lt 3600 ]; then

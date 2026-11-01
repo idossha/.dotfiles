@@ -54,8 +54,8 @@ t "wifi label non-empty"          bash -c 'run_as_bar wifi "$PLUGINS/wifi.sh"; [
 t "docker plugin runs"            run_as_bar docker "$PLUGINS/docker.sh"
 t "vpn plugin runs"               run_as_bar vpn "$PLUGINS/vpn.sh"
 t "amphetamine plugin runs"       run_as_bar amphetamine "$PLUGINS/amphetamine.sh"
-t "claude label is two percents" bash -c 'run_as_bar claude "$PLUGINS/claude_usage.sh"; [[ "$(q claude .label.value)" =~ ^([0-9]+%\ [0-9]+%|—)$ ]]'
-t "claude usage cache is valid json" bash -c '[ ! -e "$HOME/.cache/sketchybar/claude_usage.json" ] || jq -e .five_hour.used_percentage "$HOME/.cache/sketchybar/claude_usage.json"'
+t "claude label is two percents" bash -c 'run_as_bar claude "$PLUGINS/claude_usage.sh"; [[ "$(q claude .label.value)" =~ ^(([0-9]+%|–)\ ([0-9]+%|–)|\$[0-9]+%|—)$ ]]'
+t "claude usage cache is valid json" bash -c '[ ! -e "$HOME/.cache/sketchybar/claude_usage.json" ] || jq -e "type == \"object\"" "$HOME/.cache/sketchybar/claude_usage.json"'
 t "codex plugin runs"             run_as_bar codex "$PLUGINS/codex_usage.sh"
 t "focused workspace highlighted" bash -c 'f=$(aerospace list-workspaces --focused); run_as_bar space.$f "$PLUGINS/spaces.sh $f"; [ "$(q space.$f .geometry.background.drawing)" = "on" ]'
 
@@ -105,8 +105,13 @@ fixture() { # fixture <json> -> path
 rows_of() { for r in $(sketchybar --query "$1" | jq -r '.popup.items[]?'); do q "$r" .label.value; done; }
 export -f fixture rows_of
 
-TWO='{"five_hour":{"used_percentage":37,"resets_at":1788465000},"seven_day":{"used_percentage":81,"resets_at":1788681600}}'
-export TWO
+# Reset times are relative to now: a window whose reset has passed is dropped.
+FUT=$(( $(date +%s) + 86400 )); PAST=$(( $(date +%s) - 60 ))
+TWO="{\"five_hour\":{\"used_percentage\":37,\"resets_at\":$FUT},\"seven_day\":{\"used_percentage\":81,\"resets_at\":$FUT}}"
+WEEKLY="{\"seven_day\":{\"used_percentage\":87,\"resets_at\":$FUT}}"
+EXPIRED="{\"five_hour\":{\"used_percentage\":99,\"resets_at\":$PAST},\"seven_day\":{\"used_percentage\":40,\"resets_at\":$FUT}}"
+SPEND="{\"spend_limit\":{\"used_percentage\":62,\"resets_at\":$FUT,\"used_usd\":31,\"limit_usd\":50,\"period\":\"monthly\"}}"
+export TWO WEEKLY EXPIRED SPEND
 
 # The label used to lag the popup, so assert they agree on the same fixture.
 t "claude label matches popup rows"  bash -c '
@@ -116,6 +121,25 @@ t "claude label matches popup rows"  bash -c '
   [ "$label" = "37% 81%" ] || { echo "label=$label"; exit 1; }
   echo "$rows" | grep -q "session .*37%" || { echo "$rows"; exit 1; }
   echo "$rows" | grep -q "weekly .*81%"  || { echo "$rows"; exit 1; }'
+
+# Every rate_limits window is optional: plans that report no 5h window, a 5h window
+# that reset after the cache was written, and gateway spend limits must all render.
+claude_case() { # claude_case <json> <label> <row-regex> [env assignments]
+  local f; f="$(fixture "$1")"
+  run_as_bar claude_popup "CLAUDE_CACHE=$f $4 $PLUGINS/claude_popup.sh"
+  [ "$(q claude .label.value)" = "$2" ] || { echo "label=$(q claude .label.value)"; return 1; }
+  rows_of claude_popup | grep -Eq "$3" || { rows_of claude_popup; return 1; }
+}
+export -f claude_case
+t "claude weekly-only plan"          bash -c 'claude_case "$WEEKLY"  "– 87%" "weekly .*87%"'
+t "claude expired 5h window dropped" bash -c 'claude_case "$EXPIRED" "– 40%" "session .*not reported"'
+t "claude gateway spend limit"       bash -c 'claude_case "$SPEND"   "\$62%" "spend .*62%"'
+
+# The plan row comes from `claude auth status`; stub it so the test is account-independent.
+CLAUDE_STUB="${TMPDIR:-/tmp}/claude_auth_stub"
+printf '%s\n' '#!/bin/sh' 'echo '"'"'{"loggedIn":true,"authMethod":"claude.ai","subscriptionType":"pro"}'"'" > "$CLAUDE_STUB"
+chmod +x "$CLAUDE_STUB"; export CLAUDE_STUB
+t "claude popup shows the plan"      bash -c 'claude_case "$TWO" "37% 81%" "plan +Pro$" "CLAUDE_BIN=$CLAUDE_STUB CLAUDE_PROFILE=/nonexistent"'
 
 # `--trigger` on an unregistered event exits 0 and does nothing, which once left
 # the label up to update_freq behind. Sentinel, not values: the cache may change.
