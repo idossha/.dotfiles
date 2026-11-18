@@ -314,10 +314,14 @@ def cmd_snapshot(_args):
 
 
 def cmd_close(_args):
-    info = viewer_info(state_dir())
+    state = state_dir()
+    info = viewer_info(state)
     if info:
         os.kill(info["pid"], signal.SIGTERM)
-    print(json.dumps({"closed": bool(info)}))
+        deadline = time.monotonic() + 3
+        while viewer_info(state) and time.monotonic() < deadline:
+            time.sleep(0.05)
+    print(json.dumps({"closed": bool(info) and not viewer_info(state)}))
 
 
 def main():
