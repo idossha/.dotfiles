@@ -1,7 +1,7 @@
 """2026-09-04: pin configuration ownership (§3) using synthetic temporary homes.
 
-Expected policy/state values are authored fixtures; json/tomllib independently
-read generated files. Live harness execution and remote service health are separate.
+Expected policy/state values are authored fixtures; json independently
+reads generated files. Live harness execution and remote service health are separate.
 Run: agent/.venv/bin/python -m unittest discover -s agent/tests -p 'test_*.py'
 """
 from __future__ import annotations
@@ -13,7 +13,6 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
-import tomllib
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -132,19 +131,6 @@ class OwnershipTests(unittest.TestCase):
         state = {"permissions": {"allow": ["everything"], "newRuntimeState": True}}
         self.assertEqual(unowned(policy, state), {"permissions": {"newRuntimeState": True}})
 
-    def test_codex_preserves_new_tables_and_top_level_runtime_preferences(self):
-        path = self.destination / ".codex/config.toml"
-        path.parent.mkdir(parents=True)
-        path.write_text('model = "user-model"\n[hooks]\ncustom = "local"\n'
-                        '[marketplaces.local]\nlast_revision = "fixture"\n')
-        self.run_sync()
-        with path.open("rb") as handle:
-            actual = tomllib.load(handle)
-        self.assertEqual(actual["model"], "user-model")
-        self.assertEqual(actual["hooks"]["custom"], "local")
-        self.assertEqual(actual["marketplaces"]["local"]["last_revision"], "fixture")
-        self.assertIn("context7", actual["mcp_servers"])
-
     def test_managed_mcp_removal_preserves_unmanaged_servers_and_claude_state(self):
         self.write_json(".claude.json", {"appState": "fixture-private", "mcpServers": {
             "personal": {"command": "personal-server"},
@@ -159,8 +145,6 @@ class OwnershipTests(unittest.TestCase):
         self.assertEqual(actual["appState"], "fixture-private")
         self.assertIn("personal", actual["mcpServers"])
         self.assertNotIn("context7", actual["mcpServers"])
-        with (self.destination / ".codex/config.toml").open("rb") as handle:
-            self.assertNotIn("context7", tomllib.load(handle)["mcp_servers"])
 
     def test_sync_retires_a_destination_this_platform_no_longer_manages(self):
         self.run_sync()
@@ -185,6 +169,17 @@ class OwnershipTests(unittest.TestCase):
         current = json.loads(self.layout.manifest.read_text())["managed_destinations"]
         self.assertNotIn(str(retired_file), current)
 
+    def test_sync_backs_up_retired_codex_config(self):
+        config = self.destination / ".codex/config.toml"
+        config.parent.mkdir(parents=True)
+        config.write_text('model = "user-selected"\n')
+        self.layout.local.mkdir(parents=True)
+        self.layout.manifest.write_text(json.dumps({"managed_destinations": [str(config)]}))
+        self.run_sync()
+        self.assertFalse(config.exists())
+        self.assertEqual((config.parent / "config.toml.before-agent-sync").read_text(),
+                         'model = "user-selected"\n')
+
     def test_repeat_sync_is_byte_identical_and_does_not_modify_sources(self):
         before = {path.relative_to(self.agent): path.read_bytes()
                   for path in self.agent.rglob("*") if path.is_file()}
@@ -201,22 +196,12 @@ class OwnershipTests(unittest.TestCase):
 
     def test_installed_check_detects_missing_links_and_edited_policy(self):
         self.run_sync()
-        (self.destination / ".codex/AGENTS.md").unlink()
+        (self.destination / ".pi/agent/AGENTS.md").unlink()
         self.write_json(".pi/agent/settings.json", {"defaultModel": "wrong"})
         with redirect_stdout(io.StringIO()):
             issues = installed_issues(self.layout)
         self.assertTrue(any("link missing" in issue for issue in issues))
         self.assertTrue(any("pi: installed values differ" in issue for issue in issues))
-
-    def test_old_codex_discovery_is_retired_but_system_skills_survive(self):
-        legacy = self.destination / ".codex/skills"
-        legacy.mkdir(parents=True)
-        (legacy / "mcp-authoring").symlink_to(self.agent / "skills/mcp-authoring")
-        (legacy / ".system").mkdir()
-        (legacy / ".system/marker").write_text("provider-owned")
-        self.run_sync()
-        self.assertFalse((legacy / "mcp-authoring").is_symlink())
-        self.assertEqual((legacy / ".system/marker").read_text(), "provider-owned")
 
     def test_removed_optional_static_links_are_retired(self):
         templates = self.destination / ".claude/templates"
@@ -241,11 +226,20 @@ class OwnershipTests(unittest.TestCase):
         self.assertEqual((self.destination / ".claude/AGENTS.md").resolve(),
                          (self.agent / "policy/global.md").resolve())
 
-    def test_memory_policy_has_no_local_router_overlap(self):
-        self.assertTrue((self.agent / "policy/global.md").is_file())
-        self.assertFalse((self.agent / "memory/global.md").exists())
-        self.assertFalse((self.agent / "scripts/remember").exists())
-        self.assertFalse((self.agent / "skills/remember").exists())
+    def test_second_brain_hooks_render_to_claude_settings(self):
+        self.run_sync()
+        settings = json.loads((self.destination / ".claude/settings.json").read_text())
+        rendered = {
+            event: [(hook["command"], tuple(hook["args"]))
+                    for group in groups for hook in group["hooks"]]
+            for event, groups in settings["hooks"].items()
+        }
+        expected = {
+            event: [("/Users/idohaber/.local/bin/brain", ("hook", event))]
+            for event in ("SessionStart", "UserPromptSubmit", "SessionEnd", "PreCompact")
+        }
+        self.assertEqual(rendered, expected)
+        self.assertIn("fork", settings["hooks"]["SessionStart"][0]["matcher"].split("|"))
 
     def test_validation_rejects_empty_skill_set_and_colliding_names(self):
         empty = self.root / "empty"

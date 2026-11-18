@@ -18,7 +18,7 @@ statuses. A synthetic linked Git directory shares only a temporary repository's 
 repository identity checks without allocating real worktrees. `ship` prints the no-mistakes AXI gate and
 guarded GitHub auto-merge plan, and refuses a project that has not opted in.
 
-`test_config.py` uses authored policy/runtime fixtures and independent JSON/TOML readers to prove
+`test_config.py` uses authored policy/runtime fixtures and an independent JSON reader to prove
 state preservation, precedence, idempotence, discovery cleanup, rejected malformed shapes, and absence
 of the retired dotfiles memory router.
 `test_cli.py` reads executed argv with JSON, checks each command's failure mapping, and verifies

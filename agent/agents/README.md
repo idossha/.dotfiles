@@ -2,8 +2,8 @@
 
 Canonical source for Claude Code subagent definitions. `agent/scripts/sync-agent-config.sh` links each
 `<name>.md` here to `~/.claude/agents/<name>.md`; the discovery root stays a real directory so
-user-authored or project agents can live beside them. Only Claude Code reads these; Codex and Pi have
-their own delegation adapters under `agent/codex/` and `agent/pi/`.
+user-authored or project agents can live beside them. Only Claude Code reads these; Pi has
+its own delegation adapter under `agent/pi/`.
 
 ## Roster
 

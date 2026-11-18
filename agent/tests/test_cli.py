@@ -106,7 +106,7 @@ class ExecutionTests(unittest.TestCase):
                          str(self.bin / "gh-axi") + " pr merge 42 --squash --delete-branch --auto")
 
     def test_doctor_rejects_a_version_probe_that_prints_then_fails(self):
-        for tool in ("no-mistakes", "pi", "claude", "codex", "jq"):
+        for tool in ("no-mistakes", "pi", "claude", "jq"):
             self.executable(tool, "echo 'fixture version'; exit 23\n")
         self.executable("fixture-sync", "exit 0\n")
         self.env["AGENTCTL_SYNC_SCRIPT"] = str(self.bin / "fixture-sync")

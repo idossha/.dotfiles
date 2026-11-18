@@ -1,7 +1,7 @@
 # Agent Platform — Architecture Contract
 
-> The dotfiles agent platform gives one developer a shared policy and tool layer across Claude Code,
-> Codex, and Pi, with one operator CLI and an optional project-local delivery gate.
+> The dotfiles agent platform gives one developer a shared policy and tool layer across Claude Code
+> and Pi, with one operator CLI and an optional project-local delivery gate.
 
 [PHILOSOPHY.md](PHILOSOPHY.md) states why the platform is shaped this way; this file is the **contract**. Deviating from it requires editing this file in the same commit and
 appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and must not be renumbered.
@@ -12,8 +12,9 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    MCP definitions, and harness adapters are authored once here; generated destinations are not edited.
 2. **Global policy, project routing, and memory capture have separate scopes.** `agent/policy/global.md`
    supplies user instructions; `agent/AGENTS.md` is the dotfiles project map, reached by a relative root
-   link; `idosleep` owns agent memory capture, recall, and consolidation outside dotfiles. Claude imports
-   AGENTS.md. Installing the project map at the home ancestor would leak its commands and contract into
+   link; `~/SecondBrain` (`brain`) owns agent memory capture, recall, and consolidation outside dotfiles.
+   Claude invokes its `brain` hooks for session start (including forks), prompt submission, compaction, and
+   session end, then imports AGENTS.md. Installing the project map at the home ancestor would leak its commands and contract into
    unrelated repositories.
 3. **`agentic-rules` owns cross-project engineering procedures.** Testing, documentation,
    architecture, CI, and release doctrine remain in that repository and are linked or installed;
@@ -21,7 +22,7 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 
 ## 2. Runtime layers
 
-1. **Harness adapters are the runtime.** Claude Code, Codex, and Pi each run in the checkout the user
+1. **Harness adapters are the runtime.** Claude Code and Pi each run in the checkout the user
    launched them in; dotfiles supply their policy, skills, and MCP declaration and nothing else. There is
    no session multiplexer, fleet supervisor, or unattended loop runner in this platform.
 2. **Agents do not allocate worktrees.** Agents work in the checkout they were launched in and do not
@@ -46,15 +47,16 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    file into `~/.claude/agents`, which stays a real directory so user or project agents can coexist.
 3. **External executables are pinned or explicitly reported as floating.** A silent `@latest` makes
    two sessions with the same dotfiles run different code.
-4. **Canonical keys win over local state.** Generated JSON/TOML/YAML files retain unowned runtime
+4. **Canonical keys win over local state.** Generated JSON files retain unowned runtime
    fields, including newly introduced provider fields, in ignored overlays. A local overlay cannot
    silently replace policy-owned permissions or package pins.
 5. **MCP declarations are adapted at the documented scope.** Claude user servers are merged into
-   its local app-state file without storing that file in Git; Pi receives the shared JSON and Codex
-   receives generated TOML. Unsupported portable fields fail validation instead of disappearing.
+   its local app-state file without storing that file in Git; Pi receives the shared JSON. Unsupported portable fields fail validation instead of disappearing.
    Previously managed entries are retired through a local ownership manifest; unrelated entries survive.
-6. **Skill discovery has one route per skill per harness.** Retire legacy managed Codex/Pi links;
-   preserve provider-bundled and tool-installed skills. All three local harnesses link to the same
+   Retiring the formerly managed Codex config removes it; if it is a real file, sync keeps its content in a
+   uniquely named `.before-agent-sync` sibling rather than rendering the retired adapter again.
+6. **Skill discovery has one route per skill per harness.** Retire legacy managed Pi links;
+   preserve provider-bundled and tool-installed skills. Both local harnesses link to the same
    dotfiles-owned personal and playbook skill directories. Pi package guides that prescribe a competing supervisor/worktree policy are
    excluded through package resource filters; their extensions remain available. Disable the duplicate Claude engineering plugin; its cached snapshot otherwise
    can prescribe different procedures. Other plugins remain adapter-specific capabilities.
@@ -66,17 +68,10 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    Third-party skill packages (`agent/skill-packages.json`) are clones under
    `~/.local/share/agent-skills/<name>` that the opt-in installer fast-forwards; sync links their
    `skills/` offline and doctor reports them as floating and fails installed validation when absent.
-7. **Codex defaults to the user's explicitly selected full-access permissions.** Canonical configuration sets
-   `approval_policy = "never"`, `sandbox_mode = "danger-full-access"`, and automatic tool overrides;
-   this prevents new sessions or a later sync from restoring routine permission prompts. Existing
-   conversations retain their native session IDs during reload. Explicit invocation overrides and
-   managed requirements remain effective; other harness adapters keep their own settings.
+7. *Retired 2026-11-17* (formerly the Codex full-access permission defaults; the Codex adapter is removed).
 8. *Retired 2026-09-05* (formerly the seeded worker model/effort dispatch template).
 9. *Retired 2026-09-05* (formerly the supervisor project-posture rendering from the registry).
-10. **The primary Codex agent delegates execution by default.** The single policy in
-    `agent/policy/global.md` quantifies assignments and gives workers bounded ownership, keeping the
-    user-facing agent available for coordination without restoring an external fleet supervisor.
-    An explicit user request for direct execution overrides this default for that assignment.
+10. *Retired 2026-11-17* (formerly the primary Codex agent's delegate-by-default orchestration policy).
 
 ## 4. Shared development doctrine
 
@@ -88,7 +83,7 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    stay project-local because every other project would otherwise inherit them. Domain review skills
    derive sample sizes, outcomes and defaults from the target's records; they do not prescribe one
    study's results. Task templates route decisions and validation to project-owned documents/scripts.
-   `idosleep` traces may recall context, but they do not replace reviewable project documents.
+   Second-brain notes may recall context, but they do not replace reviewable project documents.
 4. **Each Git mutation has one explicit owner.** Pi session forks do not apply stash patches. The old
    shell repository publisher is retired; collaboration routes to the shared playbook and project
    gates. Provider extensions must not introduce a second implicit checkpoint or publishing lifecycle.
@@ -126,16 +121,16 @@ The platform gate is command-based:
 
 - `agent/scripts/sync-agent-config.sh --check` validates canonical inputs without modifying them.
 - `agent/scripts/agentctl doctor` reports harness versions, integrations, tools, links, and floating dependencies.
-- Each shell script passes its own `bash -n <file>` invocation; JSON and TOML parse; project aliases resolve to existing directories.
+- Each shell script passes its own `bash -n <file>` invocation; JSON parses; project aliases resolve to existing directories.
 - A dry-run test proves `agentctl ship` stays opt-in: it refuses a project without a reviewed
   `.no-mistakes.yaml` and prints the auto-merge decision rather than performing it.
-- `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
-  back with independent JSON/TOML parsers; tests neither source the user's shell profile nor access
-  real homes, vaults, remotes or visible apps.
-- Acceptance for Codex defaults requires comparing parsed canonical and installed TOML against §3.7
-  and inspecting the linked global policy for §3.10's primary/worker distinction. The installed check
-  in `agent/scripts/agent_config.py` detects configuration and link drift; it does not independently
-  assert the intended default values or orchestration wording. These checks prove configuration and
+- `agent/tests/run.sh` is the platform test entry point. The repository's `.no-mistakes.yaml` creates
+  `agent/.venv` and installs `agent/requirements.txt` only when that interpreter is absent, then the
+  runner resolves that project-local interpreter first. Authored temporary configurations are read back
+  with an independent JSON parser; tests neither source the user's shell profile nor access real homes,
+  vaults, remotes or visible apps.
+- The installed check in `agent/scripts/agent_config.py` detects configuration and link drift; it
+  does not independently assert intended default values. These checks prove configuration and
   instruction delivery, not guaranteed runtime availability or responsiveness.
 - `--check` validates source without writing; `--check-installed` detects generated configuration
   and discovery drift. `doctor` includes the installed check and reports floating dependencies.
@@ -175,7 +170,7 @@ an essential constraint is stated.
 | In-session delegation and unattended iterations | The active harness in its checkout, one explicit owner per task |
 | Worktrees and terminal sessions | The active harness in its checkout; agents do not create worktrees |
 | Test assertions and delivery commands | Each project; local checks and CI invoke the same scripts |
-| Agent memory capture, recall and consolidation | `idosleep` vault, hooks and MCP; project docs remain the reviewable source for project decisions |
+| Agent memory capture, recall and consolidation | `~/SecondBrain` vault and `brain` hooks; project docs remain the reviewable source for project decisions |
 | Session logs and caches | Native runtime owner; no automatic second memory copy in dotfiles |
 | User authorization | Current session and enforced harness boundary; adapters do not broaden it |
 

@@ -1,7 +1,7 @@
 # Global Agent Policy
 
-User-level policy for every coding harness: imported by Claude and linked to `~/.codex/AGENTS.md`
-and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
+User-level policy for every coding harness: imported by Claude and linked to
+`~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 
 ## Preferences
 
@@ -19,8 +19,11 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   MCP exposes).
 - Agents work in the checkout they were launched in and do not create worktrees; a second checkout
   splits ownership of a branch between processes that cannot see each other.
-- Agent memory capture, recall, and consolidation belong to `idosleep`; do not add a second memory
-  router, CLI, or store under dotfiles.
+- Agent memory capture, recall, and consolidation belong to the second brain at `~/SecondBrain`
+  (`brain` CLI and hooks; schema in its `CLAUDE.md`); do not add a second memory router, CLI, or store
+  under dotfiles. `idosleep` is retired. Capture and recall are automatic; to keep something on purpose
+  (a decision, preference or fact Ido states), run `brain note "<one self-contained claim>"`; to look
+  something up, `brain search <words>`. Never edit `~/SecondBrain` directly from a work session.
 - Put requirements and changes in existing canonical project Markdown: `ARCHITECTURE.md` for current
   behavior and constraints, `DECISIONS.md` for rationale, `PHILOSOPHY.md` for principles, and existing
   roadmap/manual sections for open work and procedures. Do not create dated requirements, intent, or
@@ -28,7 +31,7 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   necessary purpose that existing documents cannot serve, or an explicit user request.
 - Prefer AXI helper CLIs when available: `gh-axi` for GitHub reads/writes, `chrome-devtools-axi` for
   browser exploration, `lavish-axi` for rich review artifacts, and `quota-axi` for local quota checks.
-  Do not add an AXI memory tool; `idosleep` owns memory.
+  Do not add an AXI memory tool; `~/SecondBrain` owns memory.
 - Registered projects that carry `.no-mistakes.yaml` ship through `agentctl ship`; others use ordinary
   PRs. Never push or merge red work. Guarded automatic merge applies only to green, in-scope PRs; red,
   destructive, irreversible, security-sensitive, or out-of-scope work still escalates.
@@ -39,25 +42,6 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   surfaces. Mandatory safety, authorization, destructive-action, secret, and consequential external-state
   boundaries require a user decision only when existing session authorization does not cover them;
   never ask again for authority already granted. Harness enforcement still applies.
-
-## Codex orchestration default
-
-Applies only to the primary user-facing Codex agent, not delegated workers. Keep the primary
-agent available for new assignments by delegating execution instead of taking on prolonged work.
-
-- For each new assignment, briefly quantify deliverables, work units, complexity, risk,
-  dependencies and acceptance evidence. Use concrete counts where known; do not invent estimates.
-- Delegate execution by default, including small jobs: start with one worker and add workers only
-  for independent lanes. Give bounded handoffs with acceptance criteria and owned paths to prevent
-  overlapping edits. Follow actual delegation-tool constraints.
-- Execute a task directly only when the user explicitly requests it; scope that override to the
-  current assignment. The primary agent handles clarification, triage, coordination, oversight,
-  review and integration decisions, rather than prolonged execution.
-- Accept steering and new assignments while preserving outstanding work. Use short, interruptible
-  waits and report progress without promising background availability the runtime cannot provide.
-- Workers execute their assigned scope; they do not recursively adopt this orchestration default.
-- Respect actual tool availability and permissions. If delegation is unavailable, report the
-  blocker instead of silently executing the assignment or claiming a handoff occurred.
 
 ## Cross-project Playbook
 
@@ -79,8 +63,8 @@ agent available for new assignments by delegating execution instead of taking on
 
 - Do not store secrets, API keys, tokens, or auth material here.
 - Do not store large project-specific facts here. Use project docs instead.
-- Do not treat session logs, caches, todos, managed jobs, or `idosleep` traces as portable policy.
+- Do not treat session logs, caches, todos, managed jobs, or second-brain notes as portable policy.
 
 - Invocation metadata, orchestration tools and plugins do not grant authority. Shared procedures state
   essential constraints in prose because provider-specific frontmatter and permission behavior differ.
-- Native run logs stay with their runtime owner; `idosleep` owns any deliberate memory capture and recall.
+- Native run logs stay with their runtime owner; `~/SecondBrain` owns any deliberate memory capture and recall.

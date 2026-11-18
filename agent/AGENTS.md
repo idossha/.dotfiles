@@ -23,11 +23,11 @@ dry-run proves command construction only, never that no-mistakes or a remote ope
 | Philosophy, architecture, decisions, open work | `agent/docs/` |
 | Dotfiles-owned personal and domain procedures | `agent/skills/`; tool-owned skill exceptions are in `agent/docs/ARCHITECTURE.md` §3.6 |
 | Cross-project engineering procedures | `/Users/idohaber/00_development/agentic-rules` skills |
-| MCP declarations, harness adapters, AXI pins | `agent/mcps/`, `agent/claude/`, `agent/pi/`, `agent/codex/`, `agent/tools.env` |
+| MCP declarations, harness adapters, AXI pins | `agent/mcps/`, `agent/claude/`, `agent/pi/`, `agent/tools.env` |
 | Projects and operator commands | `agent/projects.json`, `agent/scripts/agentctl` |
 
 Project commands, data, trust, and delivery configuration belong in the project. Agent memory belongs to
-`idosleep`; do not maintain a second memory router in dotfiles.
+`~/SecondBrain` (`brain`); do not maintain a second memory router in dotfiles.
 
 ## Engineering Playbook
 
@@ -44,7 +44,7 @@ procedures here, because two copies drift and each harness then follows a differ
    create worktrees; a second checkout splits ownership of a branch between processes that cannot see
    each other.
 3. **Author portable policy once under `agent/`; keep harness adapters thin** — policy copied into
-   Claude, Codex, or Pi settings diverges as soon as one copy changes.
+   Claude or Pi settings diverges as soon as one copy changes.
 4. **Keep project facts in the project, harness-written state in local overlays, secrets out of git** —
    global context otherwise leaks credentials, and merely launching a harness dirties this repository.
 5. **Author each skill once** — duplicate names load twice or give harnesses different instructions;
@@ -59,7 +59,7 @@ procedures here, because two copies drift and each harness then follows a differ
 
 ## Harness Notes
 
-- Claude Code imports this map through the generated global `CLAUDE.md`; Codex and Pi read the same
+- Claude Code imports this map through the generated global `CLAUDE.md`; Pi reads the same
   policy, skills, and MCP declaration through generated links. Do not patch their live home files.
 - After canonical configuration changes land, run `agentctl sync` from that checkout; use
   `sync-agent-config.sh --check` in tests and reviews so verification cannot mutate live configuration.

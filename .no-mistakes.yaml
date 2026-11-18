@@ -2,7 +2,7 @@
 # PR creation and CI evidence for changes targeting main.
 commands:
   lint: 'for f in agent/scripts/*.sh agent/scripts/agentctl agent/tests/*.sh; do bash -n "$f" || exit 1; done'
-  test: 'agent/tests/run.sh'
+  test: '[ -x agent/.venv/bin/python ] || { python3 -m venv agent/.venv && agent/.venv/bin/pip install -q -r agent/requirements.txt; }; agent/tests/run.sh'
 
 test:
   evidence:

@@ -19,4 +19,3 @@ export ICON_BATTERY_25="󰁻"   # U+F007B
 export ICON_BATTERY_0="󰂎"   # U+F008E
 export ICON_BATTERY_CHARGING="󰂄"   # U+F0084
 export ICON_CLAUDE="󰧑"   # U+F09D1
-export ICON_CODEX="◈"

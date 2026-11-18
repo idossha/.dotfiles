@@ -1,6 +1,6 @@
 # Unified Skills
 
-This directory is the canonical source for dotfiles-owned reusable agent skills. Claude Code, Pi and Codex discover the same dotfiles-owned personal skills through generated links;
+This directory is the canonical source for dotfiles-owned reusable agent skills. Claude Code and Pi discover the same dotfiles-owned personal skills through generated links;
 the contract in `agent/docs/ARCHITECTURE.md` defines ownership, including tool-owned exceptions.
 
 ## Layout
@@ -32,7 +32,7 @@ From the assigned checkout, run `agent/scripts/sync-agent-config.sh --check`.
 After landing, run `agent/scripts/agentctl sync` from the primary checkout.
 
 Claude receives one link per dotfiles-owned personal and playbook skill in `~/.claude/skills`.
-Pi and Codex use the same sources through `~/.agents/skills`. Both discovery roots are real generated
+Pi uses the same sources through `~/.agents/skills`. Both discovery roots are real generated
 directories; tool-owned pointer skills may also install there but are not linked from this directory.
 The duplicate Claude agentic-rules plugin is disabled so an older snapshot cannot supply a different
 engineering procedure. Supporting references and scripts stay with their owning skill.
@@ -59,6 +59,7 @@ Workflows and playbooks:
 | `librarian` | Find, download, rename, and strategically summarize papers. |
 | `matlab` | Run MATLAB in batch mode from the terminal. |
 | `mcp-authoring` | Author and configure MCP servers. |
+| `rex-view` | Show explanatory diagrams, figures and PDF pages in a Rex side pane. |
 | `write-skill` | Author or refactor a skill in this directory. |
 
 Document-format skills (`pdf`, `pptx`, `xlsx`, `docx`) are **not** kept here. Use the current harness's

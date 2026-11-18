@@ -46,12 +46,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/idohaber/.local/bin/idosleep",
+            "command": "/Users/idohaber/.local/bin/brain",
             "args": [
               "hook",
               "SessionStart"
             ],
-            "timeout": 10
+            "timeout": 5
           }
         ]
       }
@@ -61,27 +61,27 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/idohaber/.local/bin/idosleep",
+            "command": "/Users/idohaber/.local/bin/brain",
             "args": [
               "hook",
               "UserPromptSubmit"
             ],
-            "timeout": 25
+            "timeout": 5
           }
         ]
       }
     ],
-    "Stop": [
+    "SessionEnd": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/idohaber/.local/bin/idosleep",
+            "command": "/Users/idohaber/.local/bin/brain",
             "args": [
               "hook",
-              "Stop"
+              "SessionEnd"
             ],
-            "timeout": 30
+            "timeout": 15
           }
         ]
       }
@@ -92,27 +92,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/idohaber/.local/bin/idosleep",
+            "command": "/Users/idohaber/.local/bin/brain",
             "args": [
               "hook",
               "PreCompact"
             ],
-            "timeout": 20
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/idohaber/.local/bin/idosleep",
-            "args": [
-              "hook",
-              "SessionEnd"
-            ],
-            "timeout": 5
+            "timeout": 15
           }
         ]
       }
@@ -157,5 +142,6 @@
   "skipWorkflowUsageWarning": true,
   "editorMode": "vim",
   "verbose": false,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "cleanupPeriodDays": 36500
 }
