@@ -57,6 +57,12 @@ class OwnershipTests(unittest.TestCase):
         self.assertIs(settings["enabledPlugins"]["agentic-rules@agentic-rules"], False)
         self.assertFalse((self.destination / ".claude/skills").is_symlink())
 
+    def test_claude_file_tools_allow_every_path_in_rendered_settings(self):
+        self.run_sync()
+        settings = json.loads((self.destination / ".claude/settings.json").read_text())
+        self.assertTrue({"Read", "Write", "Edit", "Glob", "Grep"}
+                        <= set(settings["permissions"]["allow"]))
+
     def test_claude_subagents_link_per_file_and_retire_removed_ones(self):
         self.run_sync()
         agents_root = self.destination / ".claude/agents"
