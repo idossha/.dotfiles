@@ -169,6 +169,17 @@ class OwnershipTests(unittest.TestCase):
         current = json.loads(self.layout.manifest.read_text())["managed_destinations"]
         self.assertNotIn(str(retired_file), current)
 
+    def test_sync_backs_up_retired_codex_config(self):
+        config = self.destination / ".codex/config.toml"
+        config.parent.mkdir(parents=True)
+        config.write_text('model = "user-selected"\n')
+        self.layout.local.mkdir(parents=True)
+        self.layout.manifest.write_text(json.dumps({"managed_destinations": [str(config)]}))
+        self.run_sync()
+        self.assertFalse(config.exists())
+        self.assertEqual((config.parent / "config.toml.before-agent-sync").read_text(),
+                         'model = "user-selected"\n')
+
     def test_repeat_sync_is_byte_identical_and_does_not_modify_sources(self):
         before = {path.relative_to(self.agent): path.read_bytes()
                   for path in self.agent.rglob("*") if path.is_file()}
@@ -228,6 +239,7 @@ class OwnershipTests(unittest.TestCase):
             for event in ("SessionStart", "UserPromptSubmit", "SessionEnd", "PreCompact")
         }
         self.assertEqual(rendered, expected)
+        self.assertIn("fork", settings["hooks"]["SessionStart"][0]["matcher"].split("|"))
 
     def test_validation_rejects_empty_skill_set_and_colliding_names(self):
         empty = self.root / "empty"

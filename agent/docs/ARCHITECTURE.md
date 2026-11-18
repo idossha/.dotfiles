@@ -12,8 +12,9 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    MCP definitions, and harness adapters are authored once here; generated destinations are not edited.
 2. **Global policy, project routing, and memory capture have separate scopes.** `agent/policy/global.md`
    supplies user instructions; `agent/AGENTS.md` is the dotfiles project map, reached by a relative root
-   link; `~/SecondBrain` (`brain`) owns agent memory capture, recall, and consolidation outside dotfiles. Claude imports
-   AGENTS.md. Installing the project map at the home ancestor would leak its commands and contract into
+   link; `~/SecondBrain` (`brain`) owns agent memory capture, recall, and consolidation outside dotfiles.
+   Claude invokes its `brain` hooks for session start (including forks), prompt submission, compaction, and
+   session end, then imports AGENTS.md. Installing the project map at the home ancestor would leak its commands and contract into
    unrelated repositories.
 3. **`agentic-rules` owns cross-project engineering procedures.** Testing, documentation,
    architecture, CI, and release doctrine remain in that repository and are linked or installed;
@@ -52,6 +53,8 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 5. **MCP declarations are adapted at the documented scope.** Claude user servers are merged into
    its local app-state file without storing that file in Git; Pi receives the shared JSON. Unsupported portable fields fail validation instead of disappearing.
    Previously managed entries are retired through a local ownership manifest; unrelated entries survive.
+   Retiring the formerly managed Codex config removes it; if it is a real file, sync keeps its content in a
+   uniquely named `.before-agent-sync` sibling rather than rendering the retired adapter again.
 6. **Skill discovery has one route per skill per harness.** Retire legacy managed Pi links;
    preserve provider-bundled and tool-installed skills. Both local harnesses link to the same
    dotfiles-owned personal and playbook skill directories. Pi package guides that prescribe a competing supervisor/worktree policy are

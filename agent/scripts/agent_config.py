@@ -373,8 +373,11 @@ def sync(layout: Layout) -> None:
             path.unlink()
             print(f"  [retired] {path}")
         elif path.is_file():
-            path.unlink()
-            print(f"  [retired] {path}")
+            if path == layout.destination / ".codex/config.toml":
+                backup(path)
+            else:
+                path.unlink()
+                print(f"  [retired] {path}")
     dump_config(layout.manifest, {
         "mcp_servers": sorted(mcp), "skills": sorted(inventory), "agents": sorted(agents),
         "managed_destinations": sorted(current),

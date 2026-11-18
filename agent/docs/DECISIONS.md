@@ -307,3 +307,15 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   `testing-backend` and `python-production`; its language-agnostic remainder moved into
   `engineering-discipline`, and subagent profiles preload that instead.
 
+## 2026-11-18 — preserve the retired Codex config and capture Claude forks (§§1, 3)
+
+- 2026-11-18 — **SecondBrain receives every Claude session-start shape** — a fork begins a session as
+  much as startup, resume, clear, or compact, and omitting it leaves the memory owner unaware of a
+  live branch. The SessionStart matcher now includes `fork`; a separate fork-only memory route was
+  rejected because `brain` owns all capture. Evidence: `agent/tests/test_config.py`.
+- 2026-11-18 — **Sync preserves a real retired Codex config before removing its managed destination** —
+  a selected model is user state, not a reason to retain the Codex adapter. A unique
+  `config.toml.before-agent-sync*` backup prevents the adapter retirement from deleting it; preserving
+  and rendering the Codex policy was rejected because only Claude Code and Pi remain supported.
+  Evidence: `agent/tests/test_config.py`.
+
