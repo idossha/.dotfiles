@@ -59,6 +59,7 @@ Workflows and playbooks:
 | `librarian` | Find, download, rename, and strategically summarize papers. |
 | `matlab` | Run MATLAB in batch mode from the terminal. |
 | `mcp-authoring` | Author and configure MCP servers. |
+| `rex-view` | Show explanatory diagrams, figures and PDF pages in a Rex side pane. |
 | `write-skill` | Author or refactor a skill in this directory. |
 
 Document-format skills (`pdf`, `pptx`, `xlsx`, `docx`) are **not** kept here. Use the current harness's

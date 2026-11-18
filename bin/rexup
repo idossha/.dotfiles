@@ -1,0 +1,80 @@
+#!/bin/sh
+# rexup — build Rex project sessions. Each session gets a "main" tab with
+# nvim (left), an agent (right) and a small shell, plus a full-screen
+# "lazygit" tab when the directory is a git repository.
+#
+#   rexup            every project in agent/projects.json
+#   rexup tetravox   that registered project
+#   rexup ~/some/dir any directory; the session is named after it
+#   rexup --here     lay out the current Rex session around this pane
+#                    (then start the editor yourself: nvim .)
+#
+# A session whose name already exists is left alone, so reruns are safe.
+# To rebuild one from scratch: rex kill NAME && rexup NAME
+set -eu
+
+registry="$HOME/.dotfiles/agent/projects.json"
+agent="${REXUP_AGENT:-claude}"
+
+type_in() { # session block text — typed into a shell so quitting leaves a prompt
+  rex send -s "$1" -b "$2" "$3" && rex send-key -s "$1" -b "$2" enter
+}
+
+layout() { # session editor_block dir
+  ag=$(rex split -s "$1" -b "$2" --split=right --ratio 45 --label agent \
+    --focus=false -c "$3" --json | jq -er '.block_ids[0]')
+  rex split -s "$1" -b "$ag" --split=below --ratio 25 --label shell \
+    --focus=false -c "$3" --json >/dev/null
+  rex api call -s "$1" session.set_block_label \
+    "$(jq -nc --arg b "$2" '{block_id:$b,label:"editor"}')" >/dev/null
+  type_in "$1" "$ag" "$agent"
+  if git -C "$3" rev-parse --git-dir >/dev/null 2>&1; then
+    lg=$(rex window new -s "$1" lazygit -c "$3" --focus=false --json |
+      jq -er '.block_ids[0]')
+    rex api call -s "$1" session.set_block_label \
+      "$(jq -nc --arg b "$lg" '{block_id:$b,label:"lazygit"}')" >/dev/null
+    type_in "$1" "$lg" lazygit
+  fi
+}
+
+create() { # name dir
+  if rex ls --json | jq -e --arg n "$1" 'any(.sessions[]; .label == $n)' >/dev/null; then
+    echo "$1: exists"
+    return
+  fi
+  [ -d "$2" ] || { echo "$1: missing $2" >&2; return 1; }
+  created=$(rex new "$1" -c "$2" --window main --json)
+  s=$(printf '%s' "$created" | jq -er '.session_id')
+  ed=$(printf '%s' "$created" | jq -er '.initial_windows[0].block_ids[0]')
+  layout "$s" "$ed" "$2"
+  type_in "$s" "$ed" 'nvim .'
+  echo "$1: created"
+}
+
+case "${1:-}" in
+  --here)
+    : "${REX_SESSION:?not in a Rex terminal}" "${REX_BLOCK:?not in a Rex terminal}"
+    rex session rename "$REX_SESSION" "$(basename "$PWD")" >/dev/null
+    layout "$REX_SESSION" "$REX_BLOCK" "$PWD"
+    ;;
+  '')
+    jq -r '.projects | to_entries[] | [.key, .value.path] | @tsv' "$registry" |
+      {
+        rc=0   # one missing directory must not stop the rest; rex must not eat the list on stdin
+        while IFS="$(printf '\t')" read -r name dir; do
+          create "$name" "$dir" </dev/null || rc=1
+        done
+        exit "$rc"
+      }
+    ;;
+  *)
+    if [ -d "$1" ]; then
+      dir=$(cd "$1" && pwd)
+      create "$(basename "$dir")" "$dir"
+    else
+      dir=$(jq -er --arg n "$1" '.projects[$n].path' "$registry") ||
+        { echo "rexup: $1 is not a directory or a registered project" >&2; exit 1; }
+      create "$1" "$dir"
+    fi
+    ;;
+esac

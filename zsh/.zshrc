@@ -78,30 +78,6 @@ stam () {
   vi .
 }
 
-ido () {
-  local dir="$(pwd)"
-
-  if [ -n "$TMUX" ]; then
-    tmux send-keys 'nvim .' Enter \; \
-      split-window -h -c "$dir" \; \
-      send-keys 'claude' Enter \; \
-      split-window -v -c "$dir" -p 20 \; \
-      select-pane -L
-  else
-    local name="$(basename "$dir")"
-    if tmux has-session -t "$name" 2>/dev/null; then
-      tmux attach -t "$name"
-      return
-    fi
-    tmux new-session -s "$name" -c "$dir" \; \
-      send-keys 'nvim .' Enter \; \
-      split-window -h -c "$dir" \; \
-      send-keys 'claude' Enter \; \
-      split-window -v -c "$dir" -p 20 \; \
-      select-pane -L
-  fi
-}
-
 # ============================
 # Tool Initializations
 # ============================
@@ -145,6 +121,3 @@ export PATH="$PATH:/Users/idohaber/.lmstudio/bin"
 
 # opencode
 export PATH=/Users/idohaber/.opencode/bin:$PATH
-
-# idosleep reads its Anthropic key from the macOS Keychain (idosleep key status),
-# so nothing needs to be exported here — and cron/hooks work without a profile.
