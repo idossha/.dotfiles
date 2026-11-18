@@ -75,7 +75,7 @@ workflows:
 
 `agent/tools.env` pins the reviewed versions and `install-agent-tools.sh --tools` installs them globally
 through npm. `agentctl doctor` reports absent or mismatched helpers without making them a hard platform
-failure. Do not add `mem-axi` or other memory AXIs here; `idosleep` is the memory owner.
+failure. Do not add `mem-axi` or other memory AXIs here; `~/SecondBrain` (`brain`) is the memory owner.
 
 ## Fast troubleshooting
 

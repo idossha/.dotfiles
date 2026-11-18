@@ -179,7 +179,11 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   `agent/tests/test_cli.py::ExecutionTests.test_fleet_launch_writes_firstmate_dispatch_config`, and
   `agentctl doctor` drift reporting.
 
-## 2026-09-05 — idosleep owns agent memory (§§1, 4, 8)
+## 2026-11-07 — ~/SecondBrain replaces idosleep as the memory owner (§§1, 4, 8)
+
+- 2026-11-07 — **`~/SecondBrain` and its `brain` CLI own agent memory; idosleep is retired** — idosleep's live store stopped consolidating at scale and recall failed near 49k traces. The replacement is a markdown vault (Karpathy LLM-wiki layout) with four Claude hooks (SessionStart, UserPromptSubmit, PreCompact, SessionEnd) and a sleep pass. `claude/settings.json` now carries the `brain` hooks; the idosleep hooks, MCP server and cron lines are removed. Its vault `~/.idosleep` is kept read-only. Evidence: `brain status`, `grep -c idosleep claude/settings.json` = 0.
+
+## 2026-09-05 — idosleep owns agent memory (§§1, 4, 8) — superseded 2026-11-07
 
 - 2026-09-05 — **`idosleep` is the sole agent-memory owner** — the installed CLI already exposes
   automatic hook capture/injection plus `recall`, `sleep`, MCP tools and manual `idosleep remember`, while

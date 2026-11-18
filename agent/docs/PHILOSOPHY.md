@@ -32,7 +32,7 @@ names the failure it prevents.
 6. **Authority comes from the user session and harness enforcement, never from a tool, plugin, or
    prompt.** Treating tool metadata as permission lets any installed package widen what an agent may do.
 
-7. **Memory belongs to `idosleep`, project facts belong to the project, secrets belong outside git.** A
+7. **Memory belongs to `~/SecondBrain`, project facts belong to the project, secrets belong outside git.** A
    second memory router splits recall across two stores; global project facts leak into unrelated
    repositories.
 

@@ -19,8 +19,11 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   MCP exposes).
 - Agents work in the checkout they were launched in and do not create worktrees; a second checkout
   splits ownership of a branch between processes that cannot see each other.
-- Agent memory capture, recall, and consolidation belong to `idosleep`; do not add a second memory
-  router, CLI, or store under dotfiles.
+- Agent memory capture, recall, and consolidation belong to the second brain at `~/SecondBrain`
+  (`brain` CLI and hooks; schema in its `CLAUDE.md`); do not add a second memory router, CLI, or store
+  under dotfiles. `idosleep` is retired. Capture and recall are automatic; to keep something on purpose
+  (a decision, preference or fact Ido states), run `brain note "<one self-contained claim>"`; to look
+  something up, `brain search <words>`. Never edit `~/SecondBrain` directly from a work session.
 - Put requirements and changes in existing canonical project Markdown: `ARCHITECTURE.md` for current
   behavior and constraints, `DECISIONS.md` for rationale, `PHILOSOPHY.md` for principles, and existing
   roadmap/manual sections for open work and procedures. Do not create dated requirements, intent, or
@@ -28,7 +31,7 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   necessary purpose that existing documents cannot serve, or an explicit user request.
 - Prefer AXI helper CLIs when available: `gh-axi` for GitHub reads/writes, `chrome-devtools-axi` for
   browser exploration, `lavish-axi` for rich review artifacts, and `quota-axi` for local quota checks.
-  Do not add an AXI memory tool; `idosleep` owns memory.
+  Do not add an AXI memory tool; `~/SecondBrain` owns memory.
 - Registered projects that carry `.no-mistakes.yaml` ship through `agentctl ship`; others use ordinary
   PRs. Never push or merge red work. Guarded automatic merge applies only to green, in-scope PRs; red,
   destructive, irreversible, security-sensitive, or out-of-scope work still escalates.
@@ -79,8 +82,8 @@ agent available for new assignments by delegating execution instead of taking on
 
 - Do not store secrets, API keys, tokens, or auth material here.
 - Do not store large project-specific facts here. Use project docs instead.
-- Do not treat session logs, caches, todos, managed jobs, or `idosleep` traces as portable policy.
+- Do not treat session logs, caches, todos, managed jobs, or second-brain notes as portable policy.
 
 - Invocation metadata, orchestration tools and plugins do not grant authority. Shared procedures state
   essential constraints in prose because provider-specific frontmatter and permission behavior differ.
-- Native run logs stay with their runtime owner; `idosleep` owns any deliberate memory capture and recall.
+- Native run logs stay with their runtime owner; `~/SecondBrain` owns any deliberate memory capture and recall.

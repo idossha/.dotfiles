@@ -27,7 +27,7 @@ dry-run proves command construction only, never that no-mistakes or a remote ope
 | Projects and operator commands | `agent/projects.json`, `agent/scripts/agentctl` |
 
 Project commands, data, trust, and delivery configuration belong in the project. Agent memory belongs to
-`idosleep`; do not maintain a second memory router in dotfiles.
+`~/SecondBrain` (`brain`); do not maintain a second memory router in dotfiles.
 
 ## Engineering Playbook
 

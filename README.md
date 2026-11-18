@@ -131,7 +131,7 @@ Reusable agentic-coding configuration lives under `agent/`:
 - `agent/skills/` — dotfiles-owned skills; tool-owned skill exceptions are in the agent contract
 - `agent/mcps/mcp-servers.json` — canonical MCP server definitions
 - `agent/claude/` — durable Claude settings, statusline, and templates
-- `agent/policy/global.md` — global user-level agent policy; idosleep owns memory capture and recall
+- `agent/policy/global.md` — global user-level agent policy; `~/SecondBrain` (`brain`) owns memory capture and recall
 - `agent/AGENTS.md` — portable agent instructions
 
 Claude Code, Codex and Pi use shared policy and procedures with generated harness adapters.

@@ -57,4 +57,4 @@ AXI helper CLIs recorded in [tools.env](tools.env).
 Use AXI CLIs where they reduce agent turns without replacing project gates: `gh-axi` for GitHub reads and
 writes, `chrome-devtools-axi` for browser exploration (Playwright and hidden-app tests remain the test
 authority), `lavish-axi` for review artifacts too dense for a terminal, `quota-axi` for local quota
-checks. Do not adopt AXI memory tools here: `idosleep` owns capture, recall, and consolidation.
+checks. Do not adopt AXI memory tools here: `~/SecondBrain` (the `brain` CLI and hooks) owns capture, recall, and consolidation.
