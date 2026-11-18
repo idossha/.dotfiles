@@ -17,7 +17,7 @@ names the failure it prevents.
    the stale instruction.
 
 3. **Author portable platform policy once under `agent/`, generate everywhere.** Harness files are thin
-   adapters produced by `agentctl sync`; policy hand-copied into Claude, Codex, or Pi diverges the moment
+   adapters produced by `agentctl sync`; policy hand-copied into Claude or Pi diverges the moment
    one copy changes. Tool-specific skills live with the tool that must keep them current.
 
 4. **Prefer a pinned CLI when a shell call suffices; prefer MCP when the agent needs typed, discoverable

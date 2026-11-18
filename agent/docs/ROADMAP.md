@@ -2,13 +2,11 @@
 
 ## What exists
 
-- Canonical shared policy, dotfiles-owned personal skills, MCP declarations, and three harness adapters under `agent/`.
+- Canonical shared policy, dotfiles-owned personal skills, MCP declarations, and two harness adapters under `agent/`.
 - [PHILOSOPHY.md](PHILOSOPHY.md): skills teach, CLIs act, MCP exposes; one checkout, one agent, one
   explicit owner per Git mutation.
-- The external `agentic-rules` engineering playbook linked from one source into Claude, Pi and Codex.
+- The external `agentic-rules` engineering playbook linked from one source into Claude and Pi.
 - Idempotent configuration validation and synchronization.
-- [Codex defaults and orchestration](ARCHITECTURE.md): user-selected full access and delegated execution,
-  preserved by synchronization.
 - Pinned AXI helper CLIs for GitHub operations, browser exploration, Lavish review artifacts and quota
   visibility.
 - The `agentctl doctor | sync | ship` operator surface with a project-opted-in no-mistakes delivery gate.
@@ -27,5 +25,5 @@
 - [ ] Run one AXI-assisted GitHub/browser review and one no-mistakes delivery trial before declaring the
   broader platform gate closed. The current branch is set up to perform the first no-mistakes delivery
   trial for dotfiles itself.
-- [ ] Exercise representative skill activation across the three harnesses, including two distinct
+- [ ] Exercise representative skill activation across both harnesses, including two distinct
   manuscripts.

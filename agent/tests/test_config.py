@@ -1,7 +1,7 @@
 """2026-09-04: pin configuration ownership (§3) using synthetic temporary homes.
 
-Expected policy/state values are authored fixtures; json/tomllib independently
-read generated files. Live harness execution and remote service health are separate.
+Expected policy/state values are authored fixtures; json independently
+reads generated files. Live harness execution and remote service health are separate.
 Run: agent/.venv/bin/python -m unittest discover -s agent/tests -p 'test_*.py'
 """
 from __future__ import annotations
@@ -13,7 +13,6 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
-import tomllib
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -132,19 +131,6 @@ class OwnershipTests(unittest.TestCase):
         state = {"permissions": {"allow": ["everything"], "newRuntimeState": True}}
         self.assertEqual(unowned(policy, state), {"permissions": {"newRuntimeState": True}})
 
-    def test_codex_preserves_new_tables_and_top_level_runtime_preferences(self):
-        path = self.destination / ".codex/config.toml"
-        path.parent.mkdir(parents=True)
-        path.write_text('model = "user-model"\n[hooks]\ncustom = "local"\n'
-                        '[marketplaces.local]\nlast_revision = "fixture"\n')
-        self.run_sync()
-        with path.open("rb") as handle:
-            actual = tomllib.load(handle)
-        self.assertEqual(actual["model"], "user-model")
-        self.assertEqual(actual["hooks"]["custom"], "local")
-        self.assertEqual(actual["marketplaces"]["local"]["last_revision"], "fixture")
-        self.assertIn("context7", actual["mcp_servers"])
-
     def test_managed_mcp_removal_preserves_unmanaged_servers_and_claude_state(self):
         self.write_json(".claude.json", {"appState": "fixture-private", "mcpServers": {
             "personal": {"command": "personal-server"},
@@ -159,8 +145,6 @@ class OwnershipTests(unittest.TestCase):
         self.assertEqual(actual["appState"], "fixture-private")
         self.assertIn("personal", actual["mcpServers"])
         self.assertNotIn("context7", actual["mcpServers"])
-        with (self.destination / ".codex/config.toml").open("rb") as handle:
-            self.assertNotIn("context7", tomllib.load(handle)["mcp_servers"])
 
     def test_sync_retires_a_destination_this_platform_no_longer_manages(self):
         self.run_sync()
@@ -201,22 +185,12 @@ class OwnershipTests(unittest.TestCase):
 
     def test_installed_check_detects_missing_links_and_edited_policy(self):
         self.run_sync()
-        (self.destination / ".codex/AGENTS.md").unlink()
+        (self.destination / ".pi/agent/AGENTS.md").unlink()
         self.write_json(".pi/agent/settings.json", {"defaultModel": "wrong"})
         with redirect_stdout(io.StringIO()):
             issues = installed_issues(self.layout)
         self.assertTrue(any("link missing" in issue for issue in issues))
         self.assertTrue(any("pi: installed values differ" in issue for issue in issues))
-
-    def test_old_codex_discovery_is_retired_but_system_skills_survive(self):
-        legacy = self.destination / ".codex/skills"
-        legacy.mkdir(parents=True)
-        (legacy / "mcp-authoring").symlink_to(self.agent / "skills/mcp-authoring")
-        (legacy / ".system").mkdir()
-        (legacy / ".system/marker").write_text("provider-owned")
-        self.run_sync()
-        self.assertFalse((legacy / "mcp-authoring").is_symlink())
-        self.assertEqual((legacy / ".system/marker").read_text(), "provider-owned")
 
     def test_removed_optional_static_links_are_retired(self):
         templates = self.destination / ".claude/templates"

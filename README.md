@@ -67,10 +67,10 @@ socket is mounted.
 ### Status Bar (SketchyBar + AeroSpace)
 
 `sketchybar/` is stowed to `~/.config/sketchybar`. Left: Apple menu + AeroSpace
-workspaces (focused highlighted, empty dimmed). Right: Claude Code and Codex plan usage,
+workspaces (focused highlighted, empty dimmed). Right: Claude Code plan usage,
 cpu/mem/battery, Amphetamine, GlobalProtect, Docker, Wi-Fi, clock.
 
-Clock, Wi-Fi, Docker, cpu/mem/battery, Claude Code and Codex each open a
+Clock, Wi-Fi, Docker, cpu/mem/battery and Claude Code each open a
 details popup. Popups are read-only: their rows are plain text, with no click
 targets and no hover highlight. Clicking an item opens or closes its popup,
 except Amphetamine
@@ -85,7 +85,6 @@ except Amphetamine
   limits are only exposed there, so with no session open the numbers go stale (the
   item dims after 6h)
 - `~/.config/sketchybar/tests/run_tests.sh` smoke-tests every item against the live bar
-- The Codex item reads usage through `quota-axi` and caches it at `~/.cache/sketchybar/codex_usage.json`
 
 ---
 
@@ -134,7 +133,7 @@ Reusable agentic-coding configuration lives under `agent/`:
 - `agent/policy/global.md` — global user-level agent policy; `~/SecondBrain` (`brain`) owns memory capture and recall
 - `agent/AGENTS.md` — portable agent instructions
 
-Claude Code, Codex and Pi use shared policy and procedures with generated harness adapters.
+Claude Code and Pi use shared policy and procedures with generated harness adapters.
 See [the agent contract](agent/docs/ARCHITECTURE.md) and
 [configuration operations](agent/docs/CONFIGURATION.md) for ownership, bootstrap and upgrade checks.
 

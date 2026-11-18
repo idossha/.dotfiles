@@ -1,7 +1,7 @@
 # Agent Platform — Architecture Contract
 
-> The dotfiles agent platform gives one developer a shared policy and tool layer across Claude Code,
-> Codex, and Pi, with one operator CLI and an optional project-local delivery gate.
+> The dotfiles agent platform gives one developer a shared policy and tool layer across Claude Code
+> and Pi, with one operator CLI and an optional project-local delivery gate.
 
 [PHILOSOPHY.md](PHILOSOPHY.md) states why the platform is shaped this way; this file is the **contract**. Deviating from it requires editing this file in the same commit and
 appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and must not be renumbered.
@@ -21,7 +21,7 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
 
 ## 2. Runtime layers
 
-1. **Harness adapters are the runtime.** Claude Code, Codex, and Pi each run in the checkout the user
+1. **Harness adapters are the runtime.** Claude Code and Pi each run in the checkout the user
    launched them in; dotfiles supply their policy, skills, and MCP declaration and nothing else. There is
    no session multiplexer, fleet supervisor, or unattended loop runner in this platform.
 2. **Agents do not allocate worktrees.** Agents work in the checkout they were launched in and do not
@@ -46,15 +46,14 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    file into `~/.claude/agents`, which stays a real directory so user or project agents can coexist.
 3. **External executables are pinned or explicitly reported as floating.** A silent `@latest` makes
    two sessions with the same dotfiles run different code.
-4. **Canonical keys win over local state.** Generated JSON/TOML/YAML files retain unowned runtime
+4. **Canonical keys win over local state.** Generated JSON files retain unowned runtime
    fields, including newly introduced provider fields, in ignored overlays. A local overlay cannot
    silently replace policy-owned permissions or package pins.
 5. **MCP declarations are adapted at the documented scope.** Claude user servers are merged into
-   its local app-state file without storing that file in Git; Pi receives the shared JSON and Codex
-   receives generated TOML. Unsupported portable fields fail validation instead of disappearing.
+   its local app-state file without storing that file in Git; Pi receives the shared JSON. Unsupported portable fields fail validation instead of disappearing.
    Previously managed entries are retired through a local ownership manifest; unrelated entries survive.
-6. **Skill discovery has one route per skill per harness.** Retire legacy managed Codex/Pi links;
-   preserve provider-bundled and tool-installed skills. All three local harnesses link to the same
+6. **Skill discovery has one route per skill per harness.** Retire legacy managed Pi links;
+   preserve provider-bundled and tool-installed skills. Both local harnesses link to the same
    dotfiles-owned personal and playbook skill directories. Pi package guides that prescribe a competing supervisor/worktree policy are
    excluded through package resource filters; their extensions remain available. Disable the duplicate Claude engineering plugin; its cached snapshot otherwise
    can prescribe different procedures. Other plugins remain adapter-specific capabilities.
@@ -66,17 +65,10 @@ appending an entry to `agent/docs/DECISIONS.md`. Section numbers are stable and 
    Third-party skill packages (`agent/skill-packages.json`) are clones under
    `~/.local/share/agent-skills/<name>` that the opt-in installer fast-forwards; sync links their
    `skills/` offline and doctor reports them as floating and fails installed validation when absent.
-7. **Codex defaults to the user's explicitly selected full-access permissions.** Canonical configuration sets
-   `approval_policy = "never"`, `sandbox_mode = "danger-full-access"`, and automatic tool overrides;
-   this prevents new sessions or a later sync from restoring routine permission prompts. Existing
-   conversations retain their native session IDs during reload. Explicit invocation overrides and
-   managed requirements remain effective; other harness adapters keep their own settings.
+7. *Retired 2026-11-17* (formerly the Codex full-access permission defaults; the Codex adapter is removed).
 8. *Retired 2026-09-05* (formerly the seeded worker model/effort dispatch template).
 9. *Retired 2026-09-05* (formerly the supervisor project-posture rendering from the registry).
-10. **The primary Codex agent delegates execution by default.** The single policy in
-    `agent/policy/global.md` quantifies assignments and gives workers bounded ownership, keeping the
-    user-facing agent available for coordination without restoring an external fleet supervisor.
-    An explicit user request for direct execution overrides this default for that assignment.
+10. *Retired 2026-11-17* (formerly the primary Codex agent's delegate-by-default orchestration policy).
 
 ## 4. Shared development doctrine
 
@@ -126,16 +118,14 @@ The platform gate is command-based:
 
 - `agent/scripts/sync-agent-config.sh --check` validates canonical inputs without modifying them.
 - `agent/scripts/agentctl doctor` reports harness versions, integrations, tools, links, and floating dependencies.
-- Each shell script passes its own `bash -n <file>` invocation; JSON and TOML parse; project aliases resolve to existing directories.
+- Each shell script passes its own `bash -n <file>` invocation; JSON parses; project aliases resolve to existing directories.
 - A dry-run test proves `agentctl ship` stays opt-in: it refuses a project without a reviewed
   `.no-mistakes.yaml` and prints the auto-merge decision rather than performing it.
 - `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
-  back with independent JSON/TOML parsers; tests neither source the user's shell profile nor access
+  back with an independent JSON parser; tests neither source the user's shell profile nor access
   real homes, vaults, remotes or visible apps.
-- Acceptance for Codex defaults requires comparing parsed canonical and installed TOML against §3.7
-  and inspecting the linked global policy for §3.10's primary/worker distinction. The installed check
-  in `agent/scripts/agent_config.py` detects configuration and link drift; it does not independently
-  assert the intended default values or orchestration wording. These checks prove configuration and
+- The installed check in `agent/scripts/agent_config.py` detects configuration and link drift; it
+  does not independently assert intended default values. These checks prove configuration and
   instruction delivery, not guaranteed runtime availability or responsiveness.
 - `--check` validates source without writing; `--check-installed` detects generated configuration
   and discovery drift. `doctor` includes the installed check and reports floating dependencies.

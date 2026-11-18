@@ -15,7 +15,7 @@ harness adapter. Use checkout-relative paths so a leased task cannot edit the pr
 Run `agent/scripts/sync-agent-config.sh --check` and the project platform gate before landing.
 After landing, activate from the primary checkout with `agent/scripts/agentctl sync`.
 The configuration manual owns installation scopes and supported field mappings; Claude user MCP
-state is generated into `~/.claude.json`, and Codex/Pi receive their documented adapters.
+state is generated into `~/.claude.json`, and Pi receives its documented adapter.
 
 ## Design Rules
 

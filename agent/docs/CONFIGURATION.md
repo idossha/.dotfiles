@@ -27,12 +27,11 @@ at a lease that will later be returned.
 
 | Input | Destination / boundary |
 |---|---|
-| `policy/global.md` | Codex/Pi global AGENTS.md and Claude's imported AGENTS.md |
+| `policy/global.md` | Pi global AGENTS.md and Claude's imported AGENTS.md |
 | `AGENTS.md` | Relative repository-root project link only |
 | `skills/`, external playbook skills, and `skill-packages.json` clones | One discovery route per harness; provider-bundled and tool-installed skills survive |
-| `claude/settings.json`, `pi/settings.json`, `codex/config.toml` | Real generated files; unknown local fields preserved, canonical keys authoritative |
-| `mcps/mcp-servers.json` | Claude user scope in local `~/.claude.json`, Pi JSON link, Codex generated TOML |
-| `codex/rules/default.rules` | Real generated policy plus local approvals |
+| `claude/settings.json`, `pi/settings.json` | Real generated files; unknown local fields preserved, canonical keys authoritative |
+| `mcps/mcp-servers.json` | Claude user scope in local `~/.claude.json`, Pi JSON link |
 
 Ignored `agent/local/` overlays and their ownership manifest are machine state, not portable memory.
 Unknown real files displaced by links are backed up. Managed stale links are retired; provider-bundled
@@ -41,7 +40,7 @@ Claude app-state file.
 
 Claude MCP user scope was checked against
 [the official scope reference](https://code.claude.com/docs/en/mcp#mcp-installation-scopes)
-on 2026-09-04. Codex discovery and schema references are in [../codex/README.md](../codex/README.md).
+on 2026-09-04.
 
 ## Upgrade one boundary at a time
 
@@ -51,7 +50,7 @@ on 2026-09-04. Codex discovery and schema references are in [../codex/README.md]
 3. Sync from the landed canonical checkout, then run doctor and each changed harness's discovery
    check. For Pi (Node 20+): `node agent/scripts/pi-resources.mjs` uses offline native RPC without a model prompt.
    It reports command/skill discovery, not every extension diagnostic or project-context activation.
-4. Verify Claude, Pi and Codex still resolve each engineering skill to the same local source.
+4. Verify Claude and Pi still resolve each engineering skill to the same local source.
    Claude's duplicate agentic-rules plugin must remain disabled. Review other plugin upgrades for
    overlapping skills, MCP definitions and hooks; version equality alone does not prove content parity.
 5. Run a bounded live trial for changed execution behavior. Record its outcome and untested

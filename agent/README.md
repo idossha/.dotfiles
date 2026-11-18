@@ -1,6 +1,6 @@
 # Agent Platform
 
-Source of truth for shared agent policy and adapters across Claude Code, Codex, and Pi, with one operator
+Source of truth for shared agent policy and adapters across Claude Code and Pi, with one operator
 CLI and an optional project-local delivery gate.
 
 Start with [AGENTS.md](AGENTS.md), then [docs/PHILOSOPHY.md](docs/PHILOSOPHY.md),
@@ -17,7 +17,7 @@ Start with [AGENTS.md](AGENTS.md), then [docs/PHILOSOPHY.md](docs/PHILOSOPHY.md)
 | `policy/global.md` | User-level policy shared by every harness |
 | `skills/` | Personal and domain skills authored here exactly once |
 | `mcps/mcp-servers.json` | Shared MCP server declarations |
-| `claude/`, `codex/`, `pi/` | Thin harness-only settings and hooks |
+| `claude/`, `pi/` | Thin harness-only settings and hooks |
 | `tests/` | Nonmutating fixture-driven platform checks |
 
 Cross-project testing, documentation, architecture, CI, commit, and release procedures live in the
@@ -46,7 +46,7 @@ missing, confirm `export PATH="$HOME/.local/bin:$PATH"` is in the shell configur
 
 Tracked files contain stable policy. Generated destinations and gitignored overlays hold onboarding,
 themes, trust hashes, changelog cursors, sessions, auth, caches, and other harness-written state. Edit
-canonical files here, not live files under `~/.claude`, `~/.codex`, or `~/.pi`; operational detail is in
+canonical files here, not live files under `~/.claude` or `~/.pi`; operational detail is in
 [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
 External tools are opt-in: `scripts/install-agent-tools.sh --tools` installs the pinned no-mistakes and

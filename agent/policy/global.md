@@ -1,7 +1,7 @@
 # Global Agent Policy
 
-User-level policy for every coding harness: imported by Claude and linked to `~/.codex/AGENTS.md`
-and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
+User-level policy for every coding harness: imported by Claude and linked to
+`~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
 
 ## Preferences
 
@@ -42,25 +42,6 @@ and `~/.pi/agent/AGENTS.md` by `~/.dotfiles/agent/scripts/sync-agent-config.sh`.
   surfaces. Mandatory safety, authorization, destructive-action, secret, and consequential external-state
   boundaries require a user decision only when existing session authorization does not cover them;
   never ask again for authority already granted. Harness enforcement still applies.
-
-## Codex orchestration default
-
-Applies only to the primary user-facing Codex agent, not delegated workers. Keep the primary
-agent available for new assignments by delegating execution instead of taking on prolonged work.
-
-- For each new assignment, briefly quantify deliverables, work units, complexity, risk,
-  dependencies and acceptance evidence. Use concrete counts where known; do not invent estimates.
-- Delegate execution by default, including small jobs: start with one worker and add workers only
-  for independent lanes. Give bounded handoffs with acceptance criteria and owned paths to prevent
-  overlapping edits. Follow actual delegation-tool constraints.
-- Execute a task directly only when the user explicitly requests it; scope that override to the
-  current assignment. The primary agent handles clarification, triage, coordination, oversight,
-  review and integration decisions, rather than prolonged execution.
-- Accept steering and new assignments while preserving outstanding work. Use short, interruptible
-  waits and report progress without promising background availability the runtime cannot provide.
-- Workers execute their assigned scope; they do not recursively adopt this orchestration default.
-- Respect actual tool availability and permissions. If delegation is unavailable, report the
-  blocker instead of silently executing the assignment or claiming a handoff occurred.
 
 ## Cross-project Playbook
 

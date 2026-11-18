@@ -215,7 +215,7 @@ doctor() {
   fi
 
   echo "Runtime tools:"
-  for harness in pi claude codex; do
+  for harness in pi claude; do
     if command -v "$harness" >/dev/null 2>&1; then
       tool_version "$harness" --version || failed=1
     else

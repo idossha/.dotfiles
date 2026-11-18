@@ -179,6 +179,10 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   `agent/tests/test_cli.py::ExecutionTests.test_fleet_launch_writes_firstmate_dispatch_config`, and
   `agentctl doctor` drift reporting.
 
+## 2026-11-17 — the Codex adapter is removed; Claude Code and Pi remain (§§2, 3.5–3.7, 3.10)
+
+- 2026-11-17 — **The platform supports two harnesses, Claude Code and Pi** — the ChatGPT account began rejecting the configured Codex model (`gpt-6-astra`) and Pi's default (`gpt-5.5`), which failed the no-mistakes review step and blocked delivery; Ido chose to drop the ChatGPT-specific tooling rather than chase its model names. `agent/codex/`, its generated `~/.codex` policy link, config, rules and MCP rendering, the Codex orchestration default in `policy/global.md`, and the never-installed SketchyBar Codex item are removed; §3.7 and §3.10 are retired in place. Pi keeps its `openai-codex` provider because it is the only one signed in, with the default model moved to `gpt-5.6-terra`, which the account still serves — switching Pi's provider is a separate sign-in. Keeping Codex with a pinned working model rejected: it preserves a third adapter nobody launches. Evidence: `agent/tests/run.sh`, `agentctl doctor`, `pi -p --model gpt-5.6-terra` answering.
+
 ## 2026-11-07 — ~/SecondBrain replaces idosleep as the memory owner (§§1, 4, 8)
 
 - 2026-11-07 — **`~/SecondBrain` and its `brain` CLI own agent memory; idosleep is retired** — idosleep's live store stopped consolidating at scale and recall failed near 49k traces. The replacement is a markdown vault (Karpathy LLM-wiki layout) with four Claude hooks (SessionStart, UserPromptSubmit, PreCompact, SessionEnd) and a sleep pass. `claude/settings.json` now carries the `brain` hooks; the idosleep hooks, MCP server and cron lines are removed. Its vault `~/.idosleep` is kept read-only. Evidence: `brain status`, `grep -c idosleep claude/settings.json` = 0.

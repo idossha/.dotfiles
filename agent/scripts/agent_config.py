@@ -238,7 +238,6 @@ class Layout:
             d / ".claude/CLAUDE.md": a / "claude/CLAUDE.md",
             d / ".claude/statusline-command.sh": a / "claude/statusline-command.sh",
             d / ".pi/agent/AGENTS.md": global_policy,
-            d / ".codex/AGENTS.md": global_policy,
             d / ".agents/mcp.json": a / "mcps/mcp-servers.json",
         }
         optional_claude_templates = a / "claude/templates"
@@ -257,23 +256,12 @@ class Layout:
 
     def policies(self) -> dict[str, tuple[dict, Path, Path]]:
         a, d = self.agent, self.destination
-        mcp = check_mcp(read_config(a / "mcps/mcp-servers.json"))
-        codex = read_config(a / "codex/config.toml")
-        overrides = codex.get("mcp_servers", {})
-        for name, entry in overrides.items():
-            if name not in mcp or set(entry) - {"tools"}:
-                raise ConfigError("Codex source may contain only tool overrides for canonical MCP servers")
-        codex_servers = {
-            name: {key: value for key, value in server.items() if key != "type"}
-            for name, server in mcp.items()
-        }
-        codex["mcp_servers"] = merge(overrides, codex_servers)
+        check_mcp(read_config(a / "mcps/mcp-servers.json"))
         return {
             "claude": (read_config(a / "claude/settings.json"), d / ".claude/settings.json",
                        self.local / "claude-settings.local.json"),
             "pi": (read_config(a / "pi/settings.json"), d / ".pi/agent/settings.json",
                    self.local / "pi-settings.local.json"),
-            "codex": (codex, d / ".codex/config.toml", self.local / "codex-config.local.toml"),
         }
 
 
@@ -288,7 +276,6 @@ def validate(layout: Layout) -> None:
     for name, fields in {
         "claude": {"theme", "autoMode"},
         "pi": {"theme", "lastChangelogVersion"},
-        "codex": {"projects", "marketplaces", "notice"},
     }.items():
         if set(policies[name][0]) & fields:
             raise ConfigError(f"{name}: runtime state remains in tracked policy")
@@ -304,15 +291,6 @@ def previous_state(layout: Layout) -> dict:
     return read_config(layout.manifest) if layout.manifest.exists() else {}
 
 
-def without_managed_servers(value: dict, names: set[str]) -> dict:
-    result = deepcopy(value)
-    servers = result.get("mcp_servers", {})
-    if isinstance(servers, dict):
-        for name in names:
-            servers.pop(name, None)
-    return result
-
-
 def sync(layout: Layout) -> None:
     validate(layout)
     inventory = layout.inventory()
@@ -325,9 +303,6 @@ def sync(layout: Layout) -> None:
     for name, (policy, destination, overlay) in layout.policies().items():
         saved = read_config(overlay) if overlay.exists() else {}
         live = read_config(destination) if destination.exists() else {}
-        if name == "codex":
-            saved = without_managed_servers(saved, managed)
-            live = without_managed_servers(live, managed)
         state = unowned(policy, merge(saved, live))
         renders.append((name, overlay, state, destination, merge(state, policy)))
 
@@ -370,10 +345,6 @@ def sync(layout: Layout) -> None:
         link(source, target)
 
     # Retire only recognizable legacy links. Never remove provider-bundled or user-authored skills.
-    for name, source in inventory.items():
-        legacy = layout.destination / ".codex/skills" / name
-        if legacy.is_symlink() and legacy.resolve() == source.resolve():
-            legacy.unlink()
     legacy_pi = layout.destination / ".pi/agent/skills"
     if legacy_pi.is_symlink():
         legacy_pi.unlink()
@@ -391,22 +362,6 @@ def sync(layout: Layout) -> None:
             target.unlink()
     link(layout.agent / "AGENTS.md", layout.agent.parent / "AGENTS.md", relative=True)
 
-    rules_path = layout.destination / ".codex/rules/default.rules"
-    rules_directory = rules_path.parent
-    # Read a legacy directory link before unlinking it, so local approvals survive migration.
-    effective_rules = rules_path.read_text() if rules_path.exists() else ""
-    if rules_directory.is_symlink():
-        rules_directory.unlink()
-    policy_lines = (layout.agent / "codex/rules/default.rules").read_text().splitlines()
-    saved_path = layout.local / "codex-rules.local.rules"
-    saved_lines = saved_path.read_text().splitlines() if saved_path.exists() else []
-    owned = set(policy_lines) | set(prior.get("codex_rule_lines", []))
-    extras = list(dict.fromkeys(
-        line for line in saved_lines + effective_rules.splitlines()
-        if line.strip() and not line.lstrip().startswith("#") and line not in owned
-    ))
-    atomic_write(saved_path, "\n".join(extras) + "\n")
-    atomic_write(rules_path, "\n".join(policy_lines + [""] + extras) + "\n")
     # Retire destinations this platform managed before but no longer owns, so a removed
     # integration leaves no orphaned link or generated file behind.
     current = {str(target) for target in links} | {str(destination) for _, _, _, destination, _ in renders}
@@ -422,10 +377,9 @@ def sync(layout: Layout) -> None:
             print(f"  [retired] {path}")
     dump_config(layout.manifest, {
         "mcp_servers": sorted(mcp), "skills": sorted(inventory), "agents": sorted(agents),
-        "codex_rule_lines": policy_lines,
         "managed_destinations": sorted(current),
     })
-    print("  [ok] installed links, shared MCP servers and local approvals")
+    print("  [ok] installed links and shared MCP servers")
 
 
 def installed_issues(layout: Layout) -> list[str]:
@@ -449,10 +403,6 @@ def installed_issues(layout: Layout) -> list[str]:
         live = read_config(destination)
         if merge(live, policy) != live:
             issues.append(f"{name}: installed values differ from canonical policy")
-        if name == "codex":
-            for server in policy["mcp_servers"]:
-                if live.get("mcp_servers", {}).get(server) != policy["mcp_servers"][server]:
-                    issues.append(f"codex: canonical MCP server differs: {server}")
     mcp = check_mcp(read_config(layout.agent / "mcps/mcp-servers.json"))
     claude_path = layout.destination / ".claude.json"
     claude = read_config(claude_path) if claude_path.exists() else {}
@@ -462,24 +412,11 @@ def installed_issues(layout: Layout) -> list[str]:
         for name, server in mcp.items():
             if claude["mcpServers"].get(name) != server:
                 issues.append(f"Claude user MCP differs: {name}")
-    for name, source in inventory.items():
-        legacy = layout.destination / ".codex/skills" / name
-        if legacy.is_symlink() and legacy.resolve() == source.resolve():
-            issues.append(f"duplicate Codex skill discovery: {name}")
     if (layout.destination / ".pi/agent/skills").exists():
         issues.append("duplicate Pi skill discovery directory")
     if (layout.destination / "AGENTS.md").is_symlink():
         if (layout.destination / "AGENTS.md").resolve() == (layout.agent / "AGENTS.md").resolve():
             issues.append("dotfiles project policy leaks through home AGENTS.md")
-    rules = layout.destination / ".codex/rules/default.rules"
-    if not rules.is_file() or rules.is_symlink() or rules.parent.is_symlink():
-        issues.append("Codex rules must be a generated real file")
-    else:
-        live_lines = set(rules.read_text().splitlines())
-        for line in (layout.agent / "codex/rules/default.rules").read_text().splitlines():
-            if line.strip() and not line.startswith("#") and line not in live_lines:
-                issues.append("Codex canonical rules are missing")
-                break
     return issues
 
 

@@ -7,6 +7,13 @@ Notable changes to the dotfiles are recorded here using the
 
 ### Removed
 
+- **Codex is no longer a supported harness** — `agentctl sync` stops generating `~/.codex` policy,
+  configuration and rules, and `agentctl doctor` no longer probes for it. Claude Code and Pi are
+  unchanged. The next sync removes the generated `~/.codex/AGENTS.md` link and `~/.codex/config.toml`;
+  local settings it held are kept in the ignored `agent/local/codex-config.local.toml`.
+- **The tmux `ido` shell function is gone** — use `rexup` for the same editor, agent and shell layout.
+- **idosleep no longer captures or recalls agent memory** — its hooks are replaced by `brain`; the old
+  vault at `~/.idosleep` is left in place, read-only.
 - **The fleet supervisor, session multiplexer, unattended-loop runner and pooled worktree provider are
   gone** — the platform no longer installs, configures or launches them, and `agentctl start`, `project`,
   `fleet` and `overnight` are removed with them. Agents now work in the checkout they were launched in and
@@ -17,10 +24,23 @@ Notable changes to the dotfiles are recorded here using the
 
 ### Added
 
+- **`rexup` opens a Rex session per project** — `rexup` builds every registered project, `rexup NAME` or
+  `rexup DIR` builds one, and `rexup --here` lays out the current session: nvim, an agent and a shell,
+  plus a lazygit tab in git repositories. Existing sessions are left alone.
+- **Agents can show a figure beside the conversation in Rex** — the `rex-view` skill draws SVG, PDF and
+  image files in a side pane and redraws them when the file changes.
+- **Agent memory lives in `~/SecondBrain`** — sessions are captured and recalled by the `brain` hooks;
+  `brain note` keeps something on purpose and `brain search` looks it up.
+
 - **A short statement of how the agents are meant to work** — `agent/docs/PHILOSOPHY.md` records the
   rule for choosing between a skill, a CLI and an MCP server, and the failure each platform rule prevents.
 
 ### Fixed
+
+- **Pi starts again on the ChatGPT account** — its default model is now `gpt-5.6-terra`; the previous
+  default was rejected by the account, which also failed the delivery gate's review step.
+- **SketchyBar no longer sources a missing Codex item** — the bar configuration and its smoke tests
+  referenced `items/codex.sh`, which was never installed.
 
 - **MCP server versions remain stable between sessions** — all three shared servers use exact versions
   of the locally installed packages.

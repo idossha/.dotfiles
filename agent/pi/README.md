@@ -1,8 +1,8 @@
 # Pi Adapter
 
 This directory contains only Pi-specific settings, extensions, and prompt templates. Portable
-instructions, skills, MCP declarations, engineering doctrine, and project facts live elsewhere so Pi,
-Claude Code, and Codex receive the same policy.
+instructions, skills, MCP declarations, engineering doctrine, and project facts live elsewhere so Pi
+and Claude Code receive the same policy.
 
 ## Ownership
 
