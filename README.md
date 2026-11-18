@@ -64,6 +64,20 @@ socket is mounted.
 
 ---
 
+### Rex sessions
+
+Expose the project-session command once:
+
+```bash
+ln -s ~/.dotfiles/bin/rexup ~/.local/bin/rexup
+```
+
+`rexup` opens every configured project; `rexup NAME` opens a registered project; `rexup DIR`
+opens a directory; and `rexup --here` adds the layout to the current Rex session. Set
+`REXUP_AGENT` to choose the agent command, for example `REXUP_AGENT=pi rexup NAME`.
+
+---
+
 ### Status Bar (SketchyBar + AeroSpace)
 
 `sketchybar/` is stowed to `~/.config/sketchybar`. Left: Apple menu + AeroSpace
