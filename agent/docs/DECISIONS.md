@@ -319,3 +319,13 @@ The two remaining package skills (intercom and MCP scripting) describe transport
   and rendering the Codex policy was rejected because only Claude Code and Pi remain supported.
   Evidence: `agent/tests/test_config.py`.
 
+## 2026-11-18 — provision declared parsers for the local delivery test (§6)
+
+- 2026-11-18 — **The dotfiles delivery test creates its project-local parser environment when absent** —
+  a fresh checkout may have a Python 3.11+ interpreter but not PyYAML or tomli-w, so the test runner
+  cannot validate the canonical configuration. `.no-mistakes.yaml` creates `agent/.venv` and installs
+  the pinned requirements before `agent/tests/run.sh`, whose interpreter selector prefers that venv.
+  Requiring the caller to install global parsers was rejected because a clean delivery test must run from
+  its declared project dependencies. Evidence: `.no-mistakes.yaml` test command and
+  `agent/tests/run.sh`.
+

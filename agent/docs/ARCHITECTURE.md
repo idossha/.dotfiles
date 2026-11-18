@@ -124,9 +124,11 @@ The platform gate is command-based:
 - Each shell script passes its own `bash -n <file>` invocation; JSON parses; project aliases resolve to existing directories.
 - A dry-run test proves `agentctl ship` stays opt-in: it refuses a project without a reviewed
   `.no-mistakes.yaml` and prints the auto-merge decision rather than performing it.
-- `agent/tests/run.sh` is the platform test entry point. Authored temporary configurations are read
-  back with an independent JSON parser; tests neither source the user's shell profile nor access
-  real homes, vaults, remotes or visible apps.
+- `agent/tests/run.sh` is the platform test entry point. The repository's `.no-mistakes.yaml` creates
+  `agent/.venv` and installs `agent/requirements.txt` only when that interpreter is absent, then the
+  runner resolves that project-local interpreter first. Authored temporary configurations are read back
+  with an independent JSON parser; tests neither source the user's shell profile nor access real homes,
+  vaults, remotes or visible apps.
 - The installed check in `agent/scripts/agent_config.py` detects configuration and link drift; it
   does not independently assert intended default values. These checks prove configuration and
   instruction delivery, not guaranteed runtime availability or responsiveness.
