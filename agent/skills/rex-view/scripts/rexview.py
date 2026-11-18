@@ -218,7 +218,9 @@ class Viewer:
             canvas.paste(self.image, ((canvas_w - self.image.width) // 2, (canvas_h - self.image.height) // 2))
         png = io.BytesIO()
         canvas.save(png, "PNG", compress_level=1)
-        (self.state / "view.png").write_bytes(png.getvalue())   # what `snapshot` hands to an agent
+        tmp = self.state / "view.tmp"
+        tmp.write_bytes(png.getvalue())
+        tmp.replace(self.state / "view.png")
         data = base64.standard_b64encode(png.getvalue())
         out = [b"\x1b[?2026h\x1b[H"]
         for start in range(0, len(data), 4096):
@@ -316,12 +318,18 @@ def cmd_snapshot(_args):
 def cmd_close(_args):
     state = state_dir()
     info = viewer_info(state)
+    closed = False
     if info:
-        os.kill(info["pid"], signal.SIGTERM)
-        deadline = time.monotonic() + 3
-        while viewer_info(state) and time.monotonic() < deadline:
-            time.sleep(0.05)
-    print(json.dumps({"closed": bool(info) and not viewer_info(state)}))
+        try:
+            os.kill(info["pid"], signal.SIGTERM)
+        except ProcessLookupError:
+            closed = True
+        else:
+            deadline = time.monotonic() + 3
+            while viewer_info(state) and time.monotonic() < deadline:
+                time.sleep(0.05)
+            closed = not viewer_info(state)
+    print(json.dumps({"closed": closed}))
 
 
 def main():

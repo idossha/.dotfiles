@@ -215,11 +215,19 @@ class OwnershipTests(unittest.TestCase):
         self.assertEqual((self.destination / ".claude/AGENTS.md").resolve(),
                          (self.agent / "policy/global.md").resolve())
 
-    def test_memory_policy_has_no_local_router_overlap(self):
-        self.assertTrue((self.agent / "policy/global.md").is_file())
-        self.assertFalse((self.agent / "memory/global.md").exists())
-        self.assertFalse((self.agent / "scripts/remember").exists())
-        self.assertFalse((self.agent / "skills/remember").exists())
+    def test_second_brain_hooks_render_to_claude_settings(self):
+        self.run_sync()
+        settings = json.loads((self.destination / ".claude/settings.json").read_text())
+        rendered = {
+            event: [(hook["command"], tuple(hook["args"]))
+                    for group in groups for hook in group["hooks"]]
+            for event, groups in settings["hooks"].items()
+        }
+        expected = {
+            event: [("/Users/idohaber/.local/bin/brain", ("hook", event))]
+            for event in ("SessionStart", "UserPromptSubmit", "SessionEnd", "PreCompact")
+        }
+        self.assertEqual(rendered, expected)
 
     def test_validation_rejects_empty_skill_set_and_colliding_names(self):
         empty = self.root / "empty"
