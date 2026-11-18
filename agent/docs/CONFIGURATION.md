@@ -33,6 +33,8 @@ at a lease that will later be returned.
 | `claude/settings.json`, `pi/settings.json` | Real generated files; unknown local fields preserved, canonical keys authoritative |
 | `mcps/mcp-servers.json` | Claude user scope in local `~/.claude.json`, Pi JSON link |
 
+Claude's canonical `permissions.allow` uses bare `Read`, `Write`, `Edit`, `Glob`, and `Grep` rules because Claude scopes their `(*)` forms to working directories; the bare rules grant every path.
+
 Ignored `agent/local/` overlays and their ownership manifest are machine state, not portable memory.
 Unknown real files displaced by links are backed up. Managed stale links are retired; provider-bundled
 skills, tool-installed skills, unrelated user skills, and MCP servers are preserved. Never commit the full
