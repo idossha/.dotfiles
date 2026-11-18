@@ -63,7 +63,8 @@ case "${1:-}" in
     layout "$REX_SESSION" "$REX_BLOCK" "$PWD"
     ;;
   '')
-    jq -r '.projects | to_entries[] | [.key, .value.path] | @tsv' "$registry" |
+    projects=$(jq -r '.projects | to_entries[] | [.key, .value.path] | @tsv' "$registry")
+    printf '%s\n' "$projects" |
       {
         rc=0   # one missing directory must not stop the rest; rex must not eat the list on stdin
         while IFS="$(printf '\t')" read -r name dir; do
