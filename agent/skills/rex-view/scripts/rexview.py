@@ -37,6 +37,10 @@ from PIL import Image
 RASTER = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".tif", ".tiff", ".bmp"}
 
 
+def status_text(text: str) -> str:
+    return re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)
+
+
 def page_count(path: Path) -> int:
     if path.suffix.lower() != ".pdf":
         return 1
@@ -209,7 +213,7 @@ class Viewer:
             except (subprocess.CalledProcessError, OSError, ValueError) as error:
                 detail = getattr(error, "stderr", b"") or str(error).encode()
                 lines = detail.decode(errors="replace").strip().splitlines() or [type(error).__name__]
-                self.message = "cannot render: " + lines[-1][:120]
+                self.message = "cannot render: " + status_text(lines[-1])[:120]
         if self.image is not None:
             canvas.paste(self.image, ((canvas_w - self.image.width) // 2, (canvas_h - self.image.height) // 2))
         png = io.BytesIO()
@@ -234,13 +238,14 @@ class Viewer:
         if not self.files:
             return " waiting for a figure ".ljust(cols)[:cols]
         path = self.files[self.index]
-        parts = [f"{path.parent.name}/{path.name}" if path.name.startswith("figure.") else path.name]
+        label = f"{path.parent.name}/{path.name}" if path.name.startswith("figure.") else path.name
+        parts = [status_text(label)]
         if self.pages > 1:
             parts.append(f"page {self.page}/{self.pages}")
         if len(self.files) > 1:
             parts.append(f"file {self.index + 1}/{len(self.files)}")
         if self.message:
-            parts.append(self.message)
+            parts.append(status_text(self.message))
         if self.pages > 1 or len(self.files) > 1:
             parts.append("n/p")
         parts.append("q closes")

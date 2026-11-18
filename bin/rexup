@@ -54,6 +54,11 @@ create() { # name dir
 case "${1:-}" in
   --here)
     : "${REX_SESSION:?not in a Rex terminal}" "${REX_BLOCK:?not in a Rex terminal}"
+    blocks=$(rex block ls -s "$REX_SESSION" --json)
+    if printf '%s' "$blocks" | jq -e 'any(.blocks[]; .label == "agent")' >/dev/null; then
+      echo "$(basename "$PWD"): exists"
+      exit 0
+    fi
     rex session rename "$REX_SESSION" "$(basename "$PWD")" >/dev/null
     layout "$REX_SESSION" "$REX_BLOCK" "$PWD"
     ;;

@@ -10,7 +10,8 @@ Notable changes to the dotfiles are recorded here using the
 - **Codex is no longer a supported harness** — `agentctl sync` stops generating `~/.codex` policy,
   configuration and rules, and `agentctl doctor` no longer probes for it. Claude Code and Pi are
   unchanged. The next sync removes the generated `~/.codex/AGENTS.md` link and `~/.codex/config.toml`;
-  local settings it held are kept in the ignored `agent/local/codex-config.local.toml`.
+  only local settings captured by the last sync are kept in the ignored `agent/local/codex-config.local.toml`.
+  `~/.codex/rules/default.rules` and the rest of `~/.codex` are left in place for the user to delete.
 - **The tmux `ido` shell function is gone** — use `rexup` for the same editor, agent and shell layout.
 - **idosleep no longer captures or recalls agent memory** — its hooks are replaced by `brain`; the old
   vault at `~/.idosleep` is left in place, read-only.
