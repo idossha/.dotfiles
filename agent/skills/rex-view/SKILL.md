@@ -24,7 +24,7 @@ scripts/rexview.py show /path/to/scratch/pipeline.svg
 ## Show a figure
 
 ```bash
-scripts/rexview.py show figures/fig-main            # a directory resolves to its figure.svg
+scripts/rexview.py show figures/fig-main            # a directory resolves to figure.svg, figure.png, or figure.pdf
 scripts/rexview.py show plot.png report.pdf --page 3
 ```
 
