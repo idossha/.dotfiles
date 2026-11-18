@@ -26,8 +26,8 @@ Notable changes to the dotfiles are recorded here using the
 ### Added
 
 - **`rexup` opens a Rex session per project** — `rexup` builds every registered project, `rexup NAME` or
-  `rexup DIR` builds one, and `rexup --here` lays out the current session: nvim, an agent and a shell,
-  plus a lazygit tab in git repositories. Existing sessions are left alone.
+  `rexup DIR` builds one, and `rexup --here` adds an agent and shell around the current pane, plus a
+  lazygit tab in git repositories; it leaves starting the editor to the user. Existing sessions are left alone.
 - **Agents can show a figure beside the conversation in Rex** — the `rex-view` skill draws SVG, PDF and
   image files in a side pane and redraws them when the file changes.
 - **Agent memory lives in `~/SecondBrain`** — sessions are captured and recalled by the `brain` hooks;

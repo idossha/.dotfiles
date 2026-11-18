@@ -256,7 +256,8 @@ def state_dir() -> Path:
     base = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state") / "rexview"
     session = re.sub(r"[^A-Za-z0-9-]", "_", os.environ.get("REX_SESSION") or "default")
     path = base / session
-    path.mkdir(parents=True, exist_ok=True)
+    path.mkdir(parents=True, exist_ok=True, mode=0o700)
+    path.chmod(0o700)
     return path
 
 
@@ -264,8 +265,12 @@ def viewer_info(state: Path) -> dict | None:
     try:
         info = json.loads((state / "viewer.json").read_text())
         os.kill(info["pid"], 0)
+        command = subprocess.run(["ps", "-p", str(info["pid"]), "-o", "command="],
+                                 capture_output=True, text=True, check=True).stdout
+        if "rexview.py" not in command or "_serve" not in command:
+            return None
         return info
-    except (OSError, ValueError, KeyError):
+    except (OSError, TypeError, ValueError, KeyError, subprocess.CalledProcessError):
         return None
 
 
